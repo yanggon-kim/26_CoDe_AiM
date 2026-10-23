@@ -1,0 +1,14 @@
+% Abstract: seven moves, <= 200 words; every number also printed in Sec. I or II.
+\begin{abstract}
+Large language model decoding on mobile platforms and edge servers runs skinny GEMMs: speculative decoding verifies a few
+drafted tokens and batching serves a few requests, so each weight matrix meets 2 to 32 tokens and the host stays memory-bound. DRAM processing-in-memory (PIM) offers the bandwidth but is
+designed for GEMV: its processing units (PUs) run one multiply--accumulate (MAC) beat per column command, so their
+compute serves one token, not 32. Prior designs keep every MAC paced by a DRAM command: LP-Spec widens each command's
+MAC step with 4$\times$ the multipliers, and P3-LLM's command per token caps a read at two tokens. We observe that
+DRAM timing parameters bound column accesses, not MACs on a latched column: a column lasts 5\,ns on LPDDR5-6400 and
+4\,ns on HBM2, and each period fits four PU beats at 0.8--1\,GHz. We propose CoDe (Command-Decoupled PIM): one
+command delivers a weight column, which the PU applies to a tile of tokens at its own clock. On each rival's
+memory, workload and precision, CoDe reaches 1.86$\times$ LP-Spec-style's GEMM throughput per logic mm$^2$ at the
+same decode speed (1.00--1.006$\times$) on a mobile platform, and on HBM2 runs batched decode steps 1.68$\times$
+faster than P3-LLM-style at 1.26$\times$ its throughput per logic mm$^2$ and 1.64$\times$ its system energy efficiency.
+\end{abstract}

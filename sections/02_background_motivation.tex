@@ -1,0 +1,278 @@
+\section{Background and Motivation}
+\label{sec:bg}
+
+Throughput numbers in this section are modelled on the mobile platform and the edge server that
+Section~\ref{sec:eval:method} details.
+
+\subsection{Skinny GEMM in LLM Decoding}
+\label{sec:bg:skinny}
+
+A linear layer computes $Y = X W$ with a weight matrix $W$ of $K \times N$ and $M$ token rows in $X$. Plain decoding
+($M = 1$) computes a GEMV. We call the layer a \emph{skinny GEMM} when $M \ll K, N$; this paper takes $2 \le M \le 32$
+with $K$ and $N$ in the thousands, inside the bound $M \ll 64$ that FlashDecoding++~\cite{flashdecodingpp} reports for
+decode GEMMs. A speculative decoder~\cite{leviathan2023} drafts tokens cheaply and verifies the $M$ drafted tokens in one
+pass of the target model, as a chain or as a token tree~\cite{eagle2}; a batched decoder serves $M$ requests per step.
+Published mobile decoders verify 2--8 drafted tokens padded to at most 32~\cite{sdnpu}, 1--32 on LPDDR-PIM~\cite{lpspec}
+and token trees of 4--64~\cite{lever}, and edge-server batches hold 1--8 requests~\cite{p3llm}. Token trees for
+datacenter GPUs (48--60~\cite{eagle2}, 64~\cite{medusa}, 64--128~\cite{sequoia}) and latency-capped datacenter batches
+(16--27~\cite{attacc}) reach past that range, and there the GEMM moves to the host (Section~\ref{sec:bg:roofline}). This
+paper targets verification on the mobile platform ($M = 2$--32~\cite{sdnpu,lpspec}) and batches on the edge server
+($M = 2$--8~\cite{p3llm}).
+
+\subsection{DRAM and AiM-Style PIM}
+\label{sec:bg:pim}
+
+A DRAM channel holds 16 banks in four bank groups (Fig.~\ref{fig:dram_pim}a). An activation latches one row of a bank in
+its sense amplifiers, and each column command then moves one 32-byte atom of that row. Column commands may issue every
+\tccds{} to different bank groups and every \tccdl{} to the same bank group, as the three reads of
+Fig.~\ref{fig:dram_pim}b do; \tccdl{} is twice \tccds{} on
+LPDDR5~\cite{ramulator2} and on HBM~\cite{p3llm}.
+
+AiM-style PIM adds a processing unit (PU) beside each bank (beside each pair of banks in HBM2) and a global buffer (GB),
+shared by all PUs, that holds the input vector~\cite{aimjssc,hbmpim}; Fig.~\ref{fig:dram_pim}a enlarges one bank with its PU. An all-bank
+MAC command reads one column from every open bank at once and starts one MAC beat in each PU; on the mobile platform,
+one beat is 32 INT8 multiplies of the column against 32 GB elements, accumulated into the PU's output register. The
+all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the MAC commands in Fig.~\ref{fig:dram_pim}b. A GEMV spreads the output rows over the banks and takes one
+all-bank command per weight column.
+
+A GEMV runs as row sweeps between non-MAC commands (Fig.~\ref{fig:dram_pim}c). A \emph{row sweep} streams $c$
+all-bank MAC commands, about 62 on either platform, over one open row into the PUs' output registers. A row sweep
+belongs to one row of weights and serves the $A$ tokens whose inputs the GB holds; stock AiM's row sweep serves one
+token, so stock AiM sweeps each row once per token. In the AiM command set~\cite{aimjssc}, as our simulator issues it
+(Section~\ref{sec:eval:method}), WRGB writes one token's input chunk into the GB once, and every row sweep over that
+chunk reads the chunk. WRMAC16 sets the output registers to the bias. A mode switch (TMOD) moves the controller from
+register commands to MAC commands and back; PREA and ACT16 close the previous row and open the sweep's row in all
+banks, and RDMAC16 drains each token's sums at the end of the sweep.
+
+\subsection{PIM--Host Crossover}
+\label{sec:bg:roofline}
+
+Fig.~\ref{fig:roofline} plots skinny-GEMM throughput against $M$ in the roofline form~\cite{roofline} for the host
+NPU's roof and for simulated PIM GEMMs of stock AiM and each platform's rival; each PIM curve is the geometric mean over
+the FC shapes of the platform's models. Fig.~\ref{fig:roofline} and the later throughput figures plot $M = 2^k$; at
+other $M$, PIM throughput dips by group quantization. The mobile NPU is the Snapdragon 8 Gen 3's~\cite{sd8g3}, which reaches
+56\,GB/s~\cite{powerinfer2} of its own 68\,GB/s pins~\cite{heterollm}; applied to the 51.2\,GB/s pins of x64
+LPDDR5-6400, that fraction gives the NPU 42\,GB/s\ASSUMPTION. The edge-server NPU is P3-LLM's~\cite{p3llm} at
+256\,GB/s and 131\,TOPS\ASSUMPTION.
+
+\paragraph{Host roof in the skinny range}
+The host stays memory-bound across the whole skinny range. The 8 Gen 3~\cite{sd8g3} NPU reaches its compute roof only at
+$M \approx 143$, and P3-LLM's~\cite{p3llm} NPU reaches its roof at $M = 128$ (Fig.~\ref{fig:roofline}a, b). Each NPU's
+ridge lies far above $M = 32$, so every skinny GEMM runs on the host's memory roof, which rises linearly with $M$.
+
+\paragraph{Stock-PIM crossover}
+Stock PIM beats the host only for the first few token rows. At $M = 1$ every PIM ceiling starts 9.75$\times$ above the
+mobile NPU's roof and 4$\times$ above the edge-server NPU's roof. Stock AiM's ceiling is flat from $M = 1$, however,
+because stock AiM repeats the GEMV once per token row (Section~\ref{sec:bg:cmd}). The rising host roof overtakes that
+ceiling, and stock AiM wins a whole decode step only up to $M = 6$--7 on the mobile platform and $M = 2$--3 on the edge
+server, below most of the published values of $M$ (Section~\ref{sec:bg:skinny}).
+
+\paragraph{GEMV-only use of PIM}
+Stock PIM is a GEMV engine, and published systems keep PIM for GEMVs and send the GEMMs to the host.
+AttAcc~\cite{attacc} runs batched FC layers on the xPU and attention on PIM. NeuPIMs~\cite{neupims} maps the GEMMs to
+the NPU because PIM ``lacks the computational power to handle GEMM effectively.'' IANUS~\cite{ianus} chooses NPU or PIM
+per FC layer. P3-LLM~\cite{p3llm} offloads its linear layers to the NPU from batch 8, where its PIM becomes
+compute-bound.
+
+% float placed early (cited first in II-D): column-width schematic, top of the next column
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figs/fig_timeline.pdf}
+  \caption{One weight column of one bank in four designs; lanes show DRAM commands (cmd), column reads (bank) and MAC
+  beats (PU).}
+  \label{fig:timeline}
+\end{figure}
+
+\subsection{Command-Bound PIM Execution}
+\label{sec:bg:cmd}
+
+\paragraph{Command pacing}
+In stock PIM a DRAM column command starts every MAC: HBM-PIM~\cite{hbmpim} executes one instruction per column
+command, and AiM~\cite{aimjssc} clocks its PU at its interface's $t_\mathrm{CCD}$. In Fig.~\ref{fig:dram_pim}b each all-bank
+MAC command starts one beat, and a PU clocked at the command clock CK finishes that beat in one CK cycle and waits for the next command.
+Fig.~\ref{fig:timeline} follows one weight column of one bank through $M = 8$ tokens, in column periods $T$ with a PU
+clock that fits $D = 4$ beats into each period; the first three rows of Fig.~\ref{fig:timeline} show the same pacing in
+the prior designs of Section~\ref{sec:bg:walls}. The column commands and their spacing,
+\tccds{} and \tccdl, exist to access the DRAM array: each column command drives the bank's column decoder and I/O sense
+amplifiers to move one column out of the cell array~\cite{hbmpim}. A MAC that executes only when a column command
+arrives therefore inherits array-access timing as the limit of its throughput. A faster-PU test confirms that the
+command count, not the PU's arithmetic, sets the time of a stock GEMM. Stock AiM repeats the GEMV once per token row,
+so its MAC command count equals $M$ times the number of weight columns, and in our simulation its GEMM time grows in
+proportion to $M$, within 0.13\,\% on the mobile platform and 2.7\,\% on the edge server. Replacing the column-matched
+stock PU of Table~\ref{tab:params}, one beat per column period, with a PU four times faster, clocked at CK (0.8\,GHz on
+LPDDR5-6400 and 1\,GHz on HBM2), leaves every stock GEMM at the same number of cycles, because the command spacing, not
+the PU clock, sets the time of each MAC command's slot (Fig.~\ref{fig:dram_pim}b).
+
+\paragraph{Time breakdown}
+Useful MAC work fills at most a fifth of a stock GEMM's time. Fig.~\ref{fig:breakdown} splits stock AiM's GEMM time at $M = 8$ into
+MAC slots and the non-MAC commands between them, on one channel of each platform (channel 28 of the mobile platform and
+channel 30 of the edge server), for two kernels: one tile, whose weights fill one row sweep in each bank and whose
+inputs fill one GB chunk ($K \times N$ of $2048 \times 64$ on the mobile platform and $4096 \times 256$ on the edge
+server), and the $4096 \times 4096$ query projection (q\_proj) of Llama-2-7B on the mobile platform and of Llama-3.1-8B
+on the edge server. The MAC slots hold useful beats and idle beats; the non-MAC commands are the row-switch commands,
+the token load/drain commands and refresh. The useful share of the time is the useful-MAC utilization
+$U = W \tck / T_\mathrm{GEMM}$, where $W$ is the number of useful MAC beats per PU, $T_\mathrm{GEMM}$ is the GEMM time
+and the reference PU runs one useful beat per CK cycle; the cycle \tck is 1.25\,ns on the mobile platform and 1\,ns on
+the edge server, and the reference PU fits $D = 4$ beats into each column period. Across the four kernels, useful beats
+take 14.2--19.5\,\% of the time, idle beats 42.7--58.4\,\% and the non-MAC commands 22.1--43.0\,\%; the bars leave out
+the remaining stalls, at most 0.015\,\%. Stock AiM thus loses useful MAC beats to two bottlenecks: idle beats inside
+the MAC slots, and non-MAC commands between them.
+
+% stock time-breakdown figure (cited first in II-D's Time breakdown paragraph); generated by
+% scripts/make_fig_breakdown.py (evaluation/dac_2x2 Sec. 2j, figures/tab_umac_kernel_stock.csv)
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figs/fig_breakdown.pdf}
+  \caption{Stock AiM's GEMM time by component.}
+  \label{fig:breakdown}
+\end{figure}
+
+\paragraph{Idle beats}
+Idle beats fill three quarters of every stock MAC slot. $U$ is the product of a slot factor and a sweep factor,
+$U = \UMAC \times \fMAC$. The slot factor $\UMAC = A\,b\,\tck / \tslot$ is the useful share of one MAC command's slot
+\tslot: the slot serves $A$ tokens with $b$ beats each ($b = 1$ on the mobile platform; $b = 2$ on the edge server,
+where each MAC command feeds a PU from its two banks). Stock AiM's slot serves one token, so the command pacing of
+Fig.~\ref{fig:dram_pim}b leaves three of the slot's four beats idle, and stock AiM's \UMAC is 1/4. Idle beats
+therefore take three times the time of the useful beats and form the largest segment of every bar in
+Fig.~\ref{fig:breakdown}: 58.4\,\% of q\_proj's time on the mobile platform and 57.4\,\% on the edge server.
+
+\paragraph{Non-MAC commands}
+Stock AiM's row-switch commands outlast the useful MAC work of their row sweep. The sweep factor \fMAC is the share of
+the GEMM time spent in MAC slots rather than in the non-MAC commands of the row sweeps (Fig.~\ref{fig:dram_pim}c).
+Each row sweep of $c$ MAC slots pays the \emph{row-switch overhead} \trow once, for its \emph{row-switch commands}: the
+two mode switches (TMOD), the row's PREA and ACT16 pair and the WRMAC16. Each row sweep pays \ttok once per token, for the \emph{token load/drain
+commands}, the token's share of WRGB and its RDMAC16 drain:
+\begin{equation}
+  \fMAC = \frac{(1 - \rho)\, c\, \tslot}{c\, \tslot + \trow + A\, \ttok},
+\end{equation}
+where $\rho$ is the share of time that refresh takes. Fitted on stock AiM at $M = 1$, \trow is 85.73\,ns and \ttok
+4.26\,ns on the mobile platform, where $\rho$ is 0 (Section~\ref{sec:eval:method}); on the edge server, \trow is
+94.76\,ns and \ttok 9.64\,ns with $\rho = 0.061$. Over one decoder layer's weight GEMMs on the mobile platform, where
+each stock row sweep serves one token, the simulated row-switch commands take 89.0\,ns per sweep, against 78.0\,ns of
+useful MAC work, the time $c\,b\,\tck$ that the reference PU needs for the sweep's beats. The two TMODs take the
+largest part, 40.3\,ns, and the ACT16 pair, timed by a simulator preset, takes 36.4\,ns. PREA takes 11.1\,ns and
+WRMAC16 1.2\,ns. The fitted \trow of 85.73\,ns lies below the sum because the fit nets out the MAC tail that overlaps
+the row-switch commands. In Fig.~\ref{fig:breakdown}, the row-switch commands take 20.6\,\% of q\_proj's time on the
+mobile platform and 13.8\,\% on the edge server. The token load/drain commands scale with the tokens and the GB fills
+instead. RDMAC16 drains each token's sums once per row sweep and takes at most 1.0\,\% of a kernel's time. WRGB fills
+the GB once per token and $K$ chunk, and one fill serves every row sweep over that chunk: 64 row sweeps in the mobile
+q\_proj, 16 in the edge-server q\_proj and one in either one-tile kernel. Token load therefore takes 0.6\,\% and
+2.4\,\% of q\_proj's time but 30.4\,\% and 28.5\,\% of the one tile's. On the edge server refresh takes 6.2\,\% of
+q\_proj's time, and over the layer stock AiM's non-MAC time, 146.2\,ns per row sweep including 41.8\,ns of refresh,
+exceeds its 123.3\,ns of useful MAC work. Over one decoder layer's weight GEMMs, stock AiM's MAC slots fill
+$\fMAC = 0.776$ of the time on the mobile platform, so stock AiM's $U$ is $1/4 \times 0.776 = 0.194$
+(Table~\ref{tab:umac}); on the edge server, stock AiM's $U$ is 0.193. Section~\ref{sec:bg:depth} names one lever for
+each of the two bottlenecks.
+
+\subsection{GEMM Support in Prior PIM}
+\label{sec:bg:walls}
+
+Prior designs raise the PIM ceiling in two families, and each family still paces every MAC by a command.
+In Fig.~\ref{fig:timeline}, stock AiM spends 8 column periods, 8 commands and 8 reads on the 8 tokens.
+
+% useful-MAC table (cited first in II-D): defined in II-E's text on page 3's right column, so it renders at the
+% top of that column, opposite Fig. 3; generated by
+% scripts/make_tables.py (simulated values, evaluation/dac_2x2 Sec. 2h)
+\begin{table}[t]
+  \caption{Useful-MAC utilization on the mobile platform.}
+  \label{tab:umac}
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{3pt}
+  \input{tables/tab_umac}
+\end{table}
+
+\paragraph{Wider-PU family}
+Six designs widen the MAC step with multipliers. LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8
+ALUs, clocks the ALUs at 200\,MHz to match the memory's 5\,ns $t_\mathrm{CCD}$, and shares one unit between two banks;
+we model one such unit per bank. One column command feeds the four ALUs with four tokens, one MAC step each, so the 8
+tokens take 2 periods, 2 commands and 2 reads, on four times the stock multipliers. The 4$\times$ ceiling moves the
+crossover of this per-bank design with the host to $M = 24$ on the mobile platform (Fig.~\ref{fig:roofline}a).
+PAPI~\cite{papi} places four processing units in each bank, and StepStone~\cite{stepstone} places SIMD units at the
+bank groups or beside the devices of a memory module. Duplex~\cite{duplex} and H$^2$-LLM~\cite{h2llm} build their
+multipliers on a logic die under the DRAM, and MoNDE~\cite{monde} builds them into a memory-side controller. We take
+LP-Spec~\cite{lpspec} as the representative of the wider-PU family and model it as an \textbf{LP-Spec-style} design,
+the rival on the mobile platform (Section~\ref{sec:eval:phone}). LP-Spec-style's slot serves four tokens, so
+LP-Spec-style reaches $\UMAC = 1$ (Table~\ref{tab:umac}) only with four times the multipliers: per multiplier,
+LP-Spec-style's $U$ is 0.188 on the mobile platform and 0.185 on the edge server, below stock AiM's.
+
+\paragraph{Faster-PU family}
+A faster PU lets at most two tokens share one column read. P3-LLM~\cite{p3llm} keeps the weight of a column read
+latched in its PU, issues one further command per token and clocks its PU at 500\,MHz, one beat per HBM2 \tccds.
+Commands may issue only every \tccds, ``typically a half of \tccdl{}''~\cite{p3llm}, while the all-bank column runs at
+\tccdl~\cite{hbmpim}, so at most two tokens share a read: the 8 tokens take 4 periods, 8 commands and 4 reads. On
+every memory family whose \tccdl{} is twice \tccds{}, the depth cap is 2, so the faster-PU family's slot serves at
+most two tokens and its \UMAC stops at 1/2. The 2$\times$ ceiling moves the crossover of
+this design with the host to $M = 4$--6 on the edge server (Fig.~\ref{fig:roofline}b). P3-LLM~\cite{p3llm} is the only
+design that applies a faster PU to $M > 1$, so we take P3-LLM as the representative of the faster-PU family and model
+it as a \textbf{P3-LLM-style} design, the rival on the edge server (Section~\ref{sec:eval:server}).
+
+% Table II (cited first in II-D, set up in IV-A): defined in II-E's text on page 4's left column, so it renders at
+% the top of that column, opposite Fig. 4 and off the page of the full-width Fig. 5
+\begin{table}[t]
+  \caption{Design parameters per platform, with logic area (mm$^2$) and ungated peak power (mW).}
+  \label{tab:params}
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{2.2pt}
+  \input{tables/tab_params}
+\end{table}
+
+\paragraph{Cost of logic in a DRAM die}
+Logic in a DRAM die costs area: a DRAM process builds logic 10$\times$ less dense than an ASIC process and routes the
+logic in three metal layers instead of ten or more~\cite{devaux}. In GDDR6-AiM~\cite{aimjssc} silicon, one PU occupies
+0.19\,mm$^2$. Samsung's HBM-PIM~\cite{hbmpim} halves its DRAM sub-arrays to make room for its PUs, and the PU-based
+prototypes lose 50\,\% of memory capacity~\cite{pimpal}. By LP-Spec's~\cite{lpspec} own estimate its matrix units take
+16.92\,\% of a 16\,Gb LPDDR5 die, against 20--25\,\% of the chip for all of AiM's~\cite{aimjssc} compute circuits.
+Four times the multipliers per bank therefore cost capacity, and per unit of logic area the order of the two families
+reverses: LP-Spec-style's ceiling per logic mm$^2$, 314\,GOPS on the mobile platform and 697 on the edge server, falls
+below P3-LLM-style's 390 and 830. Logic-die designs build their multipliers in a logic process on a separate
+die~\cite{duplex,h2llm}. Hybrid bonding, one way to attach that die, brings an integration overhead of its
+own~\cite{h2llm}.
+
+The remaining LLM PIM designs fall outside the wider-PU and faster-PU families. GEMV-only designs serve one input
+vector per weight read~\cite{newton,cent,pimgpt}, lookup-table designs replace multiplications with table
+lookups~\cite{localut,pimpal,pimdl}, and scheduling and dataflow designs reorganize the work around the
+PU~\cite{pimba,paise,splitsync,dots,pimphony}. Paik et al.~\cite{paik2022} decouple memory access from computation
+across banks so that per-bank PIM reaches all-bank throughput on a standard interface. Three designs, the closest prior
+art, run several MAC beats per column read, yet each design holds one input vector ($M = 1$): SAL-PIM~\cite{salpim}
+clocks its MAC units at twice the column rate, the Precision-Flexible PU~\cite{pfpu} runs four phases per column
+interval on packed low-bit operands, and CD-PIM~\cite{cdpim} runs two compute units per bank at twice the internal
+clock. CD-PIM~\cite{cdpim} leaves the GEMM to the host processor, and the extra beats of all three designs work on the
+same vector.
+
+\subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
+\label{sec:bg:depth}
+
+The column commands of Sections~\ref{sec:bg:cmd} and~\ref{sec:bg:walls} bound how often a column leaves the array, not
+how often a PU can compute. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
+boundary~\cite{hbmpim}, so a column the PU has latched stays usable after its command: P3-LLM~\cite{p3llm} reuses a
+latched column for two tokens at unchanged cell-access and column-decoder power, the majority of PIM power. The column
+period $t_\mathrm{col}$ thus sets how often weights arrive at a PU, and the PU clock $f_\mathrm{PU}$ sets how often the
+PU computes on the weights. The product $D = \lfloor t_\mathrm{col} \times f_\mathrm{PU} \rfloor$ is the number of
+beats one column read can feed. A column lasts 5\,ns on LPDDR5-6400~\cite{lpspec,ramulator2} and \tccdl${}=4$\,ns on
+HBM2~\cite{hbmpim,p3llm}. Each period lasts four cycles of CK, \tck${}= 1.25$\,ns on LPDDR5-6400
+and 1\,ns on HBM2~\cite{hbmpim,p3llm}, so a PU clocked at CK, 0.8\,GHz on LPDDR5-6400 and 1\,GHz on HBM2, fits
+$D = 4$ beats into either period. HBM3 at 6.4\,Gb/s leaves a 2.5\,ns
+column~\cite{ramulator2,p3llm}, so a 1\,GHz PU gets $D = 2$ there, the same depth P3-LLM-style reaches with commands.
+
+\paragraph{PU clock in a DRAM die}
+A PU clocked at CK has precedent in DRAM silicon and in a PIM design for HBM2. HBM2's DRAM core runs at a quarter of
+the 1.0--1.2\,GHz bus clock, and Samsung's HBM-PIM~\cite{hbmpim} sets its FP16 PU to the core frequency,
+250--300\,MHz, in a 20\,nm DRAM process. Logic in later DRAM processes runs faster: UPMEM's processor~\cite{devaux}
+executes 32-bit integer instructions at 500\,MHz in a 2x-nm DRAM process, and GDDR6-AiM~\cite{aimjssc} runs BF16
+multipliers and adder trees at 1\,GHz in a 1y-nm DRAM process. The 1y-nm process also builds HBM: Samsung's
+HBM2E~\cite{flashbolt} stacks eight 1y-nm DRAM dies. The Precision-Flexible PU~\cite{pfpu} clocks an HBM-PIM-style
+PU at \tck, 1\,GHz on HBM2, and splits each 4-\tck column interval into four phases.
+
+At $D = 4$, stock AiM's one beat per command lets a PU compute one beat of four per column, for $\UMAC = 1/4$
+(Fig.~\ref{fig:dram_pim}b), and P3-LLM-style's commands let it compute two, for $\UMAC = 1/2$. Two levers remain,
+one for each bottleneck of Section~\ref{sec:bg:cmd}: \emph{beat filling} uses all four beats of a slot without
+adding multipliers, which raises the slot factor, and \emph{row reuse} lets the $A$ tokens of a row sweep reuse its
+open row and pay its row-switch commands once, which raises the sweep factor. A token then pays about $\trow / A + \ttok$ of
+non-MAC time per row sweep: on the mobile platform the simulated time falls from 90.16\,ns at $A = 1$ to 14.55\,ns at
+$A = 8$ (Table~\ref{tab:umac}), and on the edge server, refresh included, it is 146.17, 78.70 and 43.51\,ns at $A = 1$,
+2 and 4. Table~\ref{tab:umac} prints simulated values; on the designs the formula was not fitted on, the formula's $U$
+lies within 0.47\,\% of the simulated $U$ on the mobile platform and within 0.59\,\% on the edge server. Sections~\ref{sec:design:beat} and~\ref{sec:design:reuse} build both levers into CoDe, whose MACs follow
+the PU clock: with one PU, one command and the stock multiplier count, CoDe's ceiling reaches 583 and 1,247\,GOPS per logic
+mm$^2$, and CoDe's $U$ reaches 0.843 on the mobile platform (Table~\ref{tab:umac}).

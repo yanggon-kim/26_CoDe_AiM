@@ -1,0 +1,16 @@
+# LaTeX build outputs
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.toc
+*.lof
+*.lot
+main.pdf
+# figure previews (the PDFs in figs/ are tracked: Overleaf cannot run the scripts)
+figs/*.png
+__pycache__/

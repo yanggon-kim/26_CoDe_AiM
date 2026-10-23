@@ -1,0 +1,73 @@
+% ISCA 2027 main-track submission (template: template/, the ISCA 2026 IEEE package, IEEEtran.cls unchanged).
+% Format: at most 11 pages of two-column text NOT counting references (references unlimited, 8 pt); US letter;
+% 10 pt Times body, 8 pt captions; page numbers on every page; the submission banner on page 1; double-blind (no
+% author names in the text or the PDF metadata); every reference lists ALL its authors (no "et al.").
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{booktabs}
+\usepackage{array}% >{\raggedright} columns (Table cmds)
+\usepackage{xcolor}
+\usepackage{xspace}
+\usepackage{pifont}% circled step numbers (\ding{172} = 1) keyed to Figs. sequence and tile
+% clickable figure, table, section and citation numbers; one dark blue that still reads in print; loaded last
+\definecolor{linkblue}{RGB}{0,51,153}
+\PassOptionsToPackage{hyphens}{url}% long web URLs in the bibliography break at hyphens
+\usepackage[colorlinks,linkcolor=linkblue,citecolor=linkblue,urlcolor=linkblue]{hyperref}
+% double-blind: the PDF metadata carries the paper title only, never an author
+\hypersetup{pdftitle={Commands Are the Bottleneck: CoDe, a Command-Decoupled PIM for Skinny GEMMs on Mobile and Server DRAM},
+  pdfauthor={}, pdfsubject={}, pdfkeywords={}}
+
+% ---- macros -----------------------------------------------------------------
+% a value still being computed by another owner; must be 0 at submission
+\newcommand{\PENDING}[1]{\textcolor{red}{\textbf{[PENDING: #1]}}}
+% an unavoidable modelling assumption (project rule: every assumption is tagged)
+\newcommand{\ASSUMPTION}{\textsuperscript{\textsc{[assumption]}}}
+\newcommand{\tccds}{$t_\mathrm{CCD\_S}$\xspace}
+\newcommand{\tccdl}{$t_\mathrm{CCD\_L}$\xspace}
+\newcommand{\tcol}{$t_\mathrm{col}$\xspace}
+% useful-MAC utilization (II-D; the symbols work in and out of math, xspace only in text): U = U_MAC x f_MAC; canonical names "useful-MAC utilization U", "slot factor",
+% "sweep factor", "row sweep", "row-switch commands" / "row-switch overhead" (t_row), "token load/drain commands" (t_tok),
+% "beat filling", "row reuse" (D-36); never "PU busy" or "PU utilization" (retired 2026-10-19)
+\newcommand{\tck}{\ensuremath{t_\mathrm{CK}}\ifmmode\else\expandafter\xspace\fi}
+\newcommand{\tslot}{\ensuremath{t_\mathrm{slot}}\ifmmode\else\expandafter\xspace\fi}
+\newcommand{\trow}{\ensuremath{t_\mathrm{row}}\ifmmode\else\expandafter\xspace\fi}
+\newcommand{\ttok}{\ensuremath{t_\mathrm{tok}}\ifmmode\else\expandafter\xspace\fi}
+\newcommand{\UMAC}{\ensuremath{U_\mathrm{MAC}}\ifmmode\else\expandafter\xspace\fi}
+\newcommand{\fMAC}{\ensuremath{f_\mathrm{MAC}}\ifmmode\else\expandafter\xspace\fi}
+
+\begin{document}
+\bstctlcite{IEEEexample:BSTcontrol}
+
+% Ensure letter paper
+\pdfpagewidth=8.5in
+\pdfpageheight=11in
+
+%%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
+\newcommand{\iscasubmissionnumber}{NaN}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\pagenumbering{arabic}
+
+\title{Commands Are the Bottleneck: CoDe, a Command-Decoupled PIM for Skinny GEMMs on Mobile and Server DRAM}
+\author{\normalsize{ISCA 2027 Submission
+    \textbf{\#\iscasubmissionnumber} -- Confidential Draft -- Do NOT Distribute!!}}
+
+\maketitle
+\thispagestyle{plain}
+\pagestyle{plain}
+
+\input{sections/00_abstract}
+\input{sections/01_introduction}
+\input{sections/02_background_motivation}
+\input{sections/03_design}
+\input{sections/04_evaluation}
+\input{sections/05_conclusion}
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

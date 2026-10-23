@@ -1,0 +1,11 @@
+% Conclusion: five moves (claim, key idea, what was done, one number, outlook); ~115 words; no cite, no ref.
+\section{Conclusion}
+\label{sec:conclusion}
+
+Skinny GEMMs keep LLM decoding memory-bound on mobile platforms and edge servers, and prior DRAM PIM paces every
+multiply--accumulate (MAC) by a DRAM command. This paper argues that DRAM timing bounds column accesses, not MACs on a
+latched column. The key to CoDe is to decouple MAC timing from DRAM command timing: one column command feeds many processing-unit beats over a tile
+of tokens. We build CoDe on each rival's own memory. On LPDDR5-6400, CoDe reaches 1.86$\times$ LP-Spec-style's GEMM throughput
+per logic mm$^2$ at the same decode speed; on HBM2, CoDe runs batched decode steps 1.68$\times$ faster than P3-LLM-style. Since a
+column's beats follow from its period and the clock alone, the decoupling carries over to any DRAM whose column
+outlasts one beat.
