@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <title>fig_tile</title>
-<!-- Fig. (III-D): the CoDe PU inside its bank, as a block diagram (skill F9, F10), hand-maintained. Left group (bracket
+<!-- Fig. (IV-D): the CoDe PU inside its bank, as a block diagram (skill F9, F10), hand-maintained. Left group (bracket
      "beat filling"): the bank's cell array over the IOSA, whose column bus drops into the weight latch (1); the stock
      multiplier lanes (cells with an ellipsis, 32 lanes = Table II, mobile) and adder tree; the beat sequencer as a
      control bar under the datapath, clocked at CK = D / t_col (2). Right group (bracket "row reuse"): the staging
      register (V slots) fed by GB words from the shared global buffer (full-height block beside the bank, V tokens x K
-     chunk), the accumulator file (2V slots in two sets) and the drain port (5). Circled 1-5 = the III-D walk-through:
+     chunk), the accumulator file (2V slots in two sets) and the drain port (5). Circled 1-5 = the IV-D walk-through:
      (1) latch the column, (2) step k, (3) lanes multiply by staging slot k, (4) add into accumulator slot k, (5) burst
      drain. Tint = what CoDe adds or sizes by V. Text >= 8 pt (caption size).
      Drawn at final size (252 x 173 pt; \columnwidth = 252 pt), 1 user unit = 1 pt. Build:

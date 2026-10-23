@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Fig. breakdown (Sec. II-D): stock AiM's GEMM time by component, M = 8, one channel, normalized to 100 %.
+"""Fig. breakdown (Sec. III-B): stock AiM's GEMM time by component, M = 8, one channel, normalized to 100 %.
 
 Four horizontal stacked bars: mobile one tile (K 2048 x N 64, INT8, channel 28), mobile q_proj of Llama-2-7B
 (4096 x 4096), edge-server one tile (K 4096 x N 256, W4A8, channel 30), edge-server q_proj of Llama-3.1-8B; the absolute
 GEMM time is printed at each bar's end. Segments: MAC useful beats, MAC idle beats, row switch, token load, token drain,
 refresh. The "other" class (MAC16 stall + time before the first command + residual, at most 0.015 % of a bar) is left
-out of the bars; II-D's paragraph says so.
+out of the bars; III-B's paragraph says so.
 
 Source (read only): evaluation/dac_2x2/figures/tab_umac_kernel_stock.csv (stock rows of umac_kernel, microarch 170254c,
 collected at evaluation 472414f, context Sec. 2j) and evaluation/dac_2x2/touched.csv (umac.kernel.* ids: GB fill
-amortization). Asserts every share the figure draws and every number the II-D prose prints from this kernel.
+amortization). Asserts every share the figure draws and every number the III-B prose prints from this kernel.
 Writes figs/src/fig_breakdown.html; scripts/html2pdf.py fig_breakdown turns it into figs/fig_breakdown.pdf.
 """
 import csv
@@ -74,7 +74,7 @@ def checks(data):
         assert abs(seg(d, "MAC idle")[0] - 3 * seg(d, "MAC useful")[0]) < 1e-6, key
     sh = {k: {p: seg(data[k], p)[1] for _, p, _ in SEGS} for k in WANT}
     nonmac = {k: 100 - sh[k]["MAC useful beats"] - sh[k]["MAC idle beats"] for k in WANT}
-    # II-D prose (each value printed once):
+    # III-B prose (each value printed once):
     # Time breakdown: useful 14.2-19.5 %, idle 42.7-58.4 %, non-MAC commands 22.1-43.0 % across the four bars
     assert (round(min(v["MAC useful beats"] for v in sh.values()), 1), round(max(v["MAC useful beats"] for v in sh.values()), 1)) == (14.2, 19.5)
     assert (round(min(v["MAC idle beats"] for v in sh.values()), 1), round(max(v["MAC idle beats"] for v in sh.values()), 1)) == (42.7, 58.4)

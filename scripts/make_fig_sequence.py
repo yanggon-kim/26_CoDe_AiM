@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fig. sequence (Sec. III-A) and Table cmds (Sec. III-D): one weight row of Llama-2-7B's q_proj on the mobile platform,
+"""Fig. sequence (Sec. IV-A) and Table cmds (Sec. IV-D): one weight row of Llama-2-7B's q_proj on the mobile platform,
 M = 8, steady state, as the simulator issues it.
 
 (a) Stock AiM sweeps the row eight times, one token each; (b) CoDe (V = 8, D = 4) sweeps it once for all eight tokens.
@@ -14,7 +14,7 @@ raw/utrace_sum.csv (per-sweep totals), raw/ukern_phone_sum.csv (whole q_proj GEM
 touched.csv (umac.kernel.phone.W2.row_groups_per_fill), and the EV-58 pack's dac_table4.csv (GB KB, Table II).
 A window starts at the previous sweep's last MAC16 and ends at this sweep's last MAC16 (utrace_sum "run period"), so
 eight stock windows tile 8 consecutive sweeps exactly; the K chunk's WRGB burst (once per 64 sweeps) is not in it.
-Asserts every number Sec. III prints from this trace. Writes figs/src/fig_sequence.html (then
+Asserts every number Sec. IV prints from this trace. Writes figs/src/fig_sequence.html (then
 python3 scripts/html2pdf.py fig_sequence) and tables/tab_cmds.tex.
 """
 import csv
@@ -25,7 +25,7 @@ from svgchart import FL, FT, Fig, I, width
 
 RAW = os.path.join(EVAL, "dac_2x2", "raw")
 TOUCHED = os.path.join(EVAL, "dac_2x2", "touched.csv")
-TCK = 1.25                      # ns, mobile CK (II-C), one PU beat
+TCK = 1.25                      # ns, mobile CK (III-A), one PU beat
 V, D, SWEEPS = 8, 4, 8
 COL = {"row": "#CFE2F3", "mac": "#9A9A9A", "drain": "#000000", "beat": "#303030",
        "quarter": "#CBCBCB"}   # one busy beat in four, drawn as its average: 1/4 of #303030 over white
@@ -90,7 +90,7 @@ def checks():
     assert int(s["core8_gbfill/WRGB"]["count_per_run"]) == 512 and int(s["stock_gbfill/WRGB"]["count_per_run"]) == 64
     tid = {r["id"]: float(r["value"]) for r in csv.DictReader(open(TOUCHED))}
     assert tid["umac.kernel.phone.W2.row_groups_per_fill"] == 64 and tid["umac.kernel.phone.W2.k_chunks"] == 2
-    # GB (III-D): one K chunk of 4096 / 2 = 2,048 INT8 inputs = 2 KB per token = 64 WRGB of 32 B; V tokens -> 16 KB
+    # GB (IV-D): one K chunk of 4096 / 2 = 2,048 INT8 inputs = 2 KB per token = 64 WRGB of 32 B; V tokens -> 16 KB
     k_chunk_B = 4096 // int(tid["umac.kernel.phone.W2.k_chunks"])
     assert k_chunk_B == 2048 and k_chunk_B // 64 == 32 and 512 * 32 == V * k_chunk_B == 16 * 1024
     gb = {(r["substrate"][:5], r["design"]): int(r["GB_KB"]) for r in read("dac_table4.csv")}

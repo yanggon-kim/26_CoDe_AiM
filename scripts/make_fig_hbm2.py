@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure 6 (Sec. IV-C): the edge server, CoDe (V = 4) vs P3-LLM-style (stock AiM as the reference), HBM2, W4A8.
+"""Figure 6 (Sec. VI-B): the edge server, CoDe (V = 4) vs P3-LLM-style (stock AiM as the reference), HBM2, W4A8.
 
 Batched decode step, geometric mean over five LLMs (L = 4K): (a) tokens per second (M requests, one token each) with
 P3-LLM's NPU as the host line; (b) the same per logic mm^2 (16 pseudo-channels). Reads dac_fig6_hbm2.csv of the

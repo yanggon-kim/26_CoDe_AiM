@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure 5 (Sec. IV-B): the phone, CoDe vs LP-Spec-style (stock AiM as the reference), INT8, LPDDR5-6400.
+"""Figure 5 (Sec. VI-A): the phone, CoDe vs LP-Spec-style (stock AiM as the reference), INT8, LPDDR5-6400.
 
 (a) speculative-verify decode step of Llama-2-7B at L = 1024: tokens per second (M rows per step) with the 8 Gen 3
     NPU (42 GB/s) as the host line; (b) GEMM throughput per logic mm^2 (geomean of six Llama FC shapes);

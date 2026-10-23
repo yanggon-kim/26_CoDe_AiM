@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Figure 2 (Sec. II-C): skinny-GEMM roofline, (a) phone on LPDDR5-6400 and (b) edge server on HBM2, at the column width.
+"""Figure 2 (Sec. III-A): skinny-GEMM roofline, (a) phone on LPDDR5-6400 and (b) edge server on HBM2, at the column width.
 
 The per-logic-mm^2 panels were cut in the 2026-10-18 trim (Fig. 6(b) plots the mobile GEMM per logic mm^2 from the
-EV-58 pack); their ceilings stay asserted below because Sec. II prints them (314 / 697, 390 / 830, 583 / 1,247).
+EV-58 pack); their ceilings stay asserted below because Sec. III prints them (314 / 697, 390 / 830, 583 / 1,247).
 
 Reads the EV-57 rows collected by evaluation-owner (never microarch directly):
   phone : ../../../evaluation/dac_sd8g3/raw/ev57_{ceilings,host,summary}.csv  (platform = phone)
@@ -44,7 +44,7 @@ HOST_ROW = {"phone": "npu42", "hbm2": "peak"}
 POW2 = [1, 2, 4, 8, 16, 32, 64]
 
 # ---- frozen values the text and Table II print (asserted against the collected rows) ----
-# absolute ceilings back the prose's "2x" / "4x" ceiling (II-C); per-mm^2 ceilings are Table II's rows
+# absolute ceilings back the prose's "2x" / "4x" ceiling (III-A); per-mm^2 ceilings are Table II's rows
 EXPECT = {
     ("phone", "ceil"): {"stock": 819, "h3": 1638, "h2": 3277, "core8": 3277},
     ("phone", "mm2"): {"stock": 216, "h3": 390, "h2": 314, "core8": 583},
@@ -68,7 +68,7 @@ def load(platform):
 
 
 def checks():
-    """Values quoted in Sec. I / II that come from these files (beyond the ceilings above)."""
+    """Values quoted in Sec. I / III that come from these files (beyond the ceilings above)."""
     pc, ph, _ = load("phone")
     hc, hh, _ = load("hbm2")
     assert abs(float(ph["ridge_M"]) - 142.857) < 1e-3          # NPU ridge M ~ 143 (x.ev56.npu.ridge_M 142.9)
@@ -81,8 +81,8 @@ def checks():
     assert abs(r - 1.857) < 1e-3                                # ev57.phone.core8_over_h2.ceiling_per_mm2
     for c, (s, p3, lp, co) in ((pc, ("stock", "h3", "h2", "core8")), (hc, ("stock", "p3_500", "h2", "core4"))):
         g = {d: float(c[d]["peak_GOPS"]) for d in (s, p3, lp, co)}
-        assert (g[p3] / g[s], g[lp] / g[s], g[co] / g[s]) == (2.0, 4.0, 4.0), g   # "2x" / "4x" ceiling (II-C)
-    # whole-decode-step crossovers quoted in Sec. I / II-C
+        assert (g[p3] / g[s], g[lp] / g[s], g[co] / g[s]) == (2.0, 4.0, 4.0), g   # "2x" / "4x" ceiling (III-A)
+    # whole-decode-step crossovers quoted in Sec. I / III-A
     # only each platform's own pairing is quoted (stock, rival, CoDe); the off-pair crossovers left the text with
     # the off-pair lines of the figure (user, 2026-10-18)
     hb = {r["design"]: r["wins_up_to_M"] for r in rows("hbm2", "ev57_crossover") if r["row_id"].startswith("batch/")}

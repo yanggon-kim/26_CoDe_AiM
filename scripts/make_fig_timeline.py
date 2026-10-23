@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure (Sec. II-D): one weight column of one bank, M tokens, PU depth D, time in column periods T.
+"""Figure (Sec. III-B): one weight column of one bank, M tokens, PU depth D, time in column periods T.
 
 A schematic (no measured data): four designs, each with three lanes (cmd / bank / PU).
   Stock AiM    : one command + one column read + one PU beat (T/D wide) per token; time M*T.

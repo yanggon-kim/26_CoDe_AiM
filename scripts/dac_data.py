@@ -1,4 +1,4 @@
-"""Shared loaders for the Sec. III / IV figures and tables (read-only).
+"""Shared loaders for the Sec. IV / VI figures and tables (read-only).
 
 Sources (all read only)
   The EV-58 data pack (microarch 4511d75), as collected by evaluation-owner at a254d92 (ids dacp.phone.* in

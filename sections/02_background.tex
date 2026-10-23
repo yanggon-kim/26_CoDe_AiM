@@ -1,0 +1,42 @@
+\section{Background}
+\label{sec:bg}
+
+\subsection{Skinny GEMM in LLM Decoding}
+\label{sec:bg:skinny}
+
+A linear layer computes $Y = X W$ with a weight matrix $W$ of $K \times N$ and $M$ token rows in $X$. Plain decoding
+($M = 1$) computes a GEMV. We call the layer a \emph{skinny GEMM} when $M \ll K, N$; this paper takes $2 \le M \le 32$
+with $K$ and $N$ in the thousands, inside the bound $M \ll 64$ that FlashDecoding++~\cite{flashdecodingpp} reports for
+decode GEMMs. A speculative decoder~\cite{leviathan2023} drafts tokens cheaply and verifies the $M$ drafted tokens in one
+pass of the target model, as a chain or as a token tree~\cite{eagle2}; a batched decoder serves $M$ requests per step.
+Published mobile decoders verify 2--8 drafted tokens padded to at most 32~\cite{sdnpu}, 1--32 on LPDDR-PIM~\cite{lpspec}
+and token trees of 4--64~\cite{lever}, and edge-server batches hold 1--8 requests~\cite{p3llm}. Token trees for
+datacenter GPUs (48--60~\cite{eagle2}, 64~\cite{medusa}, 64--128~\cite{sequoia}) and latency-capped datacenter batches
+(16--27~\cite{attacc}) reach past that range, and there the GEMM moves to the host (Section~\ref{sec:bg:roofline}). This
+paper targets verification on the mobile platform ($M = 2$--32~\cite{sdnpu,lpspec}) and batches on the edge server
+($M = 2$--8~\cite{p3llm}).
+
+\subsection{DRAM and AiM-Style PIM}
+\label{sec:bg:pim}
+
+A DRAM channel holds 16 banks in four bank groups (Fig.~\ref{fig:dram_pim}a). An activation latches one row of a bank in
+its sense amplifiers, and each column command then moves one 32-byte atom of that row. Column commands may issue every
+\tccds{} to different bank groups and every \tccdl{} to the same bank group, as the three reads of
+Fig.~\ref{fig:dram_pim}b do; \tccdl{} is twice \tccds{} on
+LPDDR5~\cite{ramulator2} and on HBM~\cite{p3llm}.
+
+AiM-style PIM adds a processing unit (PU) beside each bank (beside each pair of banks in HBM2) and a global buffer (GB),
+shared by all PUs, that holds the input vector~\cite{aimjssc,hbmpim}; Fig.~\ref{fig:dram_pim}a enlarges one bank with its PU. An all-bank
+MAC command reads one column from every open bank at once and starts one MAC beat in each PU; on the mobile platform,
+one beat is 32 INT8 multiplies of the column against 32 GB elements, accumulated into the PU's output register. The
+all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the MAC commands in Fig.~\ref{fig:dram_pim}b. A GEMV spreads the output rows over the banks and takes one
+all-bank command per weight column.
+
+A GEMV runs as row sweeps between non-MAC commands (Fig.~\ref{fig:dram_pim}c). A \emph{row sweep} streams $c$
+all-bank MAC commands, about 62 on either platform, over one open row into the PUs' output registers. A row sweep
+belongs to one row of weights and serves the $A$ tokens whose inputs the GB holds; stock AiM's row sweep serves one
+token, so stock AiM sweeps each row once per token. In the AiM command set~\cite{aimjssc}, as our simulator issues it
+(Section~\ref{sec:method}), WRGB writes one token's input chunk into the GB once, and every row sweep over that
+chunk reads the chunk. WRMAC16 sets the output registers to the bias. A mode switch (TMOD) moves the controller from
+register commands to MAC commands and back; PREA and ACT16 close the previous row and open the sweep's row in all
+banks, and RDMAC16 drains each token's sums at the end of the sweep.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure 4 (Sec. III-E): logic area per design, split into arithmetic, control, storage and global buffer.
+"""Figure 4 (Sec. IV-E): logic area per design, split into arithmetic, control, storage and global buffer.
 
 Reads dac_fig4_area.csv of the EV-58 pack (scripts/dac_data.py). Storage = accumulators + staging (+ the FIFO's
 control on the phone) + weight latch. Phone in mm^2 per die (16 banks), server in mm^2 per pseudo-channel (16 banks,

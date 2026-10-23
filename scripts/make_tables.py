@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
-"""Table I (Sec. IV-A: design parameters, logic area and ungated peak power) and every Sec. III / IV number the prose
+"""Table I (Sec. V: design parameters, logic area and ungated peak power) and every Sec. IV / V / VI number the prose
 prints, asserted. The 2026-10-18 trim merged the former peak-power table into Table I (its Total column; the Staging
-column left the table, its values stay asserted) and cut the former command table (its M = 8 values that IV-B / IV-C
+column left the table, its values stay asserted) and cut the former command table (its M = 8 values that VI-A / VI-B
 print stay asserted in mech_checks()).
 
 Reads the EV-58 data pack as collected (evaluation a254d92, dacp ids; scripts/dac_data.py) and EV-56's bands (EVAL); every
 energy and power number comes from the synthesised-PU model pupow (microarch 6074fea, collected at evaluation 88dad76: raw
 pupow_*.csv and touched pupow.* ids; the pack's energy columns are the K_E reserve). Writes tables/tab_params.tex
 (Table I); the prose numbers are asserted in each function.
-The useful-MAC table (Sec. II-D, tab:umac) and every U / U_MAC / f_MAC / t_fix / t_tok number of Secs. II and IV come
+The useful-MAC table (Sec. III-B, tab:umac) and every U / U_MAC / f_MAC / t_fix / t_tok number of Secs. III and VI come
 from the umac paper form (microarch 8cef09a, collected at evaluation 0c20b6f, dac_2x2 Sec. 2h): the table source
 evaluation/dac_2x2/figures/tab_umac_paper.csv (ids umacp.<p>/<d>/<M>.*), raw/umacp_const.csv (umacp_const.*) and the
 touched ids umac.paper.* / umac.p3t.* / umac.<p>.h2.U_per_mult.*; the table prints SIMULATED values (user, 2026-10-19).
-The stock faster-PU result of II-D (cycle-identical, time / M spread) is read from microarch/04_data/d1/stock_cmd
+The stock faster-PU result of III-B (cycle-identical, time / M spread) is read from microarch/04_data/d1/stock_cmd
 (pre-refresh-fix), the source of the cut Fig. stockcmd (its generator was retired with the figure).
-The sources-of-gain table (Sec. IV-C, tab:umac_src) and the II-D row-switch numbers come from umac_src (microarch d59e4a2,
+The sources-of-gain table (Sec. VI-B, tab:umac_src) and the III-B row-switch numbers come from umac_src (microarch d59e4a2,
 collected at evaluation 4ffbc7f, dac_2x2 Sec. 2i; D-35).
 Run:  python3 scripts/make_tables.py
 """
@@ -29,7 +29,7 @@ HBM2 = [("stock", "Stock AiM"), ("p3_500", "P3-LLM-style"), ("h2", "LP-Spec-styl
 def table4(peak):
     t = read("dac_table4.csv")
     by = {(r["substrate"][:5], r["design"]): r for r in t}
-    exp = {  # frozen: lanes x ALUs, MHz, D, V, accumulator slots, staging bits, GB KB, logic mm2 (IV-A prose)
+    exp = {  # frozen: lanes x ALUs, MHz, D, V, accumulator slots, staging bits, GB KB, logic mm2 (V prose)
         ("phone", "stock"): (32, 1, 200, 1, 1, 1, 256, 2, 0.947), ("phone", "h3"): (32, 1, 400, 2, 2, 2, 512, 4, 1.050),
         ("phone", "h2"): (32, 4, 200, 4, 4, 4, 1024, 8, 2.610), ("phone", "core8"): (32, 1, 800, 4, 8, 16, 1536, 16, 1.406),
         ("serve", "stock"): (64, 1, 250, 1, 1, 2, 512, 4, 0.520), ("serve", "p3_500"): (64, 1, 500, 2, 2, 4, 1024, 8, 0.617),
@@ -80,7 +80,7 @@ def area_split():
     for (sub, d, c), v in sh.items():
         if c in ("accumulators", "staging", "staging_fifo_control", "weight_latch"):
             store[(sub, d)] = store.get((sub, d), 0) + v
-    # IV-A prose (former Fig. area): share of the logic in multipliers vs in storage
+    # V prose (former Fig. area): share of the logic in multipliers vs in storage
     assert r2(arith[("phone", "h2")]) == 0.73 and r2(arith[("phone", "core8")]) == 0.34
     assert r2(store[("phone", "core8")]) == 0.32 and r2(store[("phone", "h2")]) == 0.10
     assert r2(arith[("hbm2", "core4")]) == 0.30 and r2(store[("hbm2", "core4")]) == 0.33
@@ -88,7 +88,7 @@ def area_split():
 
 
 def mech_checks():
-    """M = 8 command counts and C-bus occupancy that IV-B / IV-C print (former Table V; no file is written); the
+    """M = 8 command counts and C-bus occupancy that VI-A / VI-B print (former Table V; no file is written); the
     pu_busy_trace column equals the useful-MAC U of umac_table() at M = 8 (asserted there)."""
     m = [r for r in read("dac_mech.csv") if r["scope"].startswith("one decoder") and r["M"] == "8"]
     by = {(r["substrate"], r["design"]): r for r in m}
@@ -113,7 +113,7 @@ def mech_checks():
 
 
 def umac_table():
-    """Table (Sec. II-D, tab:umac): useful-MAC utilization U = U_MAC x f_MAC of one Llama-2-7B decoder layer's weight
+    """Table (Sec. III-B, tab:umac): useful-MAC utilization U = U_MAC x f_MAC of one Llama-2-7B decoder layer's weight
     GEMMs on the mobile platform at M = 8, simulated values; plus every useful-MAC number the prose prints."""
     rows = {}
     for r in read("tab_umac_paper.csv", os.path.join(EVAL, "dac_2x2", "figures")):
@@ -155,13 +155,13 @@ def umac_table():
     assert [e[d][4] for d in ("stock", "p3", "lpspec", "code")] == ["0.193", "0.379", "0.739", "0.739"], e
     assert e["stock"][3] == "0.771" and [e[d][5] for d in ("stock", "p3", "lpspec")] == ["146.17", "78.70", "43.51"], e
     assert e["code"] == e["lpspec"] and [e[d][1] for d in e] == [8] * 4
-    # mobile, M = 4: CoDe issues LP-Spec-style's command stream (U 0.752, IV-B)
+    # mobile, M = 4: CoDe issues LP-Spec-style's command stream (U 0.752, VI-A)
     assert cell("phone", "code", 4) == cell("phone", "lpspec", 4) and cell("phone", "code", 4)[4] == "0.752"
-    # the same U as the pack's pu_busy_trace at M = 8 (IV-B 0.843 / 0.752, IV-C 0.739)
+    # the same U as the pack's pu_busy_trace at M = 8 (VI-A 0.843 / 0.752, VI-B 0.739)
     mech = {(r["substrate"], r["design"]): r3(r["pu_busy_trace"]) for r in read("dac_mech.csv")
             if r["scope"].startswith("one decoder") and r["M"] == "8"}
     assert mech[("phone", "core8")] == 0.843 and mech[("phone", "h2")] == 0.752 and mech[("hbm2", "core4")] == 0.739
-    # formula constants (II-D): t_row (data key t_fix) / t_tok, refresh share, columns per run
+    # formula constants (III-B): t_row (data key t_fix) / t_tok, refresh share, columns per run
     assert round(tid["umac.paper.phone.t_fix_paper_ns"], 2) == 85.73 == round(const["phone/t_fix_fold"], 2)
     assert round(tid["umac.paper.hbm2.t_fix_paper_ns"], 2) == 94.76 == round(const["hbm2/t_fix_factor"], 2)
     assert round(const["phone/t_tok"], 2) == 4.26 and round(const["hbm2/t_tok"], 2) == 9.64
@@ -170,9 +170,9 @@ def umac_table():
     # convergence: formula within 0.47 % (mobile) and 0.59 % (edge server) on the designs it was not fitted on
     assert round(tid["umac.paper.phone.maxres_nonstock_pct"], 2) == 0.47
     assert round(tid["umac.paper.hbm2.maxres_nonstock_pct"], 2) == 0.59
-    # IV-A: P3-LLM-style re-timed on the mobile C/A bus, U 0.384 -> 0.380
+    # V: P3-LLM-style re-timed on the mobile C/A bus, U 0.384 -> 0.380
     assert round(tid["umac.p3t.phone.U_timed.min"], 3) == 0.380 == round(tid["umac.p3t.phone.U_timed.max"], 3)
-    # II-E: LP-Spec-style's U per multiplier, 0.188 mobile / 0.185 edge server
+    # III-C: LP-Spec-style's U per multiplier, 0.188 mobile / 0.185 edge server
     assert round(tid["umac.phone.h2.U_per_mult.min"], 3) == 0.188 == round(tid["umac.phone.h2.U_per_mult.max"], 3)
     assert round(tid["umac.hbm2.h2.U_per_mult.min"], 3) == 0.185 == round(tid["umac.hbm2.h2.U_per_mult.max"], 3)
     print("useful-MAC table: mobile M = 8 U 0.194 / 0.384 / 0.752 / 0.843; edge 0.193 / 0.379 / 0.739; "
@@ -180,9 +180,9 @@ def umac_table():
 
 
 def umac_src_table():
-    """Table (Sec. IV-C, tab:umac_src): CoDe's gain over stock AiM in two sources (D-35), stock AiM -> run sharing only
+    """Table (Sec. VI-B, tab:umac_src): CoDe's gain over stock AiM in two sources (D-35), stock AiM -> run sharing only
     (simulated: CoDe's trace at D = 1) -> CoDe, one decoder layer's weight GEMMs at M = 8 on both platforms; plus the
-    II-D row-switch numbers (stock t_row split by command, the motivation fact) and the IV-C other-order clause
+    III-B row-switch numbers (stock t_row split by command, the motivation fact) and the VI-B other-order clause
     (model-composed beat fill only). Source: umac_src (microarch d59e4a2, collected at evaluation 4ffbc7f, dac_2x2 Sec. 2i):
     figures/tab_umac_src_steps.csv (usrc_steps ids), raw/usrc_nonmac.csv, raw/usrc_motiv.csv, touched umac.src.* ids.
     The composed run-sharing-only row is never printed (the paper uses the simulated one)."""
@@ -226,7 +226,7 @@ def umac_src_table():
             assert abs(g(p, d, "U_MAC") * g(p, d, "f_MAC") - g(p, d, "U")) < 1e-5
         assert abs(g(p, "rs", "step_speedup") * g(p, "core", "step_speedup") - g(p, "core", "cumulative_speedup")) < 1e-3
         assert abs(tid[f"umac.src.{p}.M8.order_product"] - tid[f"umac.src.{p}.M8.other_order_product"]) < 1e-3
-        # IV-C prose: run sharing alone lifts f_MAC; U_MAC stays at 1/4; the composed beat-fill-only f_MAC falls to about half
+        # VI-B prose: run sharing alone lifts f_MAC; U_MAC stays at 1/4; the composed beat-fill-only f_MAC falls to about half
         assert g(p, "rs", "f_MAC") > g(p, "stock", "f_MAC") and g(p, "rs", "U_MAC") == 0.25
         assert 0.45 < g(p, "bf", "f_MAC") < 0.52 and g(p, "bf", "f_MAC") < g(p, "stock", "f_MAC")
         # "row reuse has removed most of the row-switch overhead per token" (per token per sweep, stock -> row reuse only)
@@ -236,13 +236,13 @@ def umac_src_table():
     lines += [r"\bottomrule", r"\end{tabular}"]
     with open(os.path.join(REPO, "tables", "tab_umac_src.tex"), "w") as fh:
         fh.write("\n".join(lines) + "\n")
-    # the stock and CoDe rows are the rows of tab:umac (mobile) and of the IV-C prose (edge server)
+    # the stock and CoDe rows are the rows of tab:umac (mobile) and of the VI-B prose (edge server)
     assert want[("phone", "stock")][2] == "0.194" and want[("phone", "core")][2] == "0.843"
-    # IV-C other-order clause (model-composed): beat fill only U 0.464 / 0.506, steps 2.39 x 1.82 / 2.62 x 1.46
+    # VI-B other-order clause (model-composed): beat fill only U 0.464 / 0.506, steps 2.39 x 1.82 / 2.62 x 1.46
     assert (r3(g("phone", "bf", "U")), r3(g("hbm2", "bf", "U"))) == (0.464, 0.506)
     assert (r2(g("phone", "bf", "step_speedup")), r2(g("phone", "oo", "step_speedup"))) == (2.39, 1.82)
     assert (r2(g("hbm2", "bf", "step_speedup")), r2(g("hbm2", "oo", "step_speedup"))) == (2.62, 1.46)
-    # II-D row-switch overhead, stock AiM, layer, M = 8, ns per token per sweep (= per sweep: a stock row sweep serves one token)
+    # III-B row-switch overhead, stock AiM, layer, M = 8, ns per token per sweep (= per sweep: a stock row sweep serves one token)
     cls = {c: nm[f"phone/stock/8/{c}"] for c in ("TMOD", "ACT16", "PREA", "WRMAC16")}
     assert [round(cls[c], 1) for c in ("TMOD", "ACT16", "PREA", "WRMAC16")] == [40.3, 36.4, 11.1, 1.2], cls
     assert sorted(cls, key=cls.get, reverse=True) == ["TMOD", "ACT16", "PREA", "WRMAC16"]   # printed largest first
@@ -252,7 +252,7 @@ def umac_src_table():
     assert round(f(pm["useful_mac_ns_per_token_per_run"]), 1) == 78.0
     assert f(pm["framing_full_over_useful"]) > 1                                       # mobile: framing > useful work
     assert tid["umac.src.phone.stock.M8.framing_full_ns_per_run"] == tid["umac.src.phone.stock.M8.framing_full_ns"]
-    # fitted t_fix (II-D, 85.73) lies below the framing sum: the fit nets out the MAC tail under the framing
+    # fitted t_fix (III-B, 85.73) lies below the framing sum: the fit nets out the MAC tail under the framing
     assert const["phone/t_fix_fold"] < tid["umac.src.phone.stock.M8.framing_full_ns"] and nm["phone/stock/8/pu_tail"] < 0
     # edge server: only the whole non-MAC time exceeds the useful work (never "run framing exceeds it", D-35)
     assert round(f(hm["nonmac_ns_per_token_per_run"]), 1) == 146.2 and round(nm["hbm2/stock/8/refresh"], 1) == 41.8
@@ -263,7 +263,7 @@ def umac_src_table():
 
 
 def stock_checks():
-    """II-D faster-PU test: stock GEMM time / M spread and the cycle-identical re-run with a PU clocked at CK
+    """III-B faster-PU test: stock GEMM time / M spread and the cycle-identical re-run with a PU clocked at CK
     (microarch/04_data/d1/stock_cmd, pre-refresh-fix; the asserts of the retired make_fig_stockcmd.py)."""
     src = os.path.join(WS, "microarch", "04_data", "d1", "stock_cmd")
     checks = {r["check"]: r for r in read("stock_cmd_checks.csv", src)}
@@ -348,7 +348,7 @@ def phone_levels():
 
 
 def table_power():
-    """Peak power on the 1.05 V supply, synthesised PU, ungated (Table I's mW column) and the IV-D prose numbers.
+    """Peak power on the 1.05 V supply, synthesised PU, ungated (Table I's mW column) and the VI-C prose numbers.
     Returns {(substrate, design): (MHz, total mW)}."""
     raw = {"phone": os.path.join(EVAL, "dac_sd8g3", "raw"), "hbm2": os.path.join(EVAL, "dac_2x2", "raw")}
     pk = {sub: {r["row_id"]: r for r in read(f"pupow_peak_{sub}.csv", raw[sub])} for sub in raw}
