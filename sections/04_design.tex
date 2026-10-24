@@ -29,7 +29,7 @@ row sweeps take 3,250\,ns and 512 MAC commands, each sweep opens with its row-sw
 beat in four of every MAC slot (Fig.~\ref{fig:sequence}a). Beat filling alone, as a model, shrinks each MAC slot to its
 one busy beat and keeps the eight sweeps with their row switches, so the row takes 1,360\,ns (Fig.~\ref{fig:sequence}b). Row
 reuse alone keeps the stock PU's pace of one beat per column period and shares one sweep among the eight tokens, so
-the row takes 2,629.375\,ns with one row switch (Fig.~\ref{fig:sequence}c). CoDe joins the two components: one row
+the row takes 2,629\,ns with one row switch (Fig.~\ref{fig:sequence}c). CoDe joins the two components: one row
 switch, then 64 tile MAC commands, each followed by eight beats over two column periods, in 738.75\,ns
 (Fig.~\ref{fig:sequence}d).
 

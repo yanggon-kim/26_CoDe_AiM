@@ -99,9 +99,9 @@ def checks():
         assert n["MAC16"] == 64
         assert (n["PREA"], n["ACT16-1"], n["ACT16-2"], n["WRMAC16"]) == (1, 1, 1, 1)
         assert n["TMOD"] == 2 + n["dl_TMOD"] and n["dl_TMOD"] == (2 if t == "rsonly" else 0)
-    disp = {t: v for t, v in zip(TRACES, ("3,250", "1,360", "2,629.375", "738.75"))}
+    disp = {t: v for t, v in zip(TRACES, ("3,250", "1,360", "2,629", "738.75"))}
     assert f"{row_ns['stock']:,.0f}" == disp["stock"] and f"{row_ns['bfonly']:,.0f}" == disp["bfonly"]
-    assert f"{row_ns['rsonly']:,.3f}" == disp["rsonly"] and f"{row_ns['core8']:.2f}" == disp["core8"]
+    assert f"{row_ns['rsonly']:,.0f}" == disp["rsonly"] and f"{row_ns['core8']:.2f}" == disp["core8"]
     # MAC commands per weight row: 512 / 512 / 64 / 64; row switches 8 / 8 / 1 / 1
     assert [sweeps[t] * w[t][3]["MAC16"] for t in TRACES] == [512, 512, 64, 64] and list(sweeps.values()) == [8, 8, 1, 1]
     # step ratios (both orders) and the total
