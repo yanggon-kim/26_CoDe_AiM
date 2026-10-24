@@ -25,6 +25,15 @@ of LP-Spec-style's. On HBM2, CoDe's logic is 0.56$\times$ LP-Spec-style's and 1.
 that buys twice P3-LLM-style's beats per column.
 
 \subsection{Simulator and Models}
+% figure* (Section VI-A): defined at V-C's start (page 8), so it renders at the top of the next page, where VI-A cites it
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figs/fig_phone.pdf}
+  \caption{Mobile platform: (a)~decode-step speed; (b)~GEMM, (c)~attention-layer and (d)~decode-step throughput per
+  logic mm$^2$.}
+  \label{fig:phone}
+\end{figure*}
+
 We extend the open-source trace-driven AiM simulator, built on Ramulator~2.0~\cite{ramulator2} and used by
 CENT~\cite{cent}, with each design's commands and a PU model that holds a MAC command until the PU has finished the
 beats of the previous command; every PIM kernel runs at cycle level. Our P3-LLM-style model reproduces
