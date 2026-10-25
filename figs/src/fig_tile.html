@@ -7,9 +7,9 @@
      "beat filling"): the bank's cell array over the IOSA, whose column bus drops into the weight latch (1); the stock
      multiplier lanes (cells with an ellipsis, 32 lanes = Table II, mobile) and adder tree; the beat sequencer as a
      control bar under the datapath, clocked at CK = D / t_col (2). Right group (bracket "row reuse"): the staging
-     register (V slots) fed by GB words from the shared global buffer (full-height block beside the bank, V tokens x K
+     buffer, on the mobile platform a three-entry queue of 512-bit GB words, two tokens' slices each, fed by GB words from the shared global buffer (full-height block beside the bank, V tokens x K
      chunk), the accumulator file (2V slots in two sets) and the drain port (5). Circled 1-5 = the IV-D walk-through:
-     (1) latch the column, (2) step k, (3) lanes multiply by staging slot k, (4) add into accumulator slot k, (5) burst
+     (1) latch the column, (2) step k, (3) lanes multiply by token k's slice from the staging buffer, (4) add into accumulator slot k, (5) burst
      drain. Tint = what CoDe adds or sizes by V. Text >= 8 pt (caption size).
      Drawn at final size (252 x 173 pt; \columnwidth = 252 pt), 1 user unit = 1 pt. Build:
      python3 scripts/html2pdf.py fig_tile  ->  figs/fig_tile.pdf (+ .png preview).
@@ -108,15 +108,13 @@
 <text x="20" y="108.3" font-size="8" text-anchor="middle" style="fill:#E03127">2</text>
 <circle cx="20" cy="83" r="4.6" fill="#FFFFFF" stroke="#E03127" stroke-width="0.6"/>
 <text x="20" y="85.8" font-size="8" text-anchor="middle" style="fill:#E03127">4</text>
-<text x="175" y="42" font-size="8" text-anchor="middle">staging (<tspan font-style="italic">V</tspan>)</text>
-<rect x="162" y="45" width="26" height="3.4" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="48.4" width="26" height="3.4" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="51.8" width="26" height="3.4" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="55.2" width="26" height="3.4" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="58.6" width="26" height="3.4" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="62" width="26" height="3.4" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="65.4" width="26" height="3.4" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="68.8" width="26" height="3.4" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<text x="175" y="42" font-size="8" text-anchor="middle">staging buffer</text>
+<rect x="162" y="45" width="13" height="9" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="175" y="45" width="13" height="9" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="162" y="54" width="13" height="9" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="175" y="54" width="13" height="9" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="162" y="63" width="13" height="9" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="175" y="63" width="13" height="9" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
 <polyline points="237.5,57 188,57" fill="none" stroke="#000000" stroke-width="0.7" marker-end="url(#ah)"/>
 <text x="213" y="54.5" font-size="8" text-anchor="middle">GB word</text>
 <polyline points="162,66 140,66" fill="none" stroke="#000000" stroke-width="0.7" marker-end="url(#ah)"/>
@@ -141,7 +139,7 @@
 <polyline points="140,83 159,83" fill="none" stroke="#000000" stroke-width="0.7" marker-end="url(#ah)"/>
 <polyline points="140,105.5 152,105.5 152,49 162,49" fill="none" stroke="#2B5FA8" stroke-width="0.6" stroke-dasharray="1.6,1" marker-end="url(#ab)"/>
 <polyline points="152,105.5 152,112 159,112" fill="none" stroke="#2B5FA8" stroke-width="0.6" stroke-dasharray="1.6,1" marker-end="url(#ab)"/>
-<text x="150" y="97" font-size="8" text-anchor="end" font-style="normal" style="fill:#2B5FA8">slot <tspan font-style="italic">k</tspan></text>
+<text x="150" y="97" font-size="8" text-anchor="end" font-style="normal" style="fill:#2B5FA8">token <tspan font-style="italic">k</tspan></text>
 <rect x="36" y="129" width="30" height="10" fill="#FFFFFF" stroke="#000000" stroke-width="0.6"/>
 <text x="51" y="136.6" font-size="8" text-anchor="middle">C/A port</text>
 <polyline points="51,129 51,111" fill="none" stroke="#000000" stroke-width="0.7" marker-end="url(#ah)"/>

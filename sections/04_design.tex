@@ -79,7 +79,7 @@ Row reuse lets the $V$ tokens of a tile share one row sweep. The tile MACs sweep
 $V$ tokens, so the row-switch commands, two TMODs, the row's PREA and ACT16 pair and the WRMAC16, are paid once per $V$
 tokens instead of once per token, and the sweep factor rises. In Fig.~\ref{fig:sequence}c, row reuse alone cuts the row
 switches from eight to one and keeps the idle beats: the MAC slots still take 2,560\,ns, one busy beat in four. Row reuse needs the $V$ tokens' inputs next to the PU for the whole row sweep
-and $V$ partial sums per tile; the global buffer, the staging register and the accumulator file hold them
+and $V$ partial sums per tile; the global buffer, the staging buffer and the accumulator file hold them
 (Section~\ref{sec:design:pu}). The token load/drain commands stay per token: WRGB writes each token's input chunk into
 the GB, and the burst drain reads each token's sums once per row sweep. In Fig.~\ref{fig:sequence}c the previous tile's
 drain, eight reads between two TMODs, sits inside the MAC stream as one 61.25\,ns block.
@@ -98,15 +98,15 @@ only the row-switch commands change their count per token.
 \paragraph{Tile MAC in the PU}
 Fig.~\ref{fig:tile} follows one tile MAC through the PU. The tile MAC latches the column that the bank delivers in the
 weight latch (\ding{172}). The beat sequencer then steps a token index $k$ from 0 to $V-1$, one beat per CK cycle
-(\ding{173}). Beat $k$ multiplies the latched weights by staging slot $k$ in the 32 lanes (\ding{174}), and the adder
+(\ding{173}). Beat $k$ multiplies the latched weights by token $k$'s slice from the staging buffer in the 32 lanes (\ding{174}), and the adder
 tree adds the products into accumulator slot $k$ (\ding{175}). After the tile's last column, the burst drain moves the
 $V$ sums out through the drain port (\ding{176}).
 
 \paragraph{Storage}
 The global buffer holds the tile's $V$ tokens for one chunk of $K$. On the mobile platform a $K$ chunk holds 2,048 INT8
 inputs, 2\,KB per token, so the GB of an eight-token tile holds 16\,KB (Table~\ref{tab:params}); one WRGB burst of 512
-writes of 32\,B fills it. A queue of GB words fills the staging register: on the mobile platform a three-entry queue of
-512-bit words, each word packing two tokens' slices. The accumulator file holds $2V$ slots in two sets of $V$, so one
+writes of 32\,B fills it. The staging buffer next to the lanes is a three-entry queue of 512-bit GB words on the mobile platform, each word
+packing two tokens' slices, and a register of $V$ slices on HBM2. The accumulator file holds $2V$ slots in two sets of $V$, so one
 tile's sums drain from one set while the next tile accumulates into the other.
 
 % command table (cited first in IV-D): defined in IV-D's right-hand column, so it renders at that column's
