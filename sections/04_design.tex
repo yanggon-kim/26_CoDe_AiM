@@ -106,12 +106,13 @@ $V$ sums out through the drain port (\ding{176}).
 The global buffer holds the tile's $V$ tokens for one chunk of $K$. On the mobile platform a $K$ chunk holds 2,048 INT8
 inputs, 2\,KB per token, so the GB of an eight-token tile holds 16\,KB (Table~\ref{tab:params}); one WRGB burst of 512
 writes of 32\,B fills it. The staging buffer next to the lanes is a three-entry queue of 512-bit GB words on the mobile platform, each word
-packing two tokens' slices, and a register of $V$ slices on HBM2. The accumulator file holds $2V$ slots in two sets of $V$, so one
-tile's sums drain from one set while the next tile accumulates into the other.
+packing two tokens' slices, and a register of $V$ slices on HBM2. The accumulator file holds two sets of $V$ slots per bank, so
+one tile's sums drain from one set while the next tile accumulates into the other; an HBM2 PU, which serves two banks,
+holds four sets (Table~\ref{tab:params}).
 
 \paragraph{Tile size}
 The tile size $V$ sizes CoDe's storage: the GB holds $V$ tokens' $K$ chunks, the HBM2 staging register holds $V$
-slices, and the accumulator file holds two sets of $V$ slots. The lanes, the weight latch, the beat sequencer and the
+slices, and the accumulator file holds two sets of $V$ slots per bank. The lanes, the weight latch, the beat sequencer and the
 mobile staging queue keep their size at any $V$. Below $V = D$ the column period paces the PU and beats idle; from
 $V = D$ every beat computes, and a larger $V$ cuts only the row-switch term of a token's non-MAC time per row sweep,
 about $\trow / V + \ttok$. A weight row takes $\lceil M/V \rceil$ row sweeps, so a last sweep with fewer than $V$

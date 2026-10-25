@@ -299,8 +299,8 @@ def headline():
     e = lambda w, k: ph[f"batch/vs_p3_500/energy_sys_{w}/b8+/{k}"]  # noqa: E731
     assert r2(e("55W", "lo")) == 1.64 and r2(e("55W", "hi")) == 1.65   # 1.6412-1.6453: "1.64x"
     assert r2(e("0W", "lo")) == 1.46 and r2(e("0W", "hi")) == 1.46
-    assert b[("core4 vs p3_500", "speed", "3-6")] == (1.44, 1.71)
-    assert b[("core4 vs p3_500", "per_logic_mm2", "3-6")] == (1.08, 1.29)
+    assert b[("core4 vs p3_500", "speed", "3-6")] == (1.43, 1.71)
+    assert b[("core4 vs p3_500", "per_logic_mm2", "3-6")] == (1.08, 1.28)
     assert b[("core4 vs p3_500", "per_logic_mm2", "1-2")] == (0.80, 0.84)
     assert b[("core4 vs p3_500", "speed", "1-2")] == (1.07, 1.12)
     assert b[("core4 vs stock", "speed", ">=8")] == (2.87, 2.88)
@@ -310,7 +310,7 @@ def headline():
         if "crossover" in r["item"] and ("primary" in r["item"] or "batch step" in r["item"]):
             xo.setdefault((r["item"][:5], r["design"]), []).append(int(r["wins_up_to_M"]))
     rng = {k: (min(v), max(v)) for k, v in xo.items()}
-    assert rng[("phone", "core8")] == (24, 28) and rng[("phone", "h2")] == (24, 24) and rng[("phone", "stock")] == (6, 7)
+    assert rng[("phone", "core8")] == (27, 29) and rng[("phone", "h2")] == (24, 24) and rng[("phone", "stock")] == (6, 7)
     assert rng[("HBM2 ", "core4")] == (8, 12) and rng[("HBM2 ", "p3_500")] == (4, 6) and rng[("HBM2 ", "stock")] == (2, 3)
     print("headline: phone e2e, HBM2 bands, crossovers hold")
 
@@ -326,7 +326,7 @@ def phone_levels():
     assert band("attention", "core_per_mm2_vs") == (1.86, 2.33)
     assert band("decode", "core_per_mm2_vs") == (1.86, 2.84)
     assert band("decode", "core_speed_vs", 5, 5) == (1.53, 1.53)
-    assert band("decode", "core_speed_vs", 8, 64) == (1.02, 1.25)
+    assert band("decode", "core_speed_vs", 8, 64) == (1.07, 1.31)
     assert band("decode", "core_speed_vs", 1, 4) == (1.00, 1.00)
     # attention layer already faster at M = 2-4 (gmean over head configs); max = dacp.phone.fig5.layer.core8_vs_h2.speed_Mle4.max
     assert band("attention", "core_speed_vs", 2, 4) == (1.01, 1.13)

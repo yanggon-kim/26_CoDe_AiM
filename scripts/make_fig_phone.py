@@ -66,14 +66,14 @@ def main():
         for d in sorted(DESIGNS, key=lambda d: d != "code"):     # CoDe beneath the rivals
             pn.series(d, ser[d])
         if npu:
-            # CoDe's last M ahead of the NPU at L = 1024 (the prose prints 24-28 over L 128-1024), from the full grid
+            # CoDe's last M ahead of the NPU at L = 1024 (the prose prints 27-29 over L 128-1024), from the full grid
             c = series(rows, lev, "code", "t_us", L, wl)
             win = max(m for m, t, tn in c if t < tn)
-            assert win == 24, win
+            assert win == 27, win
             # the plotted points agree: CoDe ahead of the NPU at M = 16, behind at M = 32
             cd, hn = dict(ser["code"]), dict(npu)
             assert cd[16] > hn[16] and cd[32] < hn[32]
-            # the leader ends on the drawn NPU segment at M = 24, within 0.5 % of the NPU's own value there
+            # the leader ends on the drawn NPU segment at M = 27, within 0.5 % of the NPU's own value there
             tn24 = dict((m, tn) for m, _, tn in c)[win]
             yv = loglerp(npu, win)
             assert abs(yv / (win * 1e6 / tn24) - 1) < 5e-3

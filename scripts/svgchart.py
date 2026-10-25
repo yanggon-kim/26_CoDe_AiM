@@ -50,6 +50,11 @@ def style(key):
     return HOST if key == "host" else STYLE[key]
 
 
+def dash(st):
+    """Optional stroke-dasharray of a series style (a "dash" entry, e.g. "2.2 1.2"); solid by default."""
+    return f' stroke-dasharray="{st["dash"]}"' if st.get("dash") else ""
+
+
 def marker(cx, cy, shape, color):
     """Hollow marker; returns (svg, radius used to stop the joining segments)."""
     a = f'fill="none" stroke="{color}" stroke-width="{LW}"'
@@ -90,8 +95,8 @@ class Fig:
         for k, lab in items:
             st = style(k)
             svg, r = marker(x + sample / 2, y - 2.9, st["marker"], st["color"])
-            self.line(x, y - 2.9, x + sample / 2 - r, y - 2.9, st["color"])
-            self.line(x + sample / 2 + r, y - 2.9, x + sample, y - 2.9, st["color"])
+            self.line(x, y - 2.9, x + sample / 2 - r, y - 2.9, st["color"], extra=dash(st))
+            self.line(x + sample / 2 + r, y - 2.9, x + sample, y - 2.9, st["color"], extra=dash(st))
             self.o.append(svg)
             self.text(x + sample + gap, y, lab)
             x += sample + gap + width(lab, FL) + space
@@ -138,12 +143,16 @@ def fmt_y(t, ylog):
 class Panel:
     """One plot box: x log2 (M), y log10 or linear. x0, y0 = top-left corner of the box."""
 
-    def __init__(self, fig, x0, y0, w, h, xlim, xticks, ylim, ylog, yticks=None):
+    def __init__(self, fig, x0, y0, w, h, xlim, xticks, ylim, ylog, yticks=None, xlog=True):
         self.f, self.x0, self.y0, self.w, self.h = fig, x0, y0, w, h
+        self.xlog = xlog
         self.xlim, self.xticks, self.ylim, self.ylog = xlim, xticks, ylim, ylog
         self.yticks = yticks if yticks is not None else (log_ticks(*ylim) if ylog else None)
 
     def px(self, x):
+        if not self.xlog:
+            a, b = self.xlim
+            return self.x0 + (x - a) / (b - a) * self.w
         a, b = (math.log2(v) for v in self.xlim)
         return self.x0 + (math.log2(x) - a) / (b - a) * self.w
 
@@ -215,7 +224,7 @@ class Panel:
                 continue
             ux, uy = (xb - xa) / d, (yb - ya) / d
             self.f.line(xa + ux * ra, ya + uy * ra, xb - ux * rb, yb - uy * rb, st["color"], LW,
-                        ' stroke-linecap="butt"')
+                        ' stroke-linecap="butt"' + dash(st))
         self.f.o.extend(svgs)
 
     def note(self, x, y, lines, anchor="start", to=None, attach=None):

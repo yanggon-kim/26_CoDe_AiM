@@ -92,7 +92,7 @@ def checks():
         tv = {r["id"]: float(r["value"]) for r in csv.DictReader(f)}
     got = {d: (tv[f"x.ev56.xover.npu42.{d}.grid_min"], tv[f"x.ev56.xover.npu42.{d}.grid_max"])
            for d in ("stock", "h2", "core8")}
-    assert got == {"stock": (6, 7), "h2": (24, 24), "core8": (24, 28)}, got
+    assert got == {"stock": (6, 7), "h2": (24, 24), "core8": (27, 29)}, got
     print("checks: all frozen values hold")
 
 

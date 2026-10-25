@@ -27,8 +27,8 @@ LP-Spec-style's $U$ of 0.752.
 CoDe never decodes slower than LP-Spec-style. End to end at $L = 1024$, the speculative loop on CoDe produces 49.8 tokens/s against LP-Spec-style's 49.5 with the
 1.1B draft (best $M = 3$), and 72.4 tokens/s on either design with the EAGLE head ($M = 4$); over $L = 128$--1024 CoDe's loop runs at
 1.00--1.006$\times$ LP-Spec-style's speed. Per decode step, CoDe is
-1.53$\times$ faster at $M = 5$ and 1.02--1.25$\times$ from $M = 8$ (Fig.~\ref{fig:phone}a). CoDe's step beats the
-NPU's up to $M = 24$--28, and CoDe's loop runs 8.15$\times$ faster than plain NPU decode at 6.1 tokens/s, against
+1.53$\times$ faster at $M = 5$ and 1.07--1.31$\times$ from $M = 8$ (Fig.~\ref{fig:phone}a). CoDe's step beats the
+NPU's up to $M = 27$--29, and CoDe's loop runs 8.15$\times$ faster than plain NPU decode at 6.1 tokens/s, against
 10.6 tokens/s for the NPU's own speculative loop.
 
 \paragraph{Energy per token}
@@ -45,7 +45,7 @@ Fig.~\ref{fig:hbm2} plots the geometric mean over the five LLMs at each batch.
 
 \paragraph{Beats per command}
 CoDe runs four beats per command where P3-LLM-style runs two. From batch 8 CoDe's step is 1.68$\times$
-P3-LLM-style's and 2.87--2.88$\times$ stock AiM's; at batch 3--6 CoDe's step is 1.44--1.71$\times$ P3-LLM-style's
+P3-LLM-style's and 2.87--2.88$\times$ stock AiM's; at batch 3--6 CoDe's step is 1.43--1.71$\times$ P3-LLM-style's
 (Fig.~\ref{fig:hbm2}a). For one decoder layer's weight GEMMs of Llama-3.1-8B at batch 8, P3-LLM-style still issues one
 command per token and fills 0.791 of the C bus, while CoDe fills 0.431 at about twice P3-LLM-style's useful-MAC
 utilization ($U = 0.739$ against 0.379). CoDe's step stays ahead of the NPU up to batch 8--12, so a batch of 8, where P3-LLM~\cite{p3llm} moves its
@@ -53,7 +53,7 @@ linear layers to the NPU, still runs faster on CoDe.
 
 \paragraph{Speed against area}
 CoDe's speed more than pays for its larger logic. CoDe returns 1.26$\times$ P3-LLM-style's throughput per logic
-mm$^2$ from batch 8 and 1.08--1.29$\times$ at batch 3--6 (Fig.~\ref{fig:hbm2}b). At batch 1--2, where CoDe's third and
+mm$^2$ from batch 8 and 1.08--1.28$\times$ at batch 3--6 (Fig.~\ref{fig:hbm2}b). At batch 1--2, where CoDe's third and
 fourth beats sit idle, P3-LLM-style's smaller PU leads (0.80--0.84$\times$).
 
 \paragraph{System energy}
@@ -89,7 +89,47 @@ removed most of the row-switch overhead per token.
 \subsection{Ablation Study}
 \label{sec:eval:ablation}
 
-\PENDING{part 2 adds the tile-size ablation: throughput per logic mm$^2$ against $V$ and $M$ on both platforms, with its figure}
+Throughput per logic mm$^2$ peaks at the tile size $V = D$ on both platforms, and the mobile platform's $V = 8$
+bounds the per-mm$^2$ loss across the token rows of a decode step. Fig.~\ref{fig:vsweep}a sweeps $V$ from 1 to 64 for
+q\_proj at $M = 64$ with the staging of Section~\ref{sec:design:pu}, which on the mobile platform is a register of
+$V$ slices below $V = 8$; Fig.~\ref{fig:vsweep}b sets $V = 8$ against $V = 4$ for $M = 1$--16.
+
+\paragraph{Gain by tile size}
+Up to $V = D$ a larger tile fills idle beats; beyond $V = D$ it removes only row-switch commands. CoDe's q\_proj
+speed-up over stock AiM rises from 1 at $V = 1$ to 3.86$\times$ on the mobile platform and 3.69$\times$ on HBM2 at
+$V = D$, but only to 4.85$\times$ and 4.39$\times$ at $V = 64$. On the mobile platform, idle beats supply 78\,\% of
+the time that the step from $V = 1$ to 2 saves and row-switch commands 22\,\%. From $V = 4$ to 8 the row-switch
+commands supply 98.6\,\% of the saving, and their share of the GEMM time falls from 19.8\,\% to 10.6\,\%; token load
+stays at 20.5--20.6\,$\mu$s at every $V$.
+
+\paragraph{Area against speed}
+Past $V = D$ CoDe's storage grows faster than its speed. Scaled by the $V = D$ design's area, the per-mm$^2$ curves
+of Fig.~\ref{fig:vsweep}a meet the speed-up curves at $V = D$ and fall on either side. From $V = 4$ to 8 the mobile
+logic grows by 16\,\%, from 1.212 to 1.406\,mm$^2$ per die, and HBM2's by 40\,\%, from 0.821 to 1.153\,mm$^2$ per
+pseudo-channel, so $V = 8$ breaks even per mm$^2$ only at 1.160$\times$ and 1.405$\times$ $V = 4$'s speed. At
+$M = 64$, $V = 8$ runs 1.117$\times$ and 1.089$\times$ faster and keeps 96.3\,\% and 77.5\,\% of the peak.
+
+\paragraph{Robustness across $M$}
+Partial last row sweeps make $V = 8$ win per mm$^2$ on the mobile platform at $M = 5$--7, 9--10 and 13--15. At
+$M = 5$, $V = 4$ runs two row sweeps of three and two tokens where $V = 8$ runs one, and $V = 8$'s verify step
+returns 1.316$\times$ $V = 4$'s throughput per mm$^2$; up to $M = 4$ both tiles run one row sweep and $V = 8$ returns
+0.862$\times$ (Fig.~\ref{fig:vsweep}b). HBM2's batched step never reaches the 1.405$\times$ break-even, and $V = 8$
+peaks at 0.944$\times$ at $M = 5$. Against the best of $V = 2$, 4, 8 and 16 at each $M$ from 3 to 16, the mobile
+$V = 4$'s worst per-mm$^2$ loss is 29.5\,\% on q\_proj and 24.0\,\% on the verify step, both at $M = 5$, while
+$V = 8$'s is 13.8\,\%, its area premium at $M = 3$--4. On HBM2, $V = 4$ loses at most 11.7\,\% and $V = 8$
+loses 28.8--30.0\,\%. The mobile one-tile kernel, bound by token load, is the exception: it loses 4.6\,\% with $V = 4$ and
+13.8\,\% with $V = 8$. The speculative loop's best $M$ is 3 with the 1.1B draft and 4 with EAGLE, where $V = 8$ pays
+its area premium; CoDe still sets $V = 8$ on the mobile platform, because $V = 8$ caps the per-mm$^2$ loss at 13.8\,\%
+over $M = 3$--16, against $V = 4$'s 29.5\,\%.
+
+% Fig. vsweep: one column; placement checked on the float map after each build
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figs/fig_vsweep.pdf}
+  \caption{Tile size: (a)~q\_proj speed-up and speed-up per logic mm$^2$ against $V$ at $M = 64$; (b)~$V = 8$ over
+  $V = 4$, decode-step throughput per logic mm$^2$ against $M$.}
+  \label{fig:vsweep}
+\end{figure}
 
 \subsection{Peak Power}
 \label{sec:eval:power}
@@ -126,8 +166,8 @@ accumulators and staging words. Gated CoDe then draws 0.92$\times$ ungated LP-Sp
 platform and 0.87$\times$ on HBM2. Gating remains an option: every other number in this paper describes the ungated
 designs.
 
-% sources-of-gain table (D-35): defined at VI-C's end, in page 10's left column under Fig. hbm2, so it renders at the
-% top of the right column; generated by scripts/make_tables.py (simulated rows, evaluation/dac_2x2 Sec. 2i)
+% sources-of-gain table (D-35): defined at VI-D's end, so it renders at the top of page 11's left column, after
+% Fig. vsweep takes page 10's right column; generated by scripts/make_tables.py (simulated rows, evaluation/dac_2x2 Sec. 2i)
 \begin{table}[t]
   \caption{Useful-MAC utilization from stock AiM to CoDe, one source at a time.}
   \label{tab:umac_src}
