@@ -12,7 +12,7 @@ NPU reading LPDDR5-6400 at 42\,GB/s (Section~\ref{sec:bg:roofline}).
 DRAM processing-in-memory (PIM) removes the bandwidth limit but adds a compute ceiling built for GEMV. AiM-style PIM (Fig.~\ref{fig:dram_pim}a)
 places a processing unit (PU) beside each bank and reads all banks with one column command~\cite{aimjssc,hbmpim}, for 9.75$\times$ the host's bandwidth on the mobile platform and 4$\times$ on HBM2. Each column command, however, drives one
 multiply--accumulate (MAC) beat per PU (Fig.~\ref{fig:dram_pim}b), so a skinny GEMM costs $M$ GEMVs. Stock AiM-style PIM therefore wins a whole
-decode step against the host only up to $M = 6$--7 on the mobile platform and $M = 2$--3 on HBM2 (Fig.~\ref{fig:roofline}).
+decode step against the host only up to $M = 6$ on the mobile platform and $M = 2$--3 on HBM2 (Fig.~\ref{fig:roofline}).
 Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,p3llm}.
 
 % float placed early: column-width schematic (Section II-B), defined here, past the point where it would

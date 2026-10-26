@@ -39,7 +39,7 @@ filling first takes 2.39$\times$ and leaves 1.84$\times$ to row reuse. Row reuse
 $D = 1$. Row (b) is a model composed from stock AiM's trace, because beat filling cannot exist without row reuse:
 filling $D$ beats needs at least $D$ tokens per command, and the composed MAC commands issue 1.25\,ns apart, faster
 than the 5\,ns column period. The window leaves out the WRGB burst that loads the next $K$ chunk's inputs into the GB
-once per 64 row sweeps; over the whole q\_proj GEMM, CoDe runs 4.31$\times$ faster than stock AiM.
+once per 64 row sweeps; over the whole q\_proj GEMM, CoDe runs 4.32$\times$ faster than stock AiM.
 
 \subsection{Beat Filling}
 \label{sec:design:beat}

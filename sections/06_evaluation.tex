@@ -13,28 +13,28 @@ $L = 1024$.
 
 \paragraph{Throughput per logic mm$^2$}
 CoDe nearly doubles LP-Spec-style's throughput per logic mm$^2$ for GEMMs, attention layers and decode steps alike. Per
-logic mm$^2$, CoDe delivers 1.86--3.05$\times$ LP-Spec-style's GEMM throughput, 1.86--2.33$\times$ its
-attention-layer throughput and 1.86--2.84$\times$ its decode-step throughput over $M = 1$--64
+logic mm$^2$, CoDe delivers 1.86--3.06$\times$ LP-Spec-style's GEMM throughput, 1.86--2.34$\times$ its
+attention-layer throughput and 1.86--2.85$\times$ its decode-step throughput over $M = 1$--64
 (Fig.~\ref{fig:phone}b--d). The floor is the area ratio: up to $M = 4$ CoDe and LP-Spec-style issue the same command stream for the weight
-GEMMs and the decode step, while CoDe's attention layer already runs 1.01--1.13$\times$ faster at $M = 2$--4. The GEMM and decode-step peaks at $M = 5$ add speed, because LP-Spec-style needs a second pass of its four-token step
+GEMMs and the decode step, while CoDe's attention layer already runs 1.01--1.14$\times$ faster at $M = 2$--4. The GEMM and decode-step peaks at $M = 5$ add speed, because LP-Spec-style needs a second pass of its four-token step
 while CoDe's eight-token tile covers $M = 5$ in one pass. For one decoder layer's weight GEMMs of Llama-2-7B at
 $M = 8$, CoDe issues 0.125 MAC commands per token per weight column, half LP-Spec-style's. CoDe's useful-MAC
-utilization $U$ reaches 0.843 against LP-Spec-style's 0.752 with a quarter of LP-Spec-style's multipliers
-(Table~\ref{tab:umac}), because eight tokens share each of CoDe's row sweeps; up to $M = 4$ CoDe shares
-LP-Spec-style's $U$ of 0.752.
+utilization $U$ reaches 0.779 against LP-Spec-style's 0.694 with a quarter of LP-Spec-style's multipliers
+(Table~\ref{tab:umac}), because eight tokens share each of CoDe's row sweeps. Up to $M = 4$ CoDe issues
+LP-Spec-style's command stream and shares LP-Spec-style's $U$, 0.695 at $M = 4$.
 
 \paragraph{Decode speed}
-CoDe never decodes slower than LP-Spec-style. End to end at $L = 1024$, the speculative loop on CoDe produces 49.8 tokens/s against LP-Spec-style's 49.5 with the
-1.1B draft (best $M = 3$), and 72.4 tokens/s on either design with the EAGLE head ($M = 4$); over $L = 128$--1024 CoDe's loop runs at
+CoDe never decodes slower than LP-Spec-style. End to end at $L = 1024$, the speculative loop on CoDe produces 47.1 tokens/s against LP-Spec-style's 46.8 with the
+1.1B draft (best $M = 3$), and 68.1 tokens/s on either design with the EAGLE head ($M = 4$); over $L = 128$--1024 CoDe's loop runs at
 1.00--1.006$\times$ LP-Spec-style's speed. Per decode step, CoDe is
-1.53$\times$ faster at $M = 5$ and 1.07--1.31$\times$ from $M = 8$ (Fig.~\ref{fig:phone}a). CoDe's step beats the
-NPU's up to $M = 27$--29, and CoDe's loop runs 8.15$\times$ faster than plain NPU decode at 6.1 tokens/s, against
+1.54$\times$ faster at $M = 5$ and 1.07--1.31$\times$ from $M = 8$ (Fig.~\ref{fig:phone}a). CoDe's step beats the
+NPU's up to $M = 24$--26, and CoDe's loop runs 7.71$\times$ faster than plain NPU decode at 6.1 tokens/s, against
 10.6 tokens/s for the NPU's own speculative loop.
 
 \paragraph{Energy per token}
-The speculative loop on PIM needs an order of magnitude less energy per token than the NPU. With the draft and the verify pass on CoDe, the loop spends 65.0\,mJ per token with the 1.1B draft and 48.9\,mJ with EAGLE, against 971\,mJ for plain
+The speculative loop on PIM needs an order of magnitude less energy per token than the NPU. With the draft and the verify pass on CoDe, the loop spends 66.2\,mJ per token with the 1.1B draft and 49.8\,mJ with EAGLE, against 971\,mJ for plain
 NPU decode and 558\,mJ for the NPU's speculative loop. Against LP-Spec-style CoDe also saves energy per attention
-layer: LP-Spec-style spends 1.05--1.16$\times$ CoDe's energy at $M \le 4$ and 1.15--1.27$\times$ from $M = 8$.
+layer: LP-Spec-style spends 1.05--1.16$\times$ CoDe's energy at $M \le 4$ and 1.16--1.28$\times$ from $M = 8$.
 
 
 \subsection{Edge-Server Platform against P3-LLM-Style}
@@ -68,12 +68,12 @@ Table~\ref{tab:umac_src} adds the two sources in that
 order for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
 of Llama-3.1-8B on the edge server. The row-reuse-only design keeps the stock PU's pace of one beat per column
 period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$ rather than compose it from the other rows. Row reuse alone lifts
-\fMAC, yet $U$ reaches only 0.241 on the mobile platform and 0.222 on the edge server, because \UMAC stays at 1/4.
+\fMAC, yet $U$ reaches only 0.223 on the mobile platform and 0.222 on the edge server, because \UMAC stays at 1/4.
 Beat filling, the command decoupling of Section~\ref{sec:design:beat}, then fills the idle beats and supplies the large step,
 3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server. In the other order, beat filling alone,
-composed from the model, would reach a $U$ of only 0.464 and 0.506, in steps of 2.39$\times$ then 1.82$\times$ on the mobile
+composed from the model, would reach a $U$ of only 0.425 and 0.506, in steps of 2.37$\times$ then 1.83$\times$ on the mobile
 platform and 2.62$\times$ then 1.46$\times$ on the edge server, because the unchanged non-MAC commands would take
-about half of the shortened time and \fMAC would fall. Beat filling thus earns its full step only once row reuse has
+more than half of the shortened time on the mobile platform and about half on the edge server, so \fMAC would fall. Beat filling thus earns its full step only once row reuse has
 removed most of the row-switch overhead per token.
 
 
@@ -97,14 +97,14 @@ $V$ slices below $V = 8$; Fig.~\ref{fig:vsweep}b sets $V = 8$ against $V = 4$ fo
 \paragraph{Gain by tile size}
 Up to $V = D$ a larger tile fills idle beats; beyond $V = D$ it removes only row-switch commands. CoDe's q\_proj
 speed-up over stock AiM rises from 1 at $V = 1$ to 3.86$\times$ on the mobile platform and 3.69$\times$ on HBM2 at
-$V = D$, but only to 4.85$\times$ and 4.39$\times$ at $V = 64$. On the mobile platform, idle beats supply 78\,\% of
-the time that the step from $V = 1$ to 2 saves and row-switch commands 22\,\%. From $V = 4$ to 8 the row-switch
-commands supply 98.6\,\% of the saving, and their share of the GEMM time falls from 19.8\,\% to 10.6\,\%; token load
-stays at 20.5--20.6\,$\mu$s at every $V$.
+$V = D$, but only to 4.90$\times$ and 4.39$\times$ at $V = 64$. On the mobile platform, of the time that the step from
+$V = 1$ to 2 saves, idle beats supply 72\,\%, row-switch commands 21\,\% and refresh 7\,\%. From $V = 4$ to 8 the
+row-switch commands supply 91.6\,\% of the saving, and their share of the GEMM time falls from 18.9\,\% to 10.4\,\%;
+token load stays at 20.5\,$\mu$s at every $V$.
 
 \paragraph{Area against speed}
 Past $V = D$ CoDe's storage grows faster than its speed. Fig.~\ref{fig:vsweep}a normalises throughput per logic
-mm$^2$ to stock AiM's, and both per-mm$^2$ curves peak at $V = D$, at 3.02$\times$ on the mobile platform and
+mm$^2$ to stock AiM's, and both per-mm$^2$ curves peak at $V = D$, at 3.01$\times$ on the mobile platform and
 2.34$\times$ on HBM2. From $V = 4$ to 8 the mobile
 logic grows by 16\,\%, from 1.212 to 1.406\,mm$^2$ per die, and HBM2's by 40\,\%, from 0.821 to 1.153\,mm$^2$ per
 pseudo-channel, so $V = 8$ breaks even per mm$^2$ only at 1.160$\times$ and 1.405$\times$ $V = 4$'s speed. At
@@ -113,15 +113,15 @@ $M = 64$, $V = 8$ runs 1.117$\times$ and 1.089$\times$ faster and keeps 96.3\,\%
 \paragraph{Robustness across $M$}
 Partial last row sweeps make $V = 8$ win per mm$^2$ on the mobile platform at $M = 5$--7, 9--10 and 13--15. At
 $M = 5$, $V = 4$ runs two row sweeps of three and two tokens where $V = 8$ runs one, and $V = 8$'s verify step
-returns 1.316$\times$ $V = 4$'s throughput per mm$^2$; up to $M = 4$ both tiles run one row sweep and $V = 8$ returns
+returns 1.324$\times$ $V = 4$'s throughput per mm$^2$; up to $M = 4$ both tiles run one row sweep and $V = 8$ returns
 0.862$\times$ (Fig.~\ref{fig:vsweep}b). HBM2's batched step never reaches the 1.405$\times$ break-even, and $V = 8$
 peaks at 0.944$\times$ at $M = 5$. Against the best of $V = 2$, 4, 8 and 16 at each $M$ from 3 to 16, the mobile
-$V = 4$'s worst per-mm$^2$ loss is 29.5\,\% on q\_proj and 24.0\,\% on the verify step, both at $M = 5$, while
+$V = 4$'s worst per-mm$^2$ loss is 29.4\,\% on q\_proj and 24.5\,\% on the verify step, both at $M = 5$, while
 $V = 8$'s is 13.8\,\%, its area premium at $M = 3$--4. On HBM2, $V = 4$ loses at most 11.7\,\% and $V = 8$
 loses 28.8--30.0\,\%. The mobile one-tile kernel, bound by token load, is the exception: it loses 4.6\,\% with $V = 4$ and
 13.8\,\% with $V = 8$. The speculative loop's best $M$ is 3 with the 1.1B draft and 4 with EAGLE, where $V = 8$ pays
 its area premium; CoDe still sets $V = 8$ on the mobile platform, because $V = 8$ caps the per-mm$^2$ loss at 13.8\,\%
-over $M = 3$--16, against $V = 4$'s 29.5\,\%.
+over $M = 3$--16, against $V = 4$'s 29.4\,\%.
 
 % Fig. vsweep: one column; placement checked on the float map after each build
 \begin{figure}[t]

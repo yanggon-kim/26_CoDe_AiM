@@ -66,23 +66,23 @@ def main():
         for d in sorted(DESIGNS, key=lambda d: d != "code"):     # CoDe beneath the rivals
             pn.series(d, ser[d])
         if npu:
-            # CoDe's last M ahead of the NPU at L = 1024 (the prose prints 27-29 over L 128-1024), from the full grid
+            # CoDe's last M ahead of the NPU at L = 1024 (the prose prints 24-26 over L 128-1024), from the full grid
             c = series(rows, lev, "code", "t_us", L, wl)
             win = max(m for m, t, tn in c if t < tn)
-            assert win == 27, win
+            assert win == 24, win
             # the plotted points agree: CoDe ahead of the NPU at M = 16, behind at M = 32
             cd, hn = dict(ser["code"]), dict(npu)
             assert cd[16] > hn[16] and cd[32] < hn[32]
-            # the leader ends on the drawn NPU segment at M = 27, within 0.5 % of the NPU's own value there
+            # the leader ends on the drawn NPU segment at M = 24, within 0.5 % of the NPU's own value there
             tn24 = dict((m, tn) for m, _, tn in c)[win]
             yv = loglerp(npu, win)
             assert abs(yv / (win * 1e6 / tn24) - 1) < 5e-3
             pn.note(1.3, 1100, ["CoDe ahead", "to " + I("M") + f" = {win}"], "start", to=(win, yv),
                     attach=(pn.px(1.3) + 40, pn.py(1100) + FL * 0.8))
         pn.finish()
-    # the per-mm^2 lead at M = 5 (decode step, L = 1024) that the prose bounds (1.86-2.84 over every L)
+    # the per-mm^2 lead at M = 5 (decode step, L = 1024) that the prose bounds (1.86-2.85 over every L)
     d5 = {d: dict((m, v) for m, v, _ in series(rows, "decode", d, "per_logic_mm2", "1024")) for d in DESIGNS}
-    assert 2.83 <= r2(d5["code"][5] / d5["lpspec"][5]) <= 2.84
+    assert 2.84 <= r2(d5["code"][5] / d5["lpspec"][5]) <= 2.85
     fig.write("fig_phone", "scripts/make_fig_phone.py")
 
 

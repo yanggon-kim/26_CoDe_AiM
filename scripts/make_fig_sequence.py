@@ -152,14 +152,14 @@ def checks():
     assert k_chunk_B == 2048 and k_chunk_B // 64 == 32 and 512 * 32 == V * k_chunk_B == 16 * 1024
     gb = {(r["substrate"][:5], r["design"]): int(r["GB_KB"]) for r in read("dac_table4.csv")}
     assert gb[("phone", "core8")] == 16                                                          # Table II
-    # whole q_proj GEMM (umac_kernel W2, channel 28): CoDe 4.31x stock AiM
+    # whole q_proj GEMM (umac_kernel W2, channel 28): CoDe 4.32x stock AiM
     k = rows_of("ukern_phone_sum")
     assert k["W2/core"]["workload_label"].startswith("Llama-2-7B q_proj") and k["W2/core"]["channel"] == "28"
-    assert f"{float(k['W2/core']['speedup_vs_stock']):.2f}" == "4.31"
+    assert f"{float(k['W2/core']['speedup_vs_stock']):.2f}" == "4.32"
     print("sequence: weight row " + " / ".join(f"{t} {disp[t]} ns" for t in TRACES)
           + f"; steps a->b {shown['a_b']} b->d {shown['b_d']}, a->c {shown['a_c']} c->d {shown['c_d']}, "
           f"total {shown['a_d']}; MAC cmds 512/512/64/64; row switches 8/8/1/1; MAC slots 2,560 -> 640 (b), "
-          f"2,560 kept (c); drain block 61.25 ns; s12 rule 2.3 %; GB 16 KB; q_proj 4.31x")
+          f"2,560 kept (c); drain block 61.25 ns; s12 rule 2.3 %; GB 16 KB; q_proj 4.32x")
     return w, row_ns, disp, shown
 
 

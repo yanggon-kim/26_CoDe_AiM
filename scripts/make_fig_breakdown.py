@@ -8,7 +8,8 @@ refresh. The "other" class (MAC16 stall + time before the first command + residu
 out of the bars; III-B's paragraph says so.
 
 Source (read only): evaluation/dac_2x2/figures/tab_umac_kernel_stock.csv (stock rows of umac_kernel, microarch 170254c,
-collected at evaluation 472414f, context Sec. 2j) and evaluation/dac_2x2/touched.csv (umac.kernel.* ids: GB fill
+collected at evaluation 472414f, context Sec. 2j; phone rows re-collected after the JEDEC refresh fix, evaluation
+c2ad6f9, Sec. 2p: the phone bars gain a refresh segment) and evaluation/dac_2x2/touched.csv (umac.kernel.* ids: GB fill
 amortization). Asserts every share the figure draws and every number the III-B prose prints from this kernel.
 Writes figs/src/fig_breakdown.html; scripts/html2pdf.py fig_breakdown turns it into figs/fig_breakdown.pdf.
 """
@@ -31,11 +32,11 @@ SEGS = [("MAC useful", "MAC useful beats", "#303030"),
         ("token drain", "token drain", "#E3E3E3"),
         ("refresh", "refresh", "#7A7A7A")]
 # shares the figure draws (%, 2 dp; the brief's check table = context Sec. 2j)
-WANT = {("phone", "W1"): (15.16, 45.47, 8.17, 30.43, 0.75, 0.00),
-        ("phone", "W2"): (19.47, 58.41, 20.59, 0.61, 0.91, 0.01),
+WANT = {("phone", "W1"): (14.07, 42.22, 8.59, 28.25, 0.70, 6.16),
+        ("phone", "W2"): (17.98, 53.95, 19.53, 0.56, 0.84, 7.13),
         ("hbm2", "W1"): (14.24, 42.72, 10.22, 28.48, 0.71, 3.62),
         ("hbm2", "W2"): (19.14, 57.42, 13.81, 2.39, 0.99, 6.25)}
-TOTAL_US = {("phone", "W1"): "4.22", ("phone", "W2"): "421", ("hbm2", "W1"): "7.19", ("hbm2", "W2"): "85.6"}
+TOTAL_US = {("phone", "W1"): "4.55", ("phone", "W2"): "456", ("hbm2", "W1"): "7.19", ("hbm2", "W2"): "85.6"}
 
 
 def load():
@@ -75,19 +76,20 @@ def checks(data):
     sh = {k: {p: seg(data[k], p)[1] for _, p, _ in SEGS} for k in WANT}
     nonmac = {k: 100 - sh[k]["MAC useful beats"] - sh[k]["MAC idle beats"] for k in WANT}
     # III-B prose (each value printed once):
-    # Time breakdown: useful 14.2-19.5 %, idle 42.7-58.4 %, non-MAC commands 22.1-43.0 % across the four bars
-    assert (round(min(v["MAC useful beats"] for v in sh.values()), 1), round(max(v["MAC useful beats"] for v in sh.values()), 1)) == (14.2, 19.5)
-    assert (round(min(v["MAC idle beats"] for v in sh.values()), 1), round(max(v["MAC idle beats"] for v in sh.values()), 1)) == (42.7, 58.4)
-    assert (round(min(nonmac.values()), 1), round(max(nonmac.values()), 1)) == (22.1, 43.0), nonmac
+    # Time breakdown: useful 14.1-19.1 %, idle 42.2-57.4 %, non-MAC commands 23.4-43.7 % across the four bars
+    assert (round(min(v["MAC useful beats"] for v in sh.values()), 1), round(max(v["MAC useful beats"] for v in sh.values()), 1)) == (14.1, 19.1)
+    assert (round(min(v["MAC idle beats"] for v in sh.values()), 1), round(max(v["MAC idle beats"] for v in sh.values()), 1)) == (42.2, 57.4)
+    assert (round(min(nonmac.values()), 1), round(max(nonmac.values()), 1)) == (23.4, 43.7), nonmac
     # Idle beats: the largest segment of every bar
     assert all(max(v, key=v.get) == "MAC idle beats" for v in sh.values())
-    # Idle beats: q_proj idle shares 58.4 % (mobile) and 57.4 % (edge server)
-    assert round(sh[("phone", "W2")]["MAC idle beats"], 1) == 58.4 and round(sh[("hbm2", "W2")]["MAC idle beats"], 1) == 57.4
-    # Non-MAC commands: row switch 20.6 % / 13.8 % of q_proj; token load 0.6 / 2.4 % of q_proj, 30.4 / 28.5 % of the
-    # one tile; refresh 6.2 % of the server q_proj; token drain at most 1.0 %
-    assert round(sh[("phone", "W2")]["row switch"], 1) == 20.6 and round(sh[("hbm2", "W2")]["row switch"], 1) == 13.8
-    assert [round(sh[k]["token load"], 1) for k in WANT] == [30.4, 0.6, 28.5, 2.4]
+    # Idle beats: q_proj idle shares 53.9 % (mobile) and 57.4 % (edge server)
+    assert round(sh[("phone", "W2")]["MAC idle beats"], 1) == 53.9 and round(sh[("hbm2", "W2")]["MAC idle beats"], 1) == 57.4
+    # Non-MAC commands: row switch 19.5 % / 13.8 % of q_proj; token load 0.6 / 2.4 % of q_proj, 28.3 / 28.5 % of the
+    # one tile; refresh 7.1 % / 6.2 % of q_proj; token drain at most 1.0 %
+    assert round(sh[("phone", "W2")]["row switch"], 1) == 19.5 and round(sh[("hbm2", "W2")]["row switch"], 1) == 13.8
+    assert [round(sh[k]["token load"], 1) for k in WANT] == [28.3, 0.6, 28.5, 2.4]
     assert round(sh[("hbm2", "W2")]["refresh"], 1) == 6.2   # 6.245 %: 6.2, not 6.3 (no double rounding)
+    assert round(sh[("phone", "W2")]["refresh"], 1) == 7.1
     assert round(max(v["token drain"] for v in sh.values()), 1) == 1.0
     # one GB fill serves 64 row sweeps (mobile q_proj), 16 (server q_proj), 1 (one tile)
     for p, w, n in (("phone", "W2", 64), ("hbm2", "W2", 16), ("phone", "W1", 1), ("hbm2", "W1", 1)):
@@ -96,8 +98,8 @@ def checks(data):
     for (p, w), (shape, ch) in {("phone", "W1"): ("2048x64", "28"), ("phone", "W2"): ("4096x4096", "28"),
                                 ("hbm2", "W1"): ("4096x256", "30"), ("hbm2", "W2"): ("4096x4096", "30")}.items():
         assert (data[(p, w)]["row"]["shape"], data[(p, w)]["row"]["channel"]) == (shape, ch), (p, w)
-    print("breakdown: useful 14.2-19.5 %, idle 42.7-58.4 %, non-MAC 22.1-43.0 %; q_proj row switch 20.6 / 13.8 %, "
-          "token load 0.6 / 2.4 % (q_proj) vs 30.4 / 28.5 % (one tile), server refresh 6.2 %")
+    print("breakdown: useful 14.1-19.1 %, idle 42.2-57.4 %, non-MAC 23.4-43.7 %; q_proj row switch 19.5 / 13.8 %, "
+          "token load 0.6 / 2.4 % (q_proj) vs 28.3 / 28.5 % (one tile), q_proj refresh 7.1 / 6.2 %")
 
 
 def draw(data):

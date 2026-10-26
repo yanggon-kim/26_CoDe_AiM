@@ -24,7 +24,7 @@ ridge lies far above $M = 32$, so every skinny GEMM runs on the host's memory ro
 Stock PIM beats the host only for the first few token rows. At $M = 1$ every PIM ceiling starts 9.75$\times$ above the
 mobile NPU's roof and 4$\times$ above the edge-server NPU's roof. Stock AiM's ceiling is flat from $M = 1$, however,
 because stock AiM repeats the GEMV once per token row (Section~\ref{sec:bg:cmd}). The rising host roof overtakes that
-ceiling, and stock AiM wins a whole decode step only up to $M = 6$--7 on the mobile platform and $M = 2$--3 on the edge
+ceiling, and stock AiM wins a whole decode step only up to $M = 6$ on the mobile platform and $M = 2$--3 on the edge
 server, below most of the published values of $M$ (Section~\ref{sec:bg:skinny}).
 
 \paragraph{GEMV-only use of PIM}
@@ -58,7 +58,7 @@ amplifiers to move one column out of the cell array~\cite{hbmpim}. A MAC that ex
 arrives therefore inherits array-access timing as the limit of its throughput. A faster-PU test confirms that the
 command count, not the PU's arithmetic, sets the time of a stock GEMM. Stock AiM repeats the GEMV once per token row,
 so its MAC command count equals $M$ times the number of weight columns, and in our simulation its GEMM time grows in
-proportion to $M$, within 0.13\,\% on the mobile platform and 2.7\,\% on the edge server. Replacing the column-matched
+proportion to $M$, within 1.84\,\% on the mobile platform and 2.7\,\% on the edge server. Replacing the column-matched
 stock PU of Table~\ref{tab:params}, one beat per column period, with a PU four times faster, clocked at CK (0.8\,GHz on
 LPDDR5-6400 and 1\,GHz on HBM2), leaves every stock GEMM at the same number of cycles, because the command spacing, not
 the PU clock, sets the time of each MAC command's slot (Fig.~\ref{fig:dram_pim}b).
@@ -74,7 +74,7 @@ the token load/drain commands and refresh. The useful share of the time is the u
 $U = W \tck / T_\mathrm{GEMM}$, where $W$ is the number of useful MAC beats per PU, $T_\mathrm{GEMM}$ is the GEMM time
 and the reference PU runs one useful beat per CK cycle; the cycle \tck is 1.25\,ns on the mobile platform and 1\,ns on
 the edge server, and the reference PU fits $D = 4$ beats into each column period. Across the four kernels, useful beats
-take 14.2--19.5\,\% of the time, idle beats 42.7--58.4\,\% and the non-MAC commands 22.1--43.0\,\%; the bars leave out
+take 14.1--19.1\,\% of the time, idle beats 42.2--57.4\,\% and the non-MAC commands 23.4--43.7\,\%; the bars leave out
 the remaining stalls, at most 0.015\,\%. Stock AiM thus loses useful MAC beats to two bottlenecks: idle beats inside
 the MAC slots, and non-MAC commands between them.
 
@@ -94,7 +94,7 @@ $U = \UMAC \times \fMAC$. The slot factor $\UMAC = A\,b\,\tck / \tslot$ is the u
 where each MAC command feeds a PU from its two banks). Stock AiM's slot serves one token, so the command pacing of
 Fig.~\ref{fig:dram_pim}b leaves three of the slot's four beats idle, and stock AiM's \UMAC is 1/4. Idle beats
 therefore take three times the time of the useful beats and form the largest segment of every bar in
-Fig.~\ref{fig:breakdown}: 58.4\,\% of q\_proj's time on the mobile platform and 57.4\,\% on the edge server.
+Fig.~\ref{fig:breakdown}: 53.9\,\% of q\_proj's time on the mobile platform and 57.4\,\% on the edge server.
 
 \paragraph{Non-MAC commands}
 Stock AiM's row-switch commands outlast the useful MAC work of their row sweep. The sweep factor \fMAC is the share of
@@ -105,22 +105,22 @@ commands}, the token's share of WRGB and its RDMAC16 drain:
 \begin{equation}
   \fMAC = \frac{(1 - \rho)\, c\, \tslot}{c\, \tslot + \trow + A\, \ttok},
 \end{equation}
-where $\rho$ is the share of time that refresh takes. Fitted on stock AiM at $M = 1$, \trow is 85.73\,ns and \ttok
-4.26\,ns on the mobile platform, where $\rho$ is 0 (Section~\ref{sec:method}); on the edge server, \trow is
-94.76\,ns and \ttok 9.64\,ns with $\rho = 0.061$. Over one decoder layer's weight GEMMs on the mobile platform, where
-each stock row sweep serves one token, the simulated row-switch commands take 89.0\,ns per sweep, against 78.0\,ns of
+where $\rho$ is the share of time that refresh takes. Fitted on stock AiM at $M = 1$, \trow is 87.73\,ns and \ttok
+4.26\,ns with $\rho = 0.070$ on the mobile platform, and \trow is
+94.76\,ns and \ttok 9.64\,ns with $\rho = 0.061$ on the edge server. Over one decoder layer's weight GEMMs on the mobile platform, where
+each stock row sweep serves one token, the simulated row-switch commands take 91.2\,ns per sweep, against 78.0\,ns of
 useful MAC work, the time $c\,b\,\tck$ that the reference PU needs for the sweep's beats. The two TMODs take the
-largest part, 40.3\,ns, and the ACT16 pair, timed by a simulator preset, takes 36.4\,ns. PREA takes 11.1\,ns and
-WRMAC16 1.2\,ns. The fitted \trow of 85.73\,ns lies below the sum because the fit nets out the MAC tail that overlaps
-the row-switch commands. In Fig.~\ref{fig:breakdown}, the row-switch commands take 20.6\,\% of q\_proj's time on the
+largest part, 40.5\,ns, and the ACT16 pair, timed by a simulator preset, takes 37.9\,ns. PREA takes 11.5\,ns and
+WRMAC16 1.2\,ns. The fitted \trow of 87.73\,ns lies below the sum because the fit nets out the MAC tail that overlaps
+the row-switch commands. In Fig.~\ref{fig:breakdown}, the row-switch commands take 19.5\,\% of q\_proj's time on the
 mobile platform and 13.8\,\% on the edge server. The token load/drain commands scale with the tokens and the GB fills
 instead. RDMAC16 drains each token's sums once per row sweep and takes at most 1.0\,\% of a kernel's time. WRGB fills
 the GB once per token and $K$ chunk, and one fill serves every row sweep over that chunk: 64 row sweeps in the mobile
 q\_proj, 16 in the edge-server q\_proj and one in either one-tile kernel. Token load therefore takes 0.6\,\% and
-2.4\,\% of q\_proj's time but 30.4\,\% and 28.5\,\% of the one tile's. On the edge server refresh takes 6.2\,\% of
-q\_proj's time, and over the layer stock AiM's non-MAC time, 146.2\,ns per row sweep including 41.8\,ns of refresh,
-exceeds its 123.3\,ns of useful MAC work. Over one decoder layer's weight GEMMs, stock AiM's MAC slots fill
-$\fMAC = 0.776$ of the time on the mobile platform, so stock AiM's $U$ is $1/4 \times 0.776 = 0.194$
+2.4\,\% of q\_proj's time but 28.3\,\% and 28.5\,\% of the one tile's. Refresh takes 7.1\,\% of q\_proj's time on the mobile platform and
+6.2\,\% on the edge server. On the edge server, stock AiM's non-MAC time over the layer, 146.2\,ns per row sweep
+including 41.8\,ns of refresh, exceeds its 123.3\,ns of useful MAC work. Over one decoder layer's weight GEMMs, stock AiM's MAC slots fill
+$\fMAC = 0.717$ of the time on the mobile platform, so stock AiM's $U$ is $1/4 \times 0.717 = 0.179$
 (Table~\ref{tab:umac}); on the edge server, stock AiM's $U$ is 0.193. Section~\ref{sec:bg:depth} names one lever for
 each of the two bottlenecks.
 
@@ -147,14 +147,14 @@ Six designs widen the MAC step with multipliers. LP-Spec~\cite{lpspec} builds it
 ALUs, clocks the ALUs at 200\,MHz to match the memory's 5\,ns $t_\mathrm{CCD}$, and shares one unit between two banks;
 we model one such unit per bank. One column command feeds the four ALUs with four tokens, one MAC step each, so the 8
 tokens take 2 periods, 2 commands and 2 reads, on four times the stock multipliers. The 4$\times$ ceiling moves the
-crossover of this per-bank design with the host to $M = 24$ on the mobile platform (Fig.~\ref{fig:roofline}a).
+crossover of this per-bank design with the host to $M = 20$--24 on the mobile platform (Fig.~\ref{fig:roofline}a).
 PAPI~\cite{papi} places four processing units in each bank, and StepStone~\cite{stepstone} places SIMD units at the
 bank groups or beside the devices of a memory module. Duplex~\cite{duplex} and H$^2$-LLM~\cite{h2llm} build their
 multipliers on a logic die under the DRAM, and MoNDE~\cite{monde} builds them into a memory-side controller. We take
 LP-Spec~\cite{lpspec} as the representative of the wider-PU family and model it as an \textbf{LP-Spec-style} design,
 the rival on the mobile platform (Section~\ref{sec:eval:phone}). LP-Spec-style's slot serves four tokens, so
 LP-Spec-style reaches $\UMAC = 1$ (Table~\ref{tab:umac}) only with four times the multipliers: per multiplier,
-LP-Spec-style's $U$ is 0.188 on the mobile platform and 0.185 on the edge server, below stock AiM's.
+LP-Spec-style's $U$ is 0.173--0.174 on the mobile platform and 0.185 on the edge server, below stock AiM's.
 
 \paragraph{Faster-PU family}
 A faster PU lets at most two tokens share one column read. P3-LLM~\cite{p3llm} keeps the weight of a column read
@@ -229,10 +229,10 @@ At $D = 4$, stock AiM's one beat per command lets a PU compute one beat of four 
 (Fig.~\ref{fig:dram_pim}b), and P3-LLM-style's commands let it compute two, for $\UMAC = 1/2$. Two levers remain,
 one for each bottleneck of Section~\ref{sec:bg:cmd}: \emph{beat filling} uses all four beats of a slot without
 adding multipliers, which raises the slot factor, and \emph{row reuse} lets the $A$ tokens of a row sweep reuse its
-open row and pay its row-switch commands once, which raises the sweep factor. A token then pays about $\trow / A + \ttok$ of
-non-MAC time per row sweep: on the mobile platform the simulated time falls from 90.16\,ns at $A = 1$ to 14.55\,ns at
-$A = 8$ (Table~\ref{tab:umac}), and on the edge server, refresh included, it is 146.17, 78.70 and 43.51\,ns at $A = 1$,
-2 and 4. Table~\ref{tab:umac} prints simulated values; on the designs the formula was not fitted on, the formula's $U$
-lies within 0.47\,\% of the simulated $U$ on the mobile platform and within 0.59\,\% on the edge server. Sections~\ref{sec:design:beat} and~\ref{sec:design:reuse} build both levers into CoDe, whose MACs follow
+open row and pay its row-switch commands once, which raises the sweep factor. A token then pays $\trow / A + \ttok$ of
+non-MAC commands per row sweep, plus its share of refresh. With refresh included, the simulated non-MAC time per token
+falls from 123.39\,ns at $A = 1$ to 22.15\,ns at $A = 8$ on the mobile platform (Table~\ref{tab:umac}) and is 146.17,
+78.70 and 43.51\,ns at $A = 1$, 2 and 4 on the edge server. Table~\ref{tab:umac} prints simulated values; on the designs the formula was not fitted on, the formula's $U$
+lies within 0.33\,\% of the simulated $U$ on the mobile platform and within 0.59\,\% on the edge server. Sections~\ref{sec:design:beat} and~\ref{sec:design:reuse} build both levers into CoDe, whose MACs follow
 the PU clock: with one PU, one command and the stock multiplier count, CoDe's ceiling reaches 583 and 1,247\,GOPS per logic
-mm$^2$, and CoDe's $U$ reaches 0.843 on the mobile platform (Table~\ref{tab:umac}).
+mm$^2$, and CoDe's $U$ reaches 0.779 on the mobile platform (Table~\ref{tab:umac}).

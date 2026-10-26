@@ -39,9 +39,10 @@ CENT~\cite{cent}, with each design's commands and a PU model that holds a MAC co
 beats of the previous command; every PIM kernel runs at cycle level. Our P3-LLM-style model reproduces
 P3-LLM's~\cite{p3llm} own step gain of depth 2 over a depth-1 PIM: 1.78$\times$ at INT8 against the 1.6$\times$ P3-LLM
 reports. On the mobile platform the simulator gives P3-LLM-style's per-token commands no separate C/A slot;
-re-timed on the C/A bus, the commands lower P3-LLM-style's $U$ from 0.384 to 0.380, and on the edge server the
-simulator times them. The mobile runs issue refreshes without their refresh cycle time, so refresh takes no share of
-the mobile time ($\rho = 0$ in Section~\ref{sec:bg:cmd}). Area comes from synthesis of each PU's lanes and registers in a 45\,nm library, scaled to a 1z DRAM process by
+re-timed on the C/A bus, the commands lower P3-LLM-style's $U$ from 0.355 to 0.351, and on the edge server the
+simulator times them. On the mobile platform the simulator issues an all-bank refresh every 3.906\,\textmu s and blocks every command to
+the rank for 280\,ns, the JEDEC $t_\mathrm{RFCab}$ of a 16\,Gb die, which we assume for our dies\ASSUMPTION;
+refresh then takes $\rho = 0.070$ of stock AiM's time at $M = 1$ (Section~\ref{sec:bg:cmd}). Area comes from synthesis of each PU's lanes and registers in a 45\,nm library, scaled to a 1z DRAM process by
 the published area of AttAcc's~\cite{attacc} GEMV unit in that process; the GB is priced as DRAM-process
 SRAM\ASSUMPTION. PU power and energy come from synthesis of each design's whole PU with Yosys and ABC~\cite{abc} on the
 Nangate45 library, OpenROAD~\cite{openroad} placement and clock-tree synthesis, and OpenSTA power from a zero-delay

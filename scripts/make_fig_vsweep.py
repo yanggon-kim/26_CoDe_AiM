@@ -43,22 +43,24 @@ def gain_by_v():
     """Panel (a) data and the Gain-by-tile-size / Area-against-speed numbers."""
     s = {(r["platform"], r["V"] or "stock"): r for r in rows("cvs_sum.csv") if r["workload"] == "W2"}
     t = lambda p, v, c="total_ns": float(s[(p, str(v))][c])   # noqa: E731
-    # V 1 -> 2 (phone): the stock PU's idle beats appear as "other" at V = 1 and 2 (Sec. 2k ties)
+    # V 1 -> 2 (phone): the stock PU's idle beats appear as "other" at V = 1 and 2 (Sec. 2k ties); idle 72 %, row switch
+    # 21 %, refresh 7 % of the saving (= abl.phone.W2.v1_to_v2.*; refresh-fixed phone, Sec. 2p)
     sav = t("phone", 1) - t("phone", 2)
     idle = (t("phone", 1, "other_ns") - t("phone", 2, "other_ns")) / sav
     rsw = (t("phone", 1, "row_switch_ns") - t("phone", 2, "row_switch_ns")) / sav
-    assert (round(100 * idle), round(100 * rsw)) == (78, 22), (idle, rsw)
-    # V 4 -> 8 (phone): the row-switch commands give 98.6 % of the saving; their share of T 19.8 % -> 10.6 %
+    ref = (t("phone", 1, "refresh_ns") - t("phone", 2, "refresh_ns")) / sav
+    assert (round(100 * idle), round(100 * rsw), round(100 * ref)) == (72, 21, 7), (idle, rsw, ref)
+    # V 4 -> 8 (phone): the row-switch commands give 91.6 % of the saving; their share of T 18.9 % -> 10.4 %
     sav = t("phone", 4) - t("phone", 8)
-    assert pct((t("phone", 4, "row_switch_ns") - t("phone", 8, "row_switch_ns")) / sav) == 98.6
-    assert pct(t("phone", 4, "row_switch_ns") / t("phone", 4)) == 19.8
-    assert pct(t("phone", 8, "row_switch_ns") / t("phone", 8)) == 10.6
-    # token load stays flat: 20.48-20.56 us at every V on the phone
+    assert pct((t("phone", 4, "row_switch_ns") - t("phone", 8, "row_switch_ns")) / sav) == 91.6
+    assert pct(t("phone", 4, "row_switch_ns") / t("phone", 4)) == 18.9
+    assert pct(t("phone", 8, "row_switch_ns") / t("phone", 8)) == 10.4
+    # token load stays flat: 20.48-20.55 us at every V on the phone (prints 20.5 us)
     tl = [t("phone", v, "token_load_ns") for v in VS]
-    assert (round(min(tl) / 1e3, 1), round(max(tl) / 1e3, 1)) == (20.5, 20.6), tl
+    assert (round(min(tl) / 1e3, 1), round(max(tl) / 1e3, 1)) == (20.5, 20.5), tl
     # speed-up endpoints: V = D and V = 64 (phone V = 4 = 3.860498 from the integer cycles, Sec. 2k)
     sp = {p: [t(p, v, "speedup_vs_stock") for v in VS] for p in ("phone", "hbm2")}
-    assert [round(sp["phone"][i], 2) for i in (2, 6)] == [3.86, 4.85]
+    assert [round(sp["phone"][i], 2) for i in (2, 6)] == [3.86, 4.90]
     assert [round(sp["hbm2"][i], 2) for i in (2, 6)] == [3.69, 4.39]
     assert round(sp["phone"][3] / sp["phone"][2], 3) == 1.117 and round(sp["hbm2"][3] / sp["hbm2"][2], 3) == 1.089
     # areas per die / per pCH and the break-even lead (= vmsweep.breakeven.fifo.sram, hvmsweep.breakeven.register.sram)
@@ -89,7 +91,7 @@ def gain_by_v():
         out["pa_" + k] = [(v, x * st[p] / ar_) for v, x, ar_ in zip(VS, sp[p], a[p])]
     # VI-C prints the peak (V = D) of each per-mm^2 curve
     assert max(out["pa_m"], key=lambda t: t[1])[0] == D and max(out["pa_h"], key=lambda t: t[1])[0] == D
-    assert (round(out["pa_m"][2][1], 2), round(out["pa_h"][2][1], 2)) == (3.02, 2.34)
+    assert (round(out["pa_m"][2][1], 2), round(out["pa_h"][2][1], 2)) == (3.01, 2.34)
     return out
 
 
@@ -108,7 +110,7 @@ def robustness():
     win = [5, 6, 7, 9, 10, 13, 14, 15]
     assert [m for m, x in rp if x > 1] == win and [m for m, x in rk if x > 1] == win
     assert max(x for _, x in rh) < 1 and max(rh, key=lambda t: t[1])[0] == 5
-    assert round(rp[4][1], 3) == 1.316 and round(rk[4][1], 3) == 1.418 and round(rh[4][1], 3) == 0.944
+    assert round(rp[4][1], 3) == 1.324 and round(rk[4][1], 3) == 1.416 and round(rh[4][1], 3) == 0.944
     # at M <= 4 both tiles run one pass: the ratio is the area ratio (1 / 1.160, 1 / 1.405)
     assert all(abs(x - rp[0][1]) < 1e-5 for _, x in rp[:4]) and round(1 / rp[0][1], 3) == 1.160 and round(rp[0][1], 3) == 0.862
     assert all(abs(x - rh[0][1]) < 1e-5 for _, x in rh[:4]) and round(1 / rh[0][1], 3) == 1.405
@@ -119,7 +121,7 @@ def robustness():
             reg[(r["row_id"].split("/")[0], r["row_id"].split("/")[1], r["staging_form"], int(r["V"]))] = \
                 (pct(float(r["worst_loss"])), r["worst_at_M"])
     q = lambda p, w, v: reg[(p, w, STAGING[p], v)][0]   # noqa: E731
-    assert (q("phone", "W2", 4), q("phone", "step", 4)) == (29.5, 24.0)
+    assert (q("phone", "W2", 4), q("phone", "step", 4)) == (29.4, 24.5)
     assert reg[("phone", "W2", "fifo", 4)][1] == "5" and reg[("phone", "step", "fifo", 4)][1] == "5"
     assert q("phone", "W2", 8) == q("phone", "step", 8) == q("phone", "W1", 8) == 13.8
     assert round(100 * (1 - 1 / 1.160), 1) == 13.8               # V = 8's area premium where both run one pass
