@@ -297,7 +297,7 @@ def headline():
     # system energy, P3-LLM-style / CoDe from batch 8: synthesised PU (pupow_head_hbm2 synth column); printed at the lower end
     ph = {r["row_id"]: f(r["synth"]) for r in read("pupow_head_hbm2.csv", os.path.join(EVAL, "dac_2x2", "raw"))}
     e = lambda w, k: ph[f"batch/vs_p3_500/energy_sys_{w}/b8+/{k}"]  # noqa: E731
-    assert r2(e("55W", "lo")) == 1.64 and r2(e("55W", "hi")) == 1.65   # 1.6412-1.6453: "1.64x"
+    assert r2(e("55W", "lo")) == 1.64 and r2(e("55W", "hi")) == 1.64   # both ends round to the printed "1.64x"
     assert r2(e("0W", "lo")) == 1.46 and r2(e("0W", "hi")) == 1.46
     assert b[("core4 vs p3_500", "speed", "3-6")] == (1.43, 1.71)
     assert b[("core4 vs p3_500", "per_logic_mm2", "3-6")] == (1.08, 1.28)

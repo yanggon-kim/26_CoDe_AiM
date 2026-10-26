@@ -103,8 +103,9 @@ commands supply 98.6\,\% of the saving, and their share of the GEMM time falls f
 stays at 20.5--20.6\,$\mu$s at every $V$.
 
 \paragraph{Area against speed}
-Past $V = D$ CoDe's storage grows faster than its speed. Scaled by the $V = D$ design's area, the per-mm$^2$ curves
-of Fig.~\ref{fig:vsweep}a meet the speed-up curves at $V = D$ and fall on either side. From $V = 4$ to 8 the mobile
+Past $V = D$ CoDe's storage grows faster than its speed. Fig.~\ref{fig:vsweep}a normalises throughput per logic
+mm$^2$ to stock AiM's, and both per-mm$^2$ curves peak at $V = D$, at 3.02$\times$ on the mobile platform and
+2.34$\times$ on HBM2. From $V = 4$ to 8 the mobile
 logic grows by 16\,\%, from 1.212 to 1.406\,mm$^2$ per die, and HBM2's by 40\,\%, from 0.821 to 1.153\,mm$^2$ per
 pseudo-channel, so $V = 8$ breaks even per mm$^2$ only at 1.160$\times$ and 1.405$\times$ $V = 4$'s speed. At
 $M = 64$, $V = 8$ runs 1.117$\times$ and 1.089$\times$ faster and keeps 96.3\,\% and 77.5\,\% of the peak.
@@ -126,7 +127,7 @@ over $M = 3$--16, against $V = 4$'s 29.5\,\%.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_vsweep.pdf}
-  \caption{Tile size: (a)~q\_proj speed-up and speed-up per logic mm$^2$ against $V$ at $M = 64$; (b)~$V = 8$ over
+  \caption{Tile size: (a)~q\_proj speed-up and throughput per logic mm$^2$ over stock AiM against $V$ at $M = 64$; (b)~$V = 8$ over
   $V = 4$, decode-step throughput per logic mm$^2$ against $M$.}
   \label{fig:vsweep}
 \end{figure}

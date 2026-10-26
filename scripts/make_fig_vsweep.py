@@ -2,21 +2,21 @@
 """Figure (Sec. VI-C): the tile-size ablation, CoDe's V on both platforms (D = 4, SRAM GB, the committed staging).
 
 (a) q_proj 4096 x 4096 (Llama-2-7B on the mobile platform, Llama-3.1-8B on HBM2) at M = 64, V = 1 ... 64: speed-up over
-    stock AiM, and speed-up per logic mm^2 scaled by the V = D design's logic area (speed-up x A(D) / A(V)), so the two
-    curves meet at V = D. Mobile staging: the V-slice register below V = 8, the three-entry queue from V = 8 (the
+    stock AiM, and throughput per logic mm^2 over stock AiM's own (speed-up x A_stock / A(V), A_stock = stock AiM's logic
+    per die / per pCH with the SRAM GB, dacp_table4.stock, the cvs_area scope). Mobile staging: the V-slice register below V = 8, the three-entry queue from V = 8 (the
     sweep's "fifo" rows, equal to the register at V <= 4); HBM2: the V-slice register.
 (b) V = 8 / V = 4 decode-step throughput per logic mm^2 against M = 1 ... 16: mobile = the speculative verify step of
     Llama-2-7B at L = 1024 (queue staging), HBM2 = the batched step, geometric mean over five LLMs (register staging).
 Sources (read only; evaluation/dac_2x2/raw, pass hold adopted, microarch 704c409 / evaluation 7589fe7, current files,
 never *_pre): cvs_sum / cvs_area / cvs_pa (the V sweep, Sec. 2k), cvm_st_pa (phone V x M step, Sec. 2l), hvm_st_pa
-(HBM2 V x M step, Sec. 2m), hvm_regret / hvm_st_regret (the minimax table, Sec. 2m-2n), cvm_pa (phone q_proj V x M).
+(HBM2 V x M step, Sec. 2m), dacp_table4 (stock area, dac_sd8g3 / dac_2x2 raw), hvm_regret / hvm_st_regret (the minimax table, Sec. 2m-2n), cvm_pa (phone q_proj V x M).
 Every number Sec. VI-C prints is asserted below.
 Writes figs/src/fig_vsweep.html; then python3 scripts/html2pdf.py fig_vsweep -> figs/fig_vsweep.pdf (+ .png preview).
 """
 import csv
 import os
 
-from dac_data import HBM2_RAW, STYLE
+from dac_data import HBM2_RAW, PHONE_RAW, STYLE
 from svgchart import COLUMNWIDTH, FL, I, Fig, Panel, row, width
 
 STYLE.update({
@@ -30,8 +30,8 @@ D = 4
 STAGING = {"phone": "fifo", "hbm2": "register"}       # the sweep's fifo rows = register below V = 8 (Sec. 2k caveat 1)
 
 
-def rows(name):
-    with open(os.path.join(HBM2_RAW, name)) as fh:
+def rows(name, raw=HBM2_RAW):
+    with open(os.path.join(raw, name)) as fh:
         return list(csv.DictReader(fh))
 
 
@@ -78,11 +78,18 @@ def gain_by_v():
         for v, x, ttl, sv in zip(VS, per, at[p], sp[p]):
             assert abs(x - sv / ttl) < 1e-5 * x
     assert pct(float(pa[("phone", 8)]["vs_argmax"])) == 96.3 and pct(float(pa[("hbm2", 8)]["vs_argmax"])) == 77.5
-    # plotted: speed-up, and speed-up x A(D) / A(V)
+    # stock AiM's logic in the cvs_area scope (per die / per pCH, SRAM GB): Table I's stock rows (dacp_table4.stock)
+    st = {p: float(next(r for r in rows("dacp_table4.csv", raw) if r["design"] == "stock")["logic_mm2"])
+          for p, raw in (("phone", PHONE_RAW), ("hbm2", HBM2_RAW))}
+    assert (round(st["phone"], 3), round(st["hbm2"], 3)) == (0.947, 0.520), st
+    # plotted: speed-up, and throughput per logic mm^2 over stock AiM's (speed-up x A_stock / A(V))
     out = {}
     for p, k in (("phone", "m"), ("hbm2", "h")):
         out["sp_" + k] = list(zip(VS, sp[p]))
-        out["pa_" + k] = [(v, x * at[p][2] / ar_) for v, x, ar_ in zip(VS, sp[p], at[p])]
+        out["pa_" + k] = [(v, x * st[p] / ar_) for v, x, ar_ in zip(VS, sp[p], a[p])]
+    # VI-C prints the peak (V = D) of each per-mm^2 curve
+    assert max(out["pa_m"], key=lambda t: t[1])[0] == D and max(out["pa_h"], key=lambda t: t[1])[0] == D
+    assert (round(out["pa_m"][2][1], 2), round(out["pa_h"][2][1], 2)) == (3.02, 2.34)
     return out
 
 
