@@ -72,19 +72,19 @@ during PIM steps and 1.46$\times$ with the NPU power-gated, so CoDe's lead does 
 % P:eval-gain-sources
 \paragraph{Sources of CoDe's gain}
 CoDe's gain over stock AiM has two sources, and each source is worth more once the other is present. Both sources
-come from one mechanism, the $V$ tokens that one tile MAC command serves: row reuse raises the sweep factor, and
-beat filling raises the slot factor of Section~\ref{sec:bg:cmd}.
-Table~\ref{tab:umac_src} adds the two sources in that
-order for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
+come from one mechanism, the $V$ tokens that one tile MAC command serves: beat filling raises the slot factor of
+Section~\ref{sec:bg:cmd}, and row reuse keeps the sweep factor near stock AiM's level once beat filling shortens the
+MAC slots. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
 of Llama-3.1-8B on the edge server. The row-reuse-only design keeps the stock PU's pace of one beat per column
 period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$ rather than compose it from the other rows. Row reuse alone lifts
 \fMAC, yet $U$ reaches only 0.223 on the mobile platform and 0.222 on the edge server, because \UMAC stays at 1/4.
 Beat filling, the command decoupling of Section~\ref{sec:design:beat}, then fills the idle beats and supplies the large step,
-3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server. In the other order, beat filling alone,
-composed from the model, would reach a $U$ of only 0.425 and 0.506, in steps of 2.37$\times$ then 1.83$\times$ on the mobile
-platform and 2.62$\times$ then 1.46$\times$ on the edge server, because the unchanged non-MAC commands would take
-more than half of the shortened time on the mobile platform and about half on the edge server, so \fMAC would fall. Beat filling thus earns its full step only once row reuse has
-removed most of the row-switch overhead per token.
+3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
+near stock AiM's 0.717 and 0.771. In the other order, beat filling alone, composed from the model, would cut \fMAC,
+and with \UMAC at 1 also $U$, to 0.425 and 0.506, in steps of 2.37$\times$ then 1.83$\times$ on the mobile platform
+and 2.62$\times$ then 1.46$\times$ on the edge server: the unchanged non-MAC commands would take more than half of the
+shortened time on the mobile platform and about half on the edge server. Beat filling thus earns its full step only
+once row reuse has removed most of the row-switch overhead per token.
 
 
 

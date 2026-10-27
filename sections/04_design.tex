@@ -20,10 +20,7 @@ CoDe (Command-Decoupled PIM) issues one MAC command per weight column for a tile
 (Section~\ref{sec:design:beat}) and row reuse (Section~\ref{sec:design:reuse}). Every command still obeys every DRAM
 timing parameter: activations, column reads and refreshes issue exactly as in stock AiM, and only the MAC beats leave
 the command stream. Per token and weight column, CoDe thus issues $1/V$ MAC commands, against one for stock AiM, $1/4$
-for LP-Spec-style and one for P3-LLM-style. With $A$ tokens per row sweep, a token pays $\trow / A + \ttok$ of non-MAC
-commands per row sweep, plus its share of refresh: the simulated non-MAC time per token falls from 123.39\,ns at
-$A = 1$ to 22.15\,ns at CoDe's $A = 8$ on the mobile platform (Table~\ref{tab:umac}) and is 146.17, 78.70 and
-43.51\,ns at $A = 1$, 2 and 4 on the edge server. With one PU, one command and the stock multiplier count, CoDe's
+for LP-Spec-style and one for P3-LLM-style. With one PU, one command and the stock multiplier count, CoDe's
 ceiling reaches 583 and 1,247\,GOPS per logic mm$^2$, and CoDe's $U$ reaches 0.779 on the mobile platform
 (Table~\ref{tab:umac}).
 
@@ -87,7 +84,10 @@ one.
 % P:des-row-reuse
 Row reuse lets the $V$ tokens of a tile share one row sweep. The tile MACs sweep the open row's columns once for all
 $V$ tokens, so the row-switch commands, two TMODs, the row's PREA and ACT16 pair and the WRMAC16, are paid once per $V$
-tokens instead of once per token, and the sweep factor rises. In Fig.~\ref{fig:sequence}c, row reuse alone cuts the row
+tokens instead of once per token. With $A$ tokens per row sweep, a token pays $\trow / A + \ttok$ of non-MAC commands
+per row sweep, plus its share of refresh, so the simulated non-MAC time per token falls from stock AiM's 123.39\,ns to
+CoDe's 22.15\,ns at $V = 8$ on the mobile platform (Table~\ref{tab:umac}) and from 146.17 to 43.51\,ns at $V = 4$ on
+the edge server. In Fig.~\ref{fig:sequence}c, row reuse alone cuts the row
 switches from eight to one and keeps the idle beats: the MAC slots still take 2,560\,ns, one busy beat in four. Row reuse needs the $V$ tokens' inputs next to the PU for the whole row sweep
 and $V$ partial sums per tile; the global buffer, the staging buffer and the accumulator file hold them
 (Section~\ref{sec:design:pu}). The token load/drain commands stay per token: WRGB writes each token's input chunk into

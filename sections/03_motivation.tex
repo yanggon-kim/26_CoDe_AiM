@@ -130,8 +130,8 @@ each of the two root causes.
 \label{sec:bg:walls}
 
 % P:mot-prior-families
-Prior PIM designs fill idle beats in two families, with more multipliers or with more commands, but leave the non-MAC
-share of a row sweep at stock AiM's level. Fig.~\ref{fig:timeline} follows one weight column of one bank through
+Prior PIM designs fill idle beats in two families, with more multipliers or with more commands, and tie the tokens
+that share a row sweep to the width of one MAC slot. Fig.~\ref{fig:timeline} follows one weight column of one bank through
 $M = 8$ tokens, in column periods $T$ with a PU clock that fits $D = 4$ beats into each period. Its first three rows,
 stock AiM and one design of each family, start every MAC with a command, and stock AiM spends 8 column periods, 8
 commands and 8 reads on the 8 tokens.
@@ -188,13 +188,14 @@ the mobile platform and 830 on the edge server, lies above LP-Spec-style's.
 
 % P:mot-rival-row-switch
 \paragraph{Row-switch commands in prior designs}
-Both families share a row sweep's row-switch commands only among the tokens of one MAC slot, so their sweep factor
-stays at stock AiM's level. LP-Spec-style's row sweep serves the $A = 4$ tokens of its slot and P3-LLM-style's the
+Both families share a row sweep's row-switch commands only among the tokens of one MAC slot, so their non-MAC time
+per token falls only as far as the slot widens. LP-Spec-style's row sweep serves the $A = 4$ tokens of its slot and P3-LLM-style's the
 $A = 2$ tokens of its slot (Table~\ref{tab:umac}); P3-LLM~\cite{p3llm} reuses each memory access for two tokens to
 reduce duplicated row activations. Each design packs its $A$ tokens into one column period, so its row sweep holds
 stock AiM's $c$ MAC slots against one set of row-switch commands, and the token load/drain commands of $A$ tokens add
-to the sweep. The sweep factor \fMAC is 0.709 for P3-LLM-style and 0.694 for LP-Spec-style against stock AiM's 0.717 on the mobile
-platform (Table~\ref{tab:umac}), and 0.758 and 0.739 against 0.771 on the edge server. Table~\ref{tab:umac} prints
+to the sweep. On the mobile platform the non-MAC time per token falls from stock AiM's 123.39\,ns to 63.94\,ns for
+P3-LLM-style and 34.41\,ns for LP-Spec-style (Table~\ref{tab:umac}): a row sweep serves more tokens only when the MAC
+slot does, with LP-Spec-style's four times the multipliers or P3-LLM-style's one command per token. Table~\ref{tab:umac} prints
 simulated values; on the designs that Eq.~(\ref{eq:fmac}) was not fitted on, the $U$ of Eq.~(\ref{eq:fmac}) lies within
 0.33\,\% of the simulated $U$ on the mobile platform and within 0.59\,\% on the edge server.
 
@@ -239,6 +240,6 @@ and stock AiM pays a row sweep's row-switch commands for every token. One lever 
 Section~\ref{sec:bg:cmd}. \emph{Beat filling} (Section~\ref{sec:design:beat}) uses all $D$ beats of a column period
 without adding multipliers and answers the idle beats, which set the slot factor. \emph{Row reuse}
 (Section~\ref{sec:design:reuse}) lets the $V$ tokens of a tile share one row sweep and pay its row-switch commands
-once, and answers the non-MAC commands, which set the sweep factor. Where the two families share a row sweep only
+once, and answers the non-MAC commands by cutting their time per token. Where the two families share a row sweep only
 among the tokens of one MAC slot, row reuse sets the tokens per row sweep by the tile size $V$, which leaves the PU's
 lanes unchanged (Section~\ref{sec:design:pu}).

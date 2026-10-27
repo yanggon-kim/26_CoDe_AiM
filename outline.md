@@ -137,7 +137,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← mot-time-breakdown, bg-row-sweep; → mot-rival-row-switch, mot-two-levers, des-row-reuse
 ### C. GEMM Support in Prior PIM
 - **[mot-prior-families]**
-  - Message: Prior PIM designs fill idle beats in two families, with more multipliers or with more commands, but leave the non-MAC share of a row sweep at stock AiM's level.
+  - Message: Prior PIM designs fill idle beats in two families, with more multipliers or with more commands, and tie the tokens that share a row sweep to the width of one MAC slot.
   - Floats: Fig. 4 (first cite; fig:timeline, float defined after this paragraph)
   - Numbers: M = 8, D = 4; 8 periods, 8 commands, 8 reads (stock row) ← structural
   - Cites: —
@@ -161,9 +161,9 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: p3llm, hbmpim
   - Links: ← bg-dram-channel, intro-prior-families, mot-idle-beats, mot-logic-cost; → eval-server-summary
 - **[mot-rival-row-switch]** "Row-switch commands in prior designs"
-  - Message: Both families share a row sweep's row-switch commands only among the tokens of one MAC slot, so their sweep factor stays at stock AiM's level.
+  - Message: Both families share a row sweep's row-switch commands only among the tokens of one MAC slot, so their non-MAC time per token falls only as far as the slot widens, with multipliers or with commands (absolute form; a flat f_MAC is not framed as the defect, since CoDe's HBM2 f_MAC sits at the same level).
   - Floats: Table I, Eq. 1
-  - Numbers: A = 2 / 4; f_MAC 0.709 / 0.694 vs 0.717 (mobile) ← tables [umac_table] (Table I); 0.758 / 0.739 vs 0.771 (edge server) ← tables [umac_table] (assert added); Eq. 1 within 0.33 % / 0.59 % on the designs it was not fitted on ← tables [umac_table]
+  - Numbers: A = 2 / 4; non-MAC time per token 123.39 → 63.94 (P3-LLM-style) / 34.41 ns (LP-Spec-style), mobile ← tables [umac_table] (Table I); Eq. 1 within 0.33 % / 0.59 % on the designs it was not fitted on ← tables [umac_table]
   - Cites: p3llm (p. 11: each access reused twice, fewer duplicated row activations)
   - Links: ← mot-nonmac-commands, mot-wider-pu, mot-faster-pu; → mot-two-levers
 - **[mot-other-pim]**
@@ -186,7 +186,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: hbmpim, devaux, aimjssc, flashbolt, pfpu
   - Links: ← intro-timing-insight; → des-pu-clock
 - **[mot-two-levers]**
-  - Message: Stock AiM uses one of the D = 4 beats each column read offers and pays a row sweep's row-switch commands for every token, which leaves one lever per root cause: beat filling (IV-B) for the idle beats and the slot factor, row reuse (IV-C) for the non-MAC commands and the sweep factor.
+  - Message: Stock AiM uses one of the D = 4 beats each column read offers and pays a row sweep's row-switch commands for every token, which leaves one lever per root cause: beat filling (IV-B) for the idle beats and the slot factor, row reuse (IV-C) for the non-MAC commands, by cutting their time per token (no claim that row reuse raises f_MAC).
   - Floats: Fig. 1
   - Numbers: D = 4 beats per column read, one used ← structural; no CoDe number; closing clause: the rivals share a row sweep only among one slot's tokens, row reuse sets the tokens per sweep by the tile size V at unchanged lanes (from IV-C / IV-D's definitions)
   - Cites: —
@@ -197,7 +197,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[des-tile-mac-overview]**
   - Message: CoDe's tile MAC command serves V tokens per weight column and carries both levers of III-D, while every command keeps every DRAM timing parameter (opening does not repeat III-D's transition).
   - Floats: Table I (CoDe row)
-  - Numbers: 1/V MAC commands per token and column vs 1, 1/4, 1 ← structural; moved from mot-two-levers: simulated non-MAC time per token 123.39 → 22.15 ns (mobile, A = 1 → 8), 146.17 / 78.70 / 43.51 ns at A = 1 / 2 / 4 (edge server); ceiling 583 / 1,247 GOPS per logic mm² with one PU, one command and the stock multiplier count; U 0.779 (mobile) ← tables [umac_table], roof
+  - Numbers: 1/V MAC commands per token and column vs 1, 1/4, 1 ← structural; ceiling 583 / 1,247 GOPS per logic mm² with one PU, one command and the stock multiplier count; U 0.779 (mobile) ← tables [umac_table], roof
   - Cites: —
   - Links: ← mot-two-levers; → des-beat-decouple, des-row-reuse
 - **[des-sequence-walk]**
@@ -227,9 +227,9 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← mot-idle-beats; → des-tile-mac-pu, eval-phone-per-mm2, eval-gain-sources
 ### C. Row Reuse
 - **[des-row-reuse]**
-  - Message: Row reuse lets the V tokens of a tile share one row sweep, so the row-switch commands are paid once per V tokens while token load and drain stay per token.
-  - Floats: Fig. 5
-  - Numbers: 8 → 1 row switch; MAC slots 2,560 ns; drain block 61.25 ns ← seq
+  - Message: Row reuse lets the V tokens of a tile share one row sweep, so the row-switch commands are paid once per V tokens and the non-MAC time per token falls, while token load and drain stay per token.
+  - Floats: Fig. 5, Table I
+  - Numbers: t_row / A + t_tok plus refresh per token; moved from des-tile-mac-overview: simulated non-MAC time per token 123.39 → 22.15 ns (mobile, V = 8), 146.17 → 43.51 ns (edge server, V = 4) ← tables [umac_table]; 8 → 1 row switch; MAC slots 2,560 ns; drain block 61.25 ns ← seq
   - Cites: —
   - Links: ← mot-nonmac-commands; → des-storage, eval-gain-sources
 ### D. Tile MAC Command and PU Microarchitecture
@@ -366,9 +366,9 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: p3llm
   - Links: ← intro-code-proposal, meth-platforms
 - **[eval-gain-sources]** "Sources of CoDe's gain"
-  - Message: CoDe's gain over stock AiM comes from row reuse and beat filling, and beat filling earns its full step only after row reuse has removed most of the row-switch overhead.
+  - Message: CoDe's gain over stock AiM comes from beat filling, which raises the slot factor, and row reuse, which keeps the sweep factor near stock AiM's level once beat filling shortens the MAC slots; beat filling earns its full step only after row reuse has removed most of the row-switch overhead (relative form; never claims CoDe raises f_MAC on the edge server).
   - Floats: Table IV (first cite), Table I
-  - Numbers: U 0.223 / 0.222 after row reuse; beat-filling step 3.49× / 3.33×; other order U 0.425 / 0.506, steps 2.37× then 1.83× and 2.62× then 1.46× ← tables [umac_src_table] (2x2 §2i)
+  - Numbers: U 0.223 / 0.222 after row reuse; beat-filling step 3.49× / 3.33×; CoDe f_MAC 0.779 / 0.739 vs stock 0.717 / 0.771 (Table IV); other order f_MAC = U 0.425 / 0.506, steps 2.37× then 1.83× and 2.62× then 1.46× ← tables [umac_src_table] (2x2 §2i)
   - Cites: —
   - Links: ← des-gain-order, des-beat-slot-factor, des-row-reuse
 ### C. Ablation Study
@@ -465,5 +465,5 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 | 13 | structure | mot-other-pim | Stays last in III-C (user, 2026-10-27); no related-work section remains (options kept for later: (a) a short Related Work section before the Conclusion, from the ≈ 1 free column; (b) a landscape paragraph at the end of II-B; (c) keep it as the last paragraph of III-C, as now). mot-other-pim has no root-cause role in the reframed III-C. Labels `sec:bg:*` point into Section III (cosmetic). |
 | 14 | unverified source | mot-rival-row-switch, mot-idle-beats | LP-Spec's own text on row activations was not checked: no LP-Spec PDF exists under 00_doc (paper_isca2's is empty; paper_dac's references hold p3llm.pdf, the AiM JSSC paper and others, not LP-Spec), so LP-Spec-style's sharing of a row sweep among its four tokens rests on our model (Table I, A = 4). P3-LLM's own text (p. 11) supports its two-token row-activation saving. HBM-PIM's statement of a GEMV target was not checked (no PDF); AiM JSSC p. 1 (RNN and MLP layers with low memory reuse, evaluated on GEMV) and P3-LLM p. 3 (both PCUs perform GEMV) were. |
 | 15 | timing | Table III, mot-idle-beats | HBM2's column period prints t_CCD_L = 4 ns (cited) while the simulator's all-bank HBM2 MAC slot is 8 ns (b = 2, two banks per PU; dac2x2_setup); U_MAC's b = 2 reconciles them, but Table III shows no 8 ns slot. |
-| 16 | definition | mot-two-levers, mot-rival-row-switch, des-row-reuse | III-D now says how row reuse differs from the rivals' sharing (tokens per sweep set by V at unchanged lanes, not by one slot's A). On HBM2 at V = D = 4, CoDe's f_MAC (0.739) equals LP-Spec-style's and lies below stock AiM's 0.771; row reuse raises f_MAC there only against the D = 1 row-reuse-only design (0.887, Table IV). A reviewer may read the edge-server sweep-factor claim against Table IV. |
+| 16 | resolved | mot-prior-families, mot-rival-row-switch, mot-two-levers, des-row-reuse, eval-gain-sources | Resolved (user, 2026-10-27): f_MAC is a share, so row reuse is stated in absolute form in III-C, III-D and IV-C (it cuts the non-MAC time per token: 123.39 → 22.15 ns mobile, 146.17 → 43.51 ns edge server) and in relative form in VI-B (it keeps f_MAC near stock AiM's level once beat filling shortens the slots: 0.779 / 0.739 vs 0.717 / 0.771). Guard: no sentence says CoDe raises f_MAC on the edge server (0.739 < 0.771) or frames the rivals' flat f_MAC as their defect; only the D = 1 row-reuse-only row lifts f_MAC (0.892 / 0.887). |
 | 17 | ordering | mot-logic-cost, mot-faster-pu | With logic cost before the faster-PU family (user order), mot-logic-cost compares LP-Spec-style's per-mm² ceiling with stock AiM's (314 / 697 vs 216 / 492) and P3-LLM-style's 390 / 830 moved into mot-faster-pu after P3-LLM-style is named. |
