@@ -57,7 +57,7 @@ than P3-LLM-style, with 1.26$\times$ the throughput per logic mm$^2$ and 1.64$\t
 In summary, this paper makes the following contributions:
 \begin{itemize}
   \item We identify that prior PIM ties MAC timing to DRAM command timing and derive the depth a column allows once
-        MAC timing is separated from command timing: 4 beats on LPDDR5-6400 and HBM2 and 2 on HBM3 (Section~\ref{sec:bg:depth}).
+        MAC timing is separated from command timing: 4 beats on LPDDR5-6400 and HBM2 (Section~\ref{sec:bg:depth}).
   \item We propose CoDe, a PU and command extension that runs $D$ MAC beats per column command over a tile of tokens
         at the stock multiplier count (Section~\ref{sec:design}).
   \item We evaluate CoDe in two pairings on each rival's own ground: against LP-Spec-style on LPDDR5-6400 (INT8,

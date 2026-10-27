@@ -16,13 +16,16 @@
 
 % P:des-tile-mac-overview
 CoDe (Command-Decoupled PIM) issues one MAC command per weight column for a tile of $V$ token vectors, and this
-\emph{tile MAC} command removes both bottlenecks of Section~\ref{sec:bg:cmd}: the idle beats inside stock AiM's MAC
-slots and the row-switch commands between its row sweeps. CoDe has one component for each bottleneck. \emph{Beat
-filling} (Section~\ref{sec:design:beat}) runs $D$ MAC beats per column period at the PU's own clock and fills the idle
-beats; \emph{row reuse} (Section~\ref{sec:design:reuse}) lets the $V$ tokens of a tile share one row sweep and pays the
-sweep's row-switch commands once. Every command still obeys every DRAM timing parameter: activations, column reads and
-refreshes issue exactly as in stock AiM, and only the MAC beats leave the command stream. Per token and weight column,
-CoDe thus issues $1/V$ MAC commands, against one for stock AiM, $1/4$ for LP-Spec-style and one for P3-LLM-style.
+\emph{tile MAC} command carries both levers of Section~\ref{sec:bg:depth}: beat filling
+(Section~\ref{sec:design:beat}) and row reuse (Section~\ref{sec:design:reuse}). Every command still obeys every DRAM
+timing parameter: activations, column reads and refreshes issue exactly as in stock AiM, and only the MAC beats leave
+the command stream. Per token and weight column, CoDe thus issues $1/V$ MAC commands, against one for stock AiM, $1/4$
+for LP-Spec-style and one for P3-LLM-style. With $A$ tokens per row sweep, a token pays $\trow / A + \ttok$ of non-MAC
+commands per row sweep, plus its share of refresh: the simulated non-MAC time per token falls from 123.39\,ns at
+$A = 1$ to 22.15\,ns at CoDe's $A = 8$ on the mobile platform (Table~\ref{tab:umac}) and is 146.17, 78.70 and
+43.51\,ns at $A = 1$, 2 and 4 on the edge server. With one PU, one command and the stock multiplier count, CoDe's
+ceiling reaches 583 and 1,247\,GOPS per logic mm$^2$, and CoDe's $U$ reaches 0.779 on the mobile platform
+(Table~\ref{tab:umac}).
 
 % P:des-sequence-walk
 Fig.~\ref{fig:sequence} follows one weight row of Llama-2-7B's q\_proj on the mobile platform through $M = 8$ tokens,
@@ -40,8 +43,8 @@ CoDe's window is 4.40$\times$ shorter than stock AiM's, and the two components r
 filling first takes 2.39$\times$ and leaves 1.84$\times$ to row reuse. Row reuse first takes 1.24$\times$ and leaves
 3.56$\times$ to beat filling. Our simulator issues the commands of rows (a), (c) and (d); row (c) is CoDe's trace at
 $D = 1$. Row (b) is a model composed from stock AiM's trace, because beat filling cannot exist without row reuse:
-filling $D$ beats needs at least $D$ tokens per command, and the composed MAC commands issue 1.25\,ns apart, faster
-than the 5\,ns column period. The window leaves out the WRGB burst that loads the next $K$ chunk's inputs into the GB
+filling $D$ beats needs at least $D$ tokens per command, and the composed MAC commands issue one CK cycle apart,
+faster than the column period (Table~\ref{tab:params}). The window leaves out the WRGB burst that loads the next $K$ chunk's inputs into the GB
 once per 64 row sweeps; over the whole q\_proj GEMM, CoDe runs 4.32$\times$ faster than stock AiM.
 
 \subsection{Beat Filling}
@@ -67,7 +70,8 @@ rest to the kernel's activations, drains and refreshes (Section~\ref{sec:eval:ph
 filling, the weight latch that holds the column and the beat sequencer that steps the token index
 (Section~\ref{sec:design:pu}). Section~\ref{sec:eval:server} composes beat filling alone by a
 per-sweep rule, a quarter of stock AiM's MAC slots plus its non-MAC time; Fig.~\ref{fig:sequence}b's sweep runs
-2.3\,\% longer than that rule's, because a 1.25\,ns MAC slot overlaps less of the next command than a 5\,ns one.
+2.3\,\% longer than that rule's, because a one-cycle MAC slot overlaps less of the next command than a column-period
+one.
 
 % float placed early (cited first in IV-D): column-width schematic
 \begin{figure}[t]
@@ -106,7 +110,7 @@ only the row-switch commands change their count per token.
 \paragraph{Tile MAC in the PU}
 Fig.~\ref{fig:tile} follows one tile MAC through the PU. The tile MAC latches the column that the bank delivers in the
 weight latch (\ding{172}). The beat sequencer then steps a token index $k$ from 0 to $V-1$, one beat per CK cycle
-(\ding{173}). Beat $k$ multiplies the latched weights by token $k$'s slice from the staging buffer in the 32 lanes (\ding{174}), and the adder
+(\ding{173}). Beat $k$ multiplies the latched weights by token $k$'s slice from the staging buffer in the lanes (\ding{174}), and the adder
 tree adds the products into accumulator slot $k$ (\ding{175}). After the tile's last column, the burst drain moves the
 $V$ sums out through the drain port (\ding{176}).
 

@@ -159,7 +159,7 @@ column period.
 
 % P:eval-power-clock-cost
 \paragraph{Cost of the faster clock}
-CoDe's 800\,MHz mobile clock itself costs little energy. Synthesised for 800\,MHz, the same 32-lane INT8 arithmetic
+CoDe's faster mobile clock itself costs little energy. Synthesised for 800\,MHz, the same 32-lane INT8 arithmetic
 spends 2.4\,\% more energy per MAC than for 200\,MHz. The rest of CoDe's higher PU power comes from its clocked
 storage: CoDe's staging buffer and clock tree take the clock at four times LP-Spec-style's rate, even in cycles
 where a register holds its value. LP-Spec-style pays in leakage instead: its PU, with four times CoDe's multipliers,

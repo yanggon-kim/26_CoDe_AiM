@@ -7,7 +7,8 @@ print stay asserted in mech_checks()).
 Reads the EV-58 data pack as collected (evaluation a254d92, dacp ids; scripts/dac_data.py) and EV-56's bands (EVAL); every
 energy and power number comes from the synthesised-PU model pupow (microarch 6074fea, collected at evaluation 88dad76: raw
 pupow_*.csv and touched pupow.* ids; the pack's energy columns are the K_E reserve). Writes tables/tab_params.tex
-(Table I); the prose numbers are asserted in each function.
+(the configuration table, tab:params: a platform block from platform_block() above the design block of table4());
+the prose numbers are asserted in each function.
 Phone numbers since the JEDEC refresh fix (rfadopt, microarch fd39875, evaluation c2ad6f9: dac_sd8g3 Sec. 2g, dac_2x2
 Sec. 2p); the phone umac constants are in the factor form (t_row 87.73 ns, rho 0.070) like HBM2.
 The useful-MAC table (Sec. III-B, tab:umac) and every U / U_MAC / f_MAC / t_fix / t_tok number of Secs. III and VI come
@@ -28,6 +29,55 @@ PHONE = [("stock", "Stock AiM"), ("h3", "P3-LLM-style"), ("h2", "LP-Spec-style")
 HBM2 = [("stock", "Stock AiM"), ("p3_500", "P3-LLM-style"), ("h2", "LP-Spec-style"), ("core4", "CoDe")]
 
 
+def platform_block():
+    """Platform block of the configuration table (tab:params), one row per platform value the paper uses. Every value
+    is read from a collected evaluation input (dac_sd8g3 / dac_2x2 raw), or is a cited spec value (cite in the cell), or
+    is labelled as a simulator preset / [assumption] as the prose had it. Row size has no collected source and stays out."""
+    sraw, hraw = os.path.join(EVAL, "dac_sd8g3", "raw"), os.path.join(EVAL, "dac_2x2", "raw")
+    host = {"phone": {r["row_id"]: r for r in read("ev57_host.csv", sraw)}["npu42"],
+            "hbm2": {r["row_id"]: r for r in read("ev57_host.csv", hraw)}["peak"]}
+    assert (f(host["phone"]["TOPS"]), f(host["phone"]["GBps"])) == (12.0, 42.0)
+    assert (round(f(host["hbm2"]["TOPS"])), f(host["hbm2"]["GBps"])) == (131, 256.0)
+    ceil = {"phone": {r["row_id"]: r for r in read("ev57_ceilings.csv", sraw)}["core8"],
+            "hbm2": {r["row_id"]: r for r in read("ev57_ceilings.csv", hraw)}["core4"]}
+    assert f(ceil["phone"]["internal_GBps"]) == 409.6 and f(ceil["hbm2"]["internal_GBps"]) == 1024.0
+    mi = {r["row_id"]: r["value"] for r in read("ev56_mech_inputs.csv", sraw)}
+    assert "x64 LPDDR5-6400 = 4 x16 dies, 16 banks each; 51.2 GB/s pins; 409.6 GB/s internal" in mi["platform"]
+    assert f(mi["tCK_CA"]) == 1.25 and mi["A1"] == "5 ns all-bank column"            # CK = 6400 / 8 MHz; [A1]
+    assert "tCCD_S = 2 tCK = 2.5 ns" in mi["A-SD4"]
+    a0 = {r["row_id"]: r["value"] for r in read("dacp_inputs.csv", hraw)}["A0 - A1"]
+    assert "HBM2 1 ns cycle" in a0
+    setup = {r["row_id"]: r for r in read("dac2x2_setup.csv", hraw)}
+    assert setup["memory - column"]["hbm2"].startswith("HBM2 2.0 Gb/s, 16 pCH, one PU per 2 banks")
+    t4 = {(r["substrate"][:5], r["design"]): r for r in read("dac_table4.csv")}
+    assert f(t4[("phone", "core8")]["PUs_per_bank"]) == 1 and f(t4[("serve", "core4")]["PUs_per_bank"]) == 0.5
+    assert t4[("serve", "core4")]["logic_mm2_unit"] == "per pCH (16 banks, 8 PUs)"
+    assert t4[("phone", "core8")]["logic_mm2_unit"] == "per die (16 banks)"
+    # mobile refresh [A-REF1]: tRFCab 280 ns as the collected trace times it; tREFI 3.906 us from the topic's context
+    ref = [r for r in read("utrace_run_core8_gbfill.csv", hraw) if r["cmd"] == "REFab"]
+    assert ref and all(f(r["gap_next_ns"]) == 280.0 and "A-REF1" in r["rule"] for r in ref)
+    with open(os.path.join(EVAL, "dac_sd8g3", "context.md")) as fh:
+        assert "tREFI 3.906 µs, tRFCab 280 ns `[A-REF1]`" in fh.read()
+    rows = [
+        (r"Host NPU", r"Snapdragon 8 Gen 3~\cite{sd8g3}", r"P3-LLM's~\cite{p3llm}"),
+        (r"NPU TOPS, GB/s", r"12, 42", r"131, 256"),
+        (r"DRAM", r"x64 LPDDR5-6400", r"HBM2, 2.0\,Gb/s"),
+        (r"Banks", r"4 dies $\times$ 16", r"16 pCH $\times$ 16"),
+        (r"Internal bandwidth", r"409.6\,GB/s", r"1,024\,GB/s"),
+        (r"\tck (CK)", r"1.25\,ns (0.8\,GHz)", r"1\,ns (1\,GHz)"),
+        (r"\tccds, \tccdl{} (column)", r"2.5, 5\,ns~\cite{lpspec,ramulator2}", r"2, 4\,ns~\cite{hbmpim,p3llm}"),
+        (r"PU placement", r"one per bank", r"one per two banks"),
+        (r"$t_\mathrm{REFI}$, $t_\mathrm{RFCab}$", r"3.906\,\textmu s, 280\,ns", r"simulator preset"),
+        (r"Precision", r"INT8", r"W4A8"),
+    ]
+    assert 1.25 * 4 == 5.0 and 1.0 * 4 == 4.0 and 2 * 2.5 == 5.0                     # column period = 4 t_CK = 2 t_CCD_S
+    out = [r"\begin{tabular}{@{}lll@{}}", r"\toprule", r"Platform & Mobile platform & Edge server \\", r"\midrule"]
+    out += [" & ".join(r) + r" \\" for r in rows]
+    out += [r"\bottomrule", r"\end{tabular}"]
+    print("platform block: NPU 12 / 131 TOPS, 42 / 256 GB/s; internal 409.6 / 1,024 GB/s; t_CK 1.25 / 1 ns; column 5 / 4 ns")
+    return "\n".join(out)
+
+
 def table4(peak):
     t = read("dac_table4.csv")
     by = {(r["substrate"][:5], r["design"]): r for r in t}
@@ -38,8 +88,8 @@ def table4(peak):
         ("serve", "h2"): (64, 4, 250, 4, 4, 8, 2048, 16, 1.469), ("serve", "core4"): (64, 1, 1000, 4, 4, 16, 2048, 16, 0.821),
     }
     lines = []
-    for sub, designs, head in (("phone", PHONE, r"\multicolumn{9}{@{}l}{\emph{Mobile:} LPDDR5-6400, INT8, a PU per bank; per die} \\"),
-                               ("serve", HBM2, r"\multicolumn{9}{@{}l}{\emph{Server:} HBM2, W4A8, a PU per 2 banks; per pCH} \\")):
+    for sub, designs, head in (("phone", PHONE, r"\multicolumn{9}{@{}l}{\emph{Mobile platform,} per die} \\"),
+                               ("serve", HBM2, r"\multicolumn{9}{@{}l}{\emph{Edge server,} per pseudo-channel} \\")):
         lines.append(r"\midrule")
         lines.append(head)
         for d, name in designs:
@@ -66,8 +116,10 @@ def table4(peak):
                (("phone", "h2", 3276.8), ("phone", "core8", 3276.8), ("serve", "core4", 16384.0)))
     out = os.path.join(REPO, "tables", "tab_params.tex")
     with open(out, "w") as fh:
-        fh.write("% generated by scripts/make_tables.py from the EV-58 pack (dac_table4.csv) and pupow (pupow_peak_*.csv); "
-                 "do not edit\n")
+        fh.write("% generated by scripts/make_tables.py: platform block (platform_block(): evaluation dac_sd8g3 / dac_2x2 raw "
+                 "inputs, cited spec values, simulator presets) above the design block (EV-58 pack dac_table4.csv, pupow "
+                 "pupow_peak_*.csv); do not edit\n")
+        fh.write(platform_block() + "\n\\par\\smallskip\n")
         fh.write("\\begin{tabular}{@{}lcccccccc@{}}\n\\toprule\n"
                  "Design & Lanes & MHz & $D$ & $V$ & Acc. & GB KB & mm$^2$ & mW \\\\\n")
         fh.write("\n".join(lines) + "\n\\bottomrule\n\\end{tabular}\n")
@@ -157,6 +209,8 @@ def umac_table():
     assert [e[d][4] for d in ("stock", "p3", "lpspec", "code")] == ["0.193", "0.379", "0.739", "0.739"], e
     assert e["stock"][3] == "0.771" and [e[d][5] for d in ("stock", "p3", "lpspec")] == ["146.17", "78.70", "43.51"], e
     assert e["code"] == e["lpspec"] and [e[d][1] for d in e] == [8] * 4
+    # III-C (rival row switch): edge-server sweep factors P3-LLM-style 0.758, LP-Spec-style 0.739 vs stock 0.771
+    assert (e["p3"][3], e["lpspec"][3]) == ("0.758", "0.739"), e
     # mobile, M = 4: CoDe issues LP-Spec-style's command stream (U 0.695, VI-A)
     assert cell("phone", "code", 4) == cell("phone", "lpspec", 4) and cell("phone", "code", 4)[4] == "0.695"
     # the same U as the pack's pu_busy_trace at M = 8 (VI-A 0.779 / 0.694, VI-B 0.739)
@@ -268,7 +322,8 @@ def umac_src_table():
 
 
 def stock_checks():
-    """III-B faster-PU test: stock GEMM time / M spread and the cycle-identical re-run with a PU clocked at CK
+    """III-A: stock GEMM time grows in proportion to M (the spread is asserted, no longer printed); III-B: the
+    cycle-identical re-run of stock AiM with a PU four times faster, clocked at CK
     (microarch/04_data/d1/stock_cmd, refresh-fixed since microarch fd39875; the asserts of the retired make_fig_stockcmd.py)."""
     src = os.path.join(WS, "microarch", "04_data", "d1", "stock_cmd")
     checks = {r["check"]: r for r in read("stock_cmd_checks.csv", src)}
