@@ -4,6 +4,7 @@
 \subsection{Skinny GEMM in LLM Decoding}
 \label{sec:bg:skinny}
 
+% P:bg-skinny-range
 A linear layer computes $Y = X W$ with a weight matrix $W$ of $K \times N$ and $M$ token rows in $X$. Plain decoding
 ($M = 1$) computes a GEMV. We call the layer a \emph{skinny GEMM} when $M \ll K, N$; this paper takes $2 \le M \le 32$
 with $K$ and $N$ in the thousands, inside the bound $M \ll 64$ that FlashDecoding++~\cite{flashdecodingpp} reports for
@@ -19,12 +20,14 @@ paper targets verification on the mobile platform ($M = 2$--32~\cite{sdnpu,lpspe
 \subsection{DRAM and AiM-Style PIM}
 \label{sec:bg:pim}
 
+% P:bg-dram-channel
 A DRAM channel holds 16 banks in four bank groups (Fig.~\ref{fig:dram_pim}a). An activation latches one row of a bank in
 its sense amplifiers, and each column command then moves one 32-byte atom of that row. Column commands may issue every
 \tccds{} to different bank groups and every \tccdl{} to the same bank group, as the three reads of
 Fig.~\ref{fig:dram_pim}b do; \tccdl{} is twice \tccds{} on
 LPDDR5~\cite{ramulator2} and on HBM~\cite{p3llm}.
 
+% P:bg-aim-pu
 AiM-style PIM adds a processing unit (PU) beside each bank (beside each pair of banks in HBM2) and a global buffer (GB),
 shared by all PUs, that holds the input vector~\cite{aimjssc,hbmpim}; Fig.~\ref{fig:dram_pim}a enlarges one bank with its PU. An all-bank
 MAC command reads one column from every open bank at once and starts one MAC beat in each PU; on the mobile platform,
@@ -32,6 +35,7 @@ one beat is 32 INT8 multiplies of the column against 32 GB elements, accumulated
 all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the MAC commands in Fig.~\ref{fig:dram_pim}b. A GEMV spreads the output rows over the banks and takes one
 all-bank command per weight column.
 
+% P:bg-row-sweep
 A GEMV runs as row sweeps between non-MAC commands (Fig.~\ref{fig:dram_pim}c). A \emph{row sweep} streams $c$
 all-bank MAC commands, about 62 on either platform, over one open row into the PUs' output registers. A row sweep
 belongs to one row of weights and serves the $A$ tokens whose inputs the GB holds; stock AiM's row sweep serves one

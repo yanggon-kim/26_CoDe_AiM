@@ -1,5 +1,6 @@
 % Abstract: seven moves, <= 200 words; every number also printed in Sec. I, II or III.
 \begin{abstract}
+% P:abs-summary
 Large language model decoding on mobile platforms and edge servers runs skinny GEMMs: speculative decoding verifies a few
 drafted tokens and batching serves a few requests, so each weight matrix meets 2 to 32 tokens and the host stays memory-bound. DRAM processing-in-memory (PIM) offers the bandwidth but is
 designed for GEMV: its processing units (PUs) run one multiply--accumulate (MAC) beat per column command, so their

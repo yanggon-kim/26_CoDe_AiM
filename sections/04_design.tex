@@ -14,6 +14,7 @@
 \subsection{Overview: One Command, Many MAC Beats}
 \label{sec:design:overview}
 
+% P:des-tile-mac-overview
 CoDe (Command-Decoupled PIM) issues one MAC command per weight column for a tile of $V$ token vectors, and this
 \emph{tile MAC} command removes both bottlenecks of Section~\ref{sec:bg:cmd}: the idle beats inside stock AiM's MAC
 slots and the row-switch commands between its row sweeps. CoDe has one component for each bottleneck. \emph{Beat
@@ -23,6 +24,7 @@ sweep's row-switch commands once. Every command still obeys every DRAM timing pa
 refreshes issue exactly as in stock AiM, and only the MAC beats leave the command stream. Per token and weight column,
 CoDe thus issues $1/V$ MAC commands, against one for stock AiM, $1/4$ for LP-Spec-style and one for P3-LLM-style.
 
+% P:des-sequence-walk
 Fig.~\ref{fig:sequence} follows one weight row of Llama-2-7B's q\_proj on the mobile platform through $M = 8$ tokens,
 in steady state, from stock AiM to CoDe one component at a time. Stock AiM sweeps the row once per token: its eight
 row sweeps take 3,250\,ns and 512 MAC commands, each sweep opens with its row-switch commands, and the PU computes one
@@ -33,6 +35,7 @@ the row takes 2,629\,ns with one row switch (Fig.~\ref{fig:sequence}c). CoDe joi
 switch, then 64 tile MAC commands, each followed by eight beats over two column periods, in 738.75\,ns
 (Fig.~\ref{fig:sequence}d).
 
+% P:des-gain-order
 CoDe's window is 4.40$\times$ shorter than stock AiM's, and the two components reach that ratio in either order. Beat
 filling first takes 2.39$\times$ and leaves 1.84$\times$ to row reuse. Row reuse first takes 1.24$\times$ and leaves
 3.56$\times$ to beat filling. Our simulator issues the commands of rows (a), (c) and (d); row (c) is CoDe's trace at
@@ -44,6 +47,7 @@ once per 64 row sweeps; over the whole q\_proj GEMM, CoDe runs 4.32$\times$ fast
 \subsection{Beat Filling}
 \label{sec:design:beat}
 
+% P:des-beat-decouple
 Beat filling decouples the PU's MAC beats from the command stream. The PU runs its beats at its own clock,
 $f_\mathrm{PU} = D / t_\mathrm{col}$, which equals CK on both platforms (Table~\ref{tab:params}), so the PU fits $D$
 beats into each column period whatever the command spacing. A tile MAC holds its column in the PU for $V/D$ column
@@ -54,6 +58,7 @@ column issues at $2T$, after the eight beats on the first column, and the tile's
 its last column. With $V = D$ the tile fills exactly one column period, and the MAC commands follow the bank's column
 rate.
 
+% P:des-beat-slot-factor
 Beat filling raises the slot factor from stock AiM's 1/4 to 1, because every beat of a MAC slot computes for one token
 of the tile. A PU with the stock multiplier count thus reaches the same 4$\times$ ceiling that LP-Spec-style reaches
 with four times the multipliers. In Fig.~\ref{fig:sequence}b, beat filling alone removes the idle beats and keeps
@@ -75,6 +80,7 @@ per-sweep rule, a quarter of stock AiM's MAC slots plus its non-MAC time; Fig.~\
 \subsection{Row Reuse}
 \label{sec:design:reuse}
 
+% P:des-row-reuse
 Row reuse lets the $V$ tokens of a tile share one row sweep. The tile MACs sweep the open row's columns once for all
 $V$ tokens, so the row-switch commands, two TMODs, the row's PREA and ACT16 pair and the WRMAC16, are paid once per $V$
 tokens instead of once per token, and the sweep factor rises. In Fig.~\ref{fig:sequence}c, row reuse alone cuts the row
@@ -87,6 +93,7 @@ drain, eight reads between two TMODs, sits inside the MAC stream as one 61.25\,n
 \subsection{Tile MAC Command and PU Microarchitecture}
 \label{sec:design:pu}
 
+% P:des-command-set
 \paragraph{Command set}
 CoDe adds two commands to the all-bank interface of AiM-style PIM~\cite{aimjssc} and keeps every other command
 (Table~\ref{tab:cmds}). The tile MAC (col, $V$) reads one column from every open bank with the stock MAC command's
@@ -95,6 +102,7 @@ one burst after the tile's last column. WRGB, TMOD, PREA, ACT16 and WRMAC16 keep
 only the row-switch commands change their count per token.
 
 
+% P:des-tile-mac-pu
 \paragraph{Tile MAC in the PU}
 Fig.~\ref{fig:tile} follows one tile MAC through the PU. The tile MAC latches the column that the bank delivers in the
 weight latch (\ding{172}). The beat sequencer then steps a token index $k$ from 0 to $V-1$, one beat per CK cycle
@@ -102,6 +110,7 @@ weight latch (\ding{172}). The beat sequencer then steps a token index $k$ from 
 tree adds the products into accumulator slot $k$ (\ding{175}). After the tile's last column, the burst drain moves the
 $V$ sums out through the drain port (\ding{176}).
 
+% P:des-storage
 \paragraph{Storage}
 The global buffer holds the tile's $V$ tokens for one chunk of $K$. On the mobile platform a $K$ chunk holds 2,048 INT8
 inputs, 2\,KB per token, so the GB of an eight-token tile holds 16\,KB (Table~\ref{tab:params}); one WRGB burst of 512
@@ -110,6 +119,7 @@ packing two tokens' slices, and a register of $V$ slices on HBM2. The accumulato
 one tile's sums drain from one set while the next tile accumulates into the other; an HBM2 PU, which serves two banks,
 holds four sets (Table~\ref{tab:params}).
 
+% P:des-tile-size
 \paragraph{Tile size}
 The tile size $V$ sizes CoDe's storage: the GB holds $V$ tokens' $K$ chunks, the HBM2 staging register holds $V$
 slices, and the accumulator file holds two sets of $V$ slots per bank. The lanes, the weight latch, the beat sequencer and the
@@ -132,6 +142,7 @@ chunk and a 512-bit slice, and one PU serves two banks, so an added slot costs a
   \input{tables/tab_cmds}
 \end{table}
 
+% P:des-pu-clock
 \paragraph{PU clock}
 The tile keeps the PU clock within reach of a DRAM process. Beat $k$ writes accumulator slot $k$, so each slot takes one
 update per tile of $V \ge D$ beats, and the add loop of each slot spans a column period or more; GDDR6-AiM~\cite{aimjssc}
@@ -144,6 +155,7 @@ stock multiplier count (Section~\ref{sec:method}).
 \subsection{Mapping Skinny GEMMs and Attention}
 \label{sec:design:map}
 
+% P:des-mapping
 A $K \times N$ weight matrix maps as in stock AiM: the matrix's $N$ output rows spread over the banks, and each row's $K$ weights run along DRAM columns. CoDe cuts the $M$ token rows into tiles of $V$. For each tile the GB holds the tile's
 activations for a chunk of $K$; every weight column of the chunk takes one tile MAC command, and the next tile repeats
 the row sweep. A tile with fewer than $V$ tokens runs fewer beats on the same commands. Attention runs on the same path

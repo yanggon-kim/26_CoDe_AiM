@@ -1,12 +1,14 @@
 \section{Motivation}
 \label{sec:motiv}
 
+% P:mot-modelled
 Throughput numbers in this section are modelled on the mobile platform and the edge server that
 Section~\ref{sec:method} details.
 
 \subsection{PIM--Host Crossover}
 \label{sec:bg:roofline}
 
+% P:mot-roofline-setup
 Fig.~\ref{fig:roofline} plots skinny-GEMM throughput against $M$ in the roofline form~\cite{roofline} for the host
 NPU's roof and for simulated PIM GEMMs of stock AiM and each platform's rival; each PIM curve is the geometric mean over
 the FC shapes of the platform's models. Fig.~\ref{fig:roofline} and the later throughput figures plot $M = 2^k$; at
@@ -15,11 +17,13 @@ other $M$, PIM throughput dips by group quantization. The mobile NPU is the Snap
 LPDDR5-6400, that fraction gives the NPU 42\,GB/s\ASSUMPTION. The edge-server NPU is P3-LLM's~\cite{p3llm} at
 256\,GB/s and 131\,TOPS\ASSUMPTION.
 
+% P:mot-host-roof
 \paragraph{Host roof in the skinny range}
 The host stays memory-bound across the whole skinny range. The 8 Gen 3~\cite{sd8g3} NPU reaches its compute roof only at
 $M \approx 143$, and P3-LLM's~\cite{p3llm} NPU reaches its roof at $M = 128$ (Fig.~\ref{fig:roofline}a, b). Each NPU's
 ridge lies far above $M = 32$, so every skinny GEMM runs on the host's memory roof, which rises linearly with $M$.
 
+% P:mot-stock-crossover
 \paragraph{Stock-PIM crossover}
 Stock PIM beats the host only for the first few token rows. At $M = 1$ every PIM ceiling starts 9.75$\times$ above the
 mobile NPU's roof and 4$\times$ above the edge-server NPU's roof. Stock AiM's ceiling is flat from $M = 1$, however,
@@ -27,6 +31,7 @@ because stock AiM repeats the GEMV once per token row (Section~\ref{sec:bg:cmd})
 ceiling, and stock AiM wins a whole decode step only up to $M = 6$ on the mobile platform and $M = 2$--3 on the edge
 server, below most of the published values of $M$ (Section~\ref{sec:bg:skinny}).
 
+% P:mot-gemv-only
 \paragraph{GEMV-only use of PIM}
 Stock PIM is a GEMV engine, and published systems keep PIM for GEMVs and send the GEMMs to the host.
 AttAcc~\cite{attacc} runs batched FC layers on the xPU and attention on PIM. NeuPIMs~\cite{neupims} maps the GEMMs to
@@ -46,6 +51,7 @@ compute-bound.
 \subsection{Command-Bound PIM Execution}
 \label{sec:bg:cmd}
 
+% P:mot-command-pacing
 \paragraph{Command pacing}
 In stock PIM a DRAM column command starts every MAC: HBM-PIM~\cite{hbmpim} executes one instruction per column
 command, and AiM~\cite{aimjssc} clocks its PU at its interface's $t_\mathrm{CCD}$. In Fig.~\ref{fig:dram_pim}b each all-bank
@@ -63,6 +69,7 @@ stock PU of Table~\ref{tab:params}, one beat per column period, with a PU four t
 LPDDR5-6400 and 1\,GHz on HBM2), leaves every stock GEMM at the same number of cycles, because the command spacing, not
 the PU clock, sets the time of each MAC command's slot (Fig.~\ref{fig:dram_pim}b).
 
+% P:mot-time-breakdown
 \paragraph{Time breakdown}
 Useful MAC work fills at most a fifth of a stock GEMM's time. Fig.~\ref{fig:breakdown} splits stock AiM's GEMM time at $M = 8$ into
 MAC slots and the non-MAC commands between them, on one channel of each platform (channel 28 of the mobile platform and
@@ -87,6 +94,7 @@ the MAC slots, and non-MAC commands between them.
   \label{fig:breakdown}
 \end{figure}
 
+% P:mot-idle-beats
 \paragraph{Idle beats}
 Idle beats fill three quarters of every stock MAC slot. $U$ is the product of a slot factor and a sweep factor,
 $U = \UMAC \times \fMAC$. The slot factor $\UMAC = A\,b\,\tck / \tslot$ is the useful share of one MAC command's slot
@@ -96,6 +104,7 @@ Fig.~\ref{fig:dram_pim}b leaves three of the slot's four beats idle, and stock A
 therefore take three times the time of the useful beats and form the largest segment of every bar in
 Fig.~\ref{fig:breakdown}: 53.9\,\% of q\_proj's time on the mobile platform and 57.4\,\% on the edge server.
 
+% P:mot-nonmac-commands
 \paragraph{Non-MAC commands}
 Stock AiM's row-switch commands outlast the useful MAC work of their row sweep. The sweep factor \fMAC is the share of
 the GEMM time spent in MAC slots rather than in the non-MAC commands of the row sweeps (Fig.~\ref{fig:dram_pim}c).
@@ -127,6 +136,7 @@ each of the two bottlenecks.
 \subsection{GEMM Support in Prior PIM}
 \label{sec:bg:walls}
 
+% P:mot-prior-families
 Prior designs raise the PIM ceiling in two families, and each family still paces every MAC by a command.
 In Fig.~\ref{fig:timeline}, stock AiM spends 8 column periods, 8 commands and 8 reads on the 8 tokens.
 
@@ -142,6 +152,7 @@ In Fig.~\ref{fig:timeline}, stock AiM spends 8 column periods, 8 commands and 8 
   \input{tables/tab_umac}
 \end{table}
 
+% P:mot-wider-pu
 \paragraph{Wider-PU family}
 Six designs widen the MAC step with multipliers. LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8
 ALUs, clocks the ALUs at 200\,MHz to match the memory's 5\,ns $t_\mathrm{CCD}$, and shares one unit between two banks;
@@ -156,6 +167,7 @@ the rival on the mobile platform (Section~\ref{sec:eval:phone}). LP-Spec-style's
 LP-Spec-style reaches $\UMAC = 1$ (Table~\ref{tab:umac}) only with four times the multipliers: per multiplier,
 LP-Spec-style's $U$ is 0.173--0.174 on the mobile platform and 0.185 on the edge server, below stock AiM's.
 
+% P:mot-faster-pu
 \paragraph{Faster-PU family}
 A faster PU lets at most two tokens share one column read. P3-LLM~\cite{p3llm} keeps the weight of a column read
 latched in its PU, issues one further command per token and clocks its PU at 500\,MHz, one beat per HBM2 \tccds.
@@ -178,6 +190,7 @@ it as a \textbf{P3-LLM-style} design, the rival on the edge server (Section~\ref
   \input{tables/tab_params}
 \end{table}
 
+% P:mot-logic-cost
 \paragraph{Cost of logic in a DRAM die}
 Logic in a DRAM die costs area: a DRAM process builds logic 10$\times$ less dense than an ASIC process and routes the
 logic in three metal layers instead of ten or more~\cite{devaux}. In GDDR6-AiM~\cite{aimjssc} silicon, one PU occupies
@@ -190,6 +203,7 @@ below P3-LLM-style's 390 and 830. Logic-die designs build their multipliers in a
 die~\cite{duplex,h2llm}. Hybrid bonding, one way to attach that die, brings an integration overhead of its
 own~\cite{h2llm}.
 
+% P:mot-other-pim
 The remaining LLM PIM designs fall outside the wider-PU and faster-PU families. GEMV-only designs serve one input
 vector per weight read~\cite{newton,cent,pimgpt}, lookup-table designs replace multiplications with table
 lookups~\cite{localut,pimpal,pimdl}, and scheduling and dataflow designs reorganize the work around the
@@ -204,6 +218,7 @@ same vector.
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
 
+% P:mot-depth
 The column commands of Sections~\ref{sec:bg:cmd} and~\ref{sec:bg:walls} bound how often a column leaves the array, not
 how often a PU can compute. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
 boundary~\cite{hbmpim}, so a column the PU has latched stays usable after its command: P3-LLM~\cite{p3llm} reuses a
@@ -216,6 +231,7 @@ and 1\,ns on HBM2~\cite{hbmpim,p3llm}, so a PU clocked at CK, 0.8\,GHz on LPDDR5
 $D = 4$ beats into either period. HBM3 at 6.4\,Gb/s leaves a 2.5\,ns
 column~\cite{ramulator2,p3llm}, so a 1\,GHz PU gets $D = 2$ there, the same depth P3-LLM-style reaches with commands.
 
+% P:mot-pu-clock-precedent
 \paragraph{PU clock in a DRAM die}
 A PU clocked at CK has precedent in DRAM silicon and in a PIM design for HBM2. HBM2's DRAM core runs at a quarter of
 the 1.0--1.2\,GHz bus clock, and Samsung's HBM-PIM~\cite{hbmpim} sets its FP16 PU to the core frequency,
@@ -225,6 +241,7 @@ multipliers and adder trees at 1\,GHz in a 1y-nm DRAM process. The 1y-nm process
 HBM2E~\cite{flashbolt} stacks eight 1y-nm DRAM dies. The Precision-Flexible PU~\cite{pfpu} clocks an HBM-PIM-style
 PU at \tck, 1\,GHz on HBM2, and splits each 4-\tck column interval into four phases.
 
+% P:mot-two-levers
 At $D = 4$, stock AiM's one beat per command lets a PU compute one beat of four per column, for $\UMAC = 1/4$
 (Fig.~\ref{fig:dram_pim}b), and P3-LLM-style's commands let it compute two, for $\UMAC = 1/2$. Two levers remain,
 one for each bottleneck of Section~\ref{sec:bg:cmd}: \emph{beat filling} uses all four beats of a slot without

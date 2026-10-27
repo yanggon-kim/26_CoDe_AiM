@@ -2,6 +2,7 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
+% P:conc-summary
 Skinny GEMMs keep LLM decoding memory-bound on mobile platforms and edge servers, and prior DRAM PIM paces every
 multiply--accumulate (MAC) by a DRAM command. This paper argues that DRAM timing bounds column accesses, not MACs on a
 latched column. The key to CoDe is to decouple MAC timing from DRAM command timing: one column command feeds many processing-unit beats over a tile
