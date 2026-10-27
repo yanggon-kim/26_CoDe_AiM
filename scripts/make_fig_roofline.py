@@ -2,7 +2,7 @@
 """Figure 2 (Sec. III-A): skinny-GEMM roofline, (a) phone on LPDDR5-6400 and (b) edge server on HBM2, at the column width.
 
 The per-logic-mm^2 panels were cut in the 2026-10-18 trim (Fig. 6(b) plots the mobile GEMM per logic mm^2 from the
-EV-58 pack); their ceilings stay asserted below because Sec. III prints them (314 / 697, 390 / 830, 583 / 1,247).
+EV-58 pack); their ceilings stay asserted below because Sec. III prints 314 / 697, 390 / 830 and Sec. VI prints 583 / 1,247.
 
 Reads the EV-57 rows collected by evaluation-owner (never microarch directly):
   phone : ../../../evaluation/dac_sd8g3/raw/ev57_{ceilings,host,summary}.csv  (platform = phone)

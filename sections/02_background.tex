@@ -32,8 +32,9 @@ AiM-style PIM adds a processing unit (PU) beside each bank (beside each pair of 
 shared by all PUs, that holds the input vector~\cite{aimjssc,hbmpim}; Fig.~\ref{fig:dram_pim}a enlarges one bank with its PU. An all-bank
 MAC command reads one column from every open bank at once and starts one MAC beat in each PU; on the mobile platform,
 one beat is 32 INT8 multiplies of the column against 32 GB elements, accumulated into the PU's output register. The
-all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the MAC commands in Fig.~\ref{fig:dram_pim}b. A GEMV spreads the output rows over the banks and takes one
-all-bank command per weight column.
+all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the MAC commands in Fig.~\ref{fig:dram_pim}b. This column period \tcol spans $D = 4$ cycles \tck of the
+command clock CK on both platforms (Table~\ref{tab:params}), so a PU clocked at CK could run $D$ beats per column read.
+A GEMV spreads the output rows over the banks and takes one all-bank command per weight column.
 
 % P:bg-row-sweep
 A GEMV runs as row sweeps between non-MAC commands (Fig.~\ref{fig:dram_pim}c). A \emph{row sweep} streams $c$

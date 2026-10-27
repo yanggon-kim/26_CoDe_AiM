@@ -18,7 +18,8 @@ $L = 1024$.
 CoDe nearly doubles LP-Spec-style's throughput per logic mm$^2$ for GEMMs, attention layers and decode steps alike. Per
 logic mm$^2$, CoDe delivers 1.86--3.06$\times$ LP-Spec-style's GEMM throughput, 1.86--2.34$\times$ its
 attention-layer throughput and 1.86--2.85$\times$ its decode-step throughput over $M = 1$--64
-(Fig.~\ref{fig:phone}b--d). The floor is the area ratio: up to $M = 4$ CoDe and LP-Spec-style issue the same command stream for the weight
+(Fig.~\ref{fig:phone}b--d). The floor is the area ratio, which also separates the two ceilings per logic mm$^2$, 583\,GOPS for CoDe and 314 for
+LP-Spec-style: up to $M = 4$ CoDe and LP-Spec-style issue the same command stream for the weight
 GEMMs and the decode step, while CoDe's attention layer already runs 1.01--1.14$\times$ faster at $M = 2$--4. The GEMM and decode-step peaks at $M = 5$ add speed, because LP-Spec-style needs a second pass of its four-token step
 while CoDe's eight-token tile covers $M = 5$ in one pass. For one decoder layer's weight GEMMs of Llama-2-7B at
 $M = 8$, CoDe issues 0.125 MAC commands per token per weight column, half LP-Spec-style's. CoDe's useful-MAC
@@ -60,7 +61,8 @@ linear layers to the NPU, still runs faster on CoDe.
 
 % P:eval-server-area
 \paragraph{Speed against area}
-CoDe's speed more than pays for its larger logic. CoDe returns 1.26$\times$ P3-LLM-style's throughput per logic
+CoDe's speed more than pays for its larger logic. CoDe's ceiling per logic mm$^2$ reaches 1,247\,GOPS against
+P3-LLM-style's 830, and CoDe returns 1.26$\times$ P3-LLM-style's throughput per logic
 mm$^2$ from batch 8 and 1.08--1.28$\times$ at batch 3--6 (Fig.~\ref{fig:hbm2}b). At batch 1--2, where CoDe's third and
 fourth beats sit idle, P3-LLM-style's smaller PU leads (0.80--0.84$\times$).
 
@@ -80,7 +82,8 @@ period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as C
 \fMAC, yet $U$ reaches only 0.223 on the mobile platform and 0.222 on the edge server, because \UMAC stays at 1/4.
 Beat filling, the command decoupling of Section~\ref{sec:design:beat}, then fills the idle beats and supplies the large step,
 3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
-near stock AiM's 0.717 and 0.771. In the other order, beat filling alone, composed from the model, would cut \fMAC,
+near stock AiM's 0.717 and 0.771. In the other order, beat filling alone, composed per row sweep as a quarter of stock AiM's MAC slots plus its non-MAC
+time, would cut \fMAC,
 and with \UMAC at 1 also $U$, to 0.425 and 0.506, in steps of 2.37$\times$ then 1.83$\times$ on the mobile platform
 and 2.62$\times$ then 1.46$\times$ on the edge server: the unchanged non-MAC commands would take more than half of the
 shortened time on the mobile platform and about half on the edge server. Beat filling thus earns its full step only
