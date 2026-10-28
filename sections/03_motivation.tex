@@ -5,14 +5,13 @@
 \label{sec:bg:roofline}
 
 % P:mot-roofline-setup
-Throughput numbers in this section are modelled on the mobile platform and the edge server of
-Table~\ref{tab:params}, which Section~\ref{sec:method} details. Fig.~\ref{fig:roofline} plots skinny-GEMM throughput
-against $M$ in the roofline form~\cite{roofline} for the host NPU's roof and for simulated PIM GEMMs of stock AiM and
-each platform's rival; each PIM curve is the geometric mean over the FC shapes of the platform's models.
-Fig.~\ref{fig:roofline} and the later throughput figures plot $M = 2^k$. The mobile NPU is the Snapdragon 8 Gen
-3's~\cite{sd8g3}, which reaches 56\,GB/s~\cite{powerinfer2} of its own 68\,GB/s pins~\cite{heterollm}; applied to the
-51.2\,GB/s pins of x64 LPDDR5-6400, that fraction gives the NPU 42\,GB/s\ASSUMPTION. The edge-server NPU is
-P3-LLM's~\cite{p3llm} (Table~\ref{tab:params}).
+Fig.~\ref{fig:roofline} plots skinny-GEMM throughput against $M$ in the roofline form~\cite{roofline} for the host
+NPU's roof and for simulated PIM GEMMs of stock AiM and each platform's rival. Each PIM curve is the geometric mean over
+the FC shapes of the platform's models, and Fig.~\ref{fig:roofline} and the later throughput figures plot $M = 2^k$.
+The mobile NPU is the Snapdragon 8 Gen 3's~\cite{sd8g3}, which reaches 56\,GB/s~\cite{powerinfer2} of its own
+68\,GB/s pins~\cite{heterollm}; applied to the 51.2\,GB/s pins of x64 LPDDR5-6400, that fraction gives the NPU
+42\,GB/s\ASSUMPTION. The edge-server NPU is P3-LLM's~\cite{p3llm}. Throughput numbers in this section are modelled on
+the mobile platform and the edge server of Table~\ref{tab:params}, which Section~\ref{sec:method} details.
 
 % P:mot-host-roof
 \paragraph{Host roof in the skinny range}
@@ -32,33 +31,34 @@ the published values of $M$ (Section~\ref{sec:bg:skinny}).
 
 % P:mot-gemv-only
 \paragraph{GEMV-only use of PIM}
-Stock PIM is a GEMV engine, and published systems keep PIM for GEMVs and send the GEMMs to the host.
-AttAcc~\cite{attacc} runs batched FC layers on the xPU and attention on PIM. NeuPIMs~\cite{neupims} maps the GEMMs to
-the NPU because PIM ``lacks the computational power to handle GEMM effectively.'' IANUS~\cite{ianus} chooses NPU or PIM
-per FC layer. P3-LLM~\cite{p3llm} offloads its linear layers to the NPU from batch 8, where its PIM becomes
-compute-bound. Keeping PIM for GEMVs leaves the cause of stock PIM's flat GEMM ceiling unexamined, so
-Section~\ref{sec:bg:cmd} splits a stock GEMM's time to locate that cause.
+Stock PIM is a GEMV engine, and published systems keep PIM for GEMVs and send the GEMMs to the host, even though the
+host runs every skinny GEMM on its memory roof. AttAcc~\cite{attacc} runs batched FC layers on the xPU and attention on
+PIM. NeuPIMs~\cite{neupims} maps the GEMMs to the NPU because PIM ``lacks the computational power to handle GEMM
+effectively.'' IANUS~\cite{ianus} chooses NPU or PIM per FC layer. P3-LLM~\cite{p3llm} offloads its linear layers to
+the NPU from batch 8, where its PIM becomes compute-bound.
+
+% P:mot-a-summary
+Skinny GEMMs are memory-bound on the host, so skinny GEMMs belong on PIM, which reads the weights inside the DRAM.
+Published systems still send skinny GEMMs to an NPU or GPU because stock PIM's GEMM throughput stays flat at its GEMV
+ceiling. Section~\ref{sec:bg:cmd} splits a stock GEMM's time to locate the cause of that flat ceiling.
 
 \subsection{Two Root Causes of Stock PIM Inefficiency}
 \label{sec:bg:cmd}
 
-% P:mot-time-breakdown
-\paragraph{Useful-MAC share of stock GEMM time}
-A stock GEMM's time divides into MAC slots and the non-MAC commands between them. Each all-bank MAC command occupies
-one MAC slot, which holds useful and idle beats (Fig.~\ref{fig:dram_pim}b); the non-MAC commands are the row-switch
-commands and the token load/drain commands of each row sweep (Fig.~\ref{fig:dram_pim}c), and refresh.
-Fig.~\ref{fig:breakdown} splits stock AiM's GEMM time at $M = 8$ on one channel of each platform for two kernels: one
-tile, whose weights fill one row sweep in each bank and whose inputs fill one GB chunk ($K \times N$ of
-$2048 \times 64$ on the mobile platform and $4096 \times 256$ on the edge server), and the $4096 \times 4096$ query
-projection (q\_proj) of Llama-2-7B on the mobile platform and of Llama-3.1-8B on the edge server. The useful share of
-the time is the useful-MAC utilization $U = W \tck / T_\mathrm{GEMM}$, where $W$ is the number of useful MAC beats per
-PU and $T_\mathrm{GEMM}$ is the GEMM time; the reference PU of $U$ runs one useful beat per CK cycle, the $D$ beats per
-column period of Section~\ref{sec:bg:pim}. Useful MAC work fills at most a fifth of the time: across the four kernels,
-useful beats take 14.1--19.1\,\%, idle beats 42.2--57.4\,\% and the non-MAC commands 23.4--43.7\,\%.
-$U$ is the product of a slot factor and a sweep factor, $U = \UMAC \times \fMAC$: the slot factor \UMAC is the useful
-share of the MAC slots, and the sweep factor \fMAC is the share of the GEMM time spent in MAC slots. Stock AiM thus
-loses useful MAC beats to two root causes: idle beats inside the MAC slots, which set the slot factor, and non-MAC
-commands between them, which set the sweep factor.
+% P:mot-breakdown-setup
+Fig.~\ref{fig:breakdown} splits stock AiM's GEMM time into six components for one tile and for the query projection
+layer (q\_proj) of Llama-2-7B on the mobile platform and of Llama-3.1-8B on the edge server; each bar is normalised to
+its GEMM time, which is printed at the bar's end. The one tile's weights fill one row sweep in each bank and its inputs
+fill one GB chunk ($K \times N$ of $2048 \times 64$ on the mobile platform and $4096 \times 256$ on the edge server),
+so the one tile shows the costs of one row sweep. The q\_proj kernel, attention's $4096 \times 4096$ query projection,
+shows a whole layer. Both kernels run at $M = 8$ on one channel. The mobile platform places an INT8 PU beside each
+LPDDR5-6400 bank, and the edge server places a W4A8 PU beside each pair of HBM2 banks (Table~\ref{tab:params}). The six
+components form two groups: the time in non-MAC commands (row switch, token load, token drain and refresh) and the
+time in MAC slots, which hold useful and idle beats. A MAC slot is the time \tslot that one all-bank MAC command
+occupies; on the mobile platform a MAC slot spans one column period (Fig.~\ref{fig:dram_pim}b). Useful MAC work fills
+at most a fifth of a stock GEMM's time: across the four bars, useful beats take 14.1--19.1\,\% of the time. Two root
+causes take the rest: non-MAC commands between the MAC slots, 23.4--43.7\,\% of the time, and idle beats even inside
+the MAC slots, 42.2--57.4\,\%.
 
 % stock time-breakdown figure (cited first in III-B's first paragraph); generated by
 % scripts/make_fig_breakdown.py (evaluation/dac_2x2 Sec. 2j, figures/tab_umac_kernel_stock.csv)
@@ -69,49 +69,75 @@ commands between them, which set the sweep factor.
   \label{fig:breakdown}
 \end{figure}
 
-% P:mot-idle-beats
-\paragraph{Idle beats}
-In stock PIM a DRAM column command starts every MAC: HBM-PIM~\cite{hbmpim} executes one instruction per column
-command, and AiM~\cite{aimjssc} clocks its PU at its interface's $t_\mathrm{CCD}$. The column commands and their
-spacing, \tccds{} and \tccdl, exist to access the DRAM array: each column command drives the bank's column decoder and
-I/O sense amplifiers to move one column out of the cell array~\cite{hbmpim}. For a GEMV, the target of these
-PUs~\cite{aimjssc,p3llm}, one column meets one input vector, and one beat per column suffices. The slot factor
-$\UMAC = A\,b\,\tck / \tslot$ counts the useful beats of one MAC command's slot \tslot: the slot serves $A$ tokens with
-$b$ beats each ($b = 1$ on the mobile platform; $b = 2$ on the edge server, where each MAC command feeds a PU from its
-two banks). Stock AiM's slot serves one token, so a PU at CK finishes the token's beat in one CK cycle and waits for
-the next command (Fig.~\ref{fig:dram_pim}b): three of the slot's $D = 4$ beats idle, and stock AiM's \UMAC is 1/4.
-Replacing stock AiM's PU, one beat per column period, with one $D$ times faster, clocked at CK, leaves every stock GEMM
-at the same number of cycles: the command spacing, not the PU clock, sets each MAC slot. Idle beats therefore take
-three times the time of the useful beats and form the largest segment of every bar in Fig.~\ref{fig:breakdown}:
-53.9\,\% of q\_proj's time on the mobile platform and 57.4\,\% on the edge server.
-
-% P:mot-nonmac-commands
+% P:mot-nonmac-classes
 \paragraph{Non-MAC commands}
-Each row sweep of $c$ MAC slots (Fig.~\ref{fig:dram_pim}c) pays two kinds of non-MAC commands. Its \emph{row-switch
-commands}, the two TMODs, the PREA and ACT16 pair of each row it opens and the WRMAC16, cost the \emph{row-switch
-overhead} \trow once per row sweep; its \emph{token load/drain commands}, each token's share of WRGB and its RDMAC16,
-cost \ttok once per token; refresh adds to both. Stock AiM's row-switch commands outlast the useful MAC work of
-their row sweep. Over one decoder layer's weight GEMMs on the mobile platform, where each stock row sweep serves one
-token, the simulated row-switch commands take 91.2\,ns per sweep, against 78.0\,ns of useful MAC work, the time
-$c\,b\,\tck$ that the reference PU needs for the sweep's beats. The two TMODs take the largest part, 40.5\,ns, and the
-ACT16 pair, timed by a simulator preset, takes 37.9\,ns. PREA takes 11.5\,ns and WRMAC16 1.2\,ns. In
-Fig.~\ref{fig:breakdown}, the row-switch commands take 19.5\,\% of q\_proj's time on the mobile platform and 13.8\,\%
-on the edge server. The token load/drain commands scale with the tokens and the GB fills instead. RDMAC16 takes at most
-1.0\,\% of a kernel's time. One WRGB fill per token and $K$ chunk serves every row sweep over that chunk: 64 row sweeps in the mobile q\_proj, 16 in the edge-server
-q\_proj and one in either one-tile kernel. Token load therefore takes 0.6\,\% and 2.4\,\% of q\_proj's time but
-28.3\,\% and 28.5\,\% of the one tile's. Refresh takes 7.1\,\% of q\_proj's time on the mobile platform and 6.2\,\% on
-the edge server. On the edge server, stock AiM's non-MAC commands over the layer, 146.2\,ns per row sweep including
-41.8\,ns of refresh, outlast its 123.3\,ns of useful MAC work.
+Non-MAC commands are the commands around the MAC commands, and no PU starts a MAC while they run. The four non-MAC
+segments of Fig.~\ref{fig:breakdown}, row switch, token load, token drain and refresh, group the commands of
+Section~\ref{sec:bg:pim} into three classes. The \emph{row-switch commands}, the two TMODs, the PREA and ACT16 pair of
+each row opened and the WRMAC16, cost the \emph{row-switch overhead} \trow once per row sweep. The \emph{token
+load/drain commands}, each token's share of WRGB (token load) and its RDMAC16 (token drain), cost \ttok once per token.
+Refresh, the third class, blocks every command for $t_\mathrm{RFCab}$ once per $t_\mathrm{REFI}$
+(Table~\ref{tab:params}). Stock AiM sweeps each row once per token (Fig.~\ref{fig:dram_pim}c), so a GEMM pays the
+row-switch commands of a row $M$ times, where a GEMV pays them once.
+
+% P:mot-rowswitch-cost
+Stock AiM's row-switch commands outlast the useful MAC work of their row sweep. Over one decoder layer's weight GEMMs
+on the mobile platform, where each stock row sweep serves one token, the simulated row-switch commands take 91.2\,ns
+per sweep. A PU that runs one beat per CK cycle needs 78.0\,ns for a sweep's useful beats, averaged over the same layer.
+The two TMODs take the largest part of the row switch, 40.5\,ns, and the ACT16 pair, timed by a simulator preset,
+takes 37.9\,ns. PREA takes 11.5\,ns, and WRMAC16 takes 1.2\,ns. In Fig.~\ref{fig:breakdown}, the row-switch segment
+takes 19.5\,\% of q\_proj's time on the mobile platform and 13.8\,\% on the edge server.
+
+% P:mot-load-refresh-cost
+Token load matters only where one GB fill serves few row sweeps, and refresh takes a steady share of the time. The
+token-drain segment of Fig.~\ref{fig:breakdown}, RDMAC16, takes at most 1.0\,\% of a kernel's time. One WRGB fill per
+token and $K$ chunk serves every row sweep over that chunk: 64 row sweeps in the mobile q\_proj, 16 in the edge-server
+q\_proj and one in either one-tile kernel. The token-load segment therefore takes 0.6\,\% and 2.4\,\% of q\_proj's
+time but 28.3\,\% and 28.5\,\% of the one tile's. The refresh segment takes 7.1\,\% of q\_proj's time on the mobile
+platform and 6.2\,\% on the edge server. On the edge server, stock AiM's non-MAC commands over the layer, 146.2\,ns
+per row sweep including 41.8\,ns of refresh, outlast its 123.3\,ns of useful MAC work.
 
 % P:mot-sweep-factor
-\paragraph{Sweep factor}
-The row-switch overhead, the token load/drain and refresh set the sweep factor of a row sweep that serves $A$ tokens:
+The non-MAC commands shrink the share of the GEMM time that the MAC slots get. This share is the \emph{sweep factor}
+\fMAC, and for a row sweep of $c$ MAC slots that serves $A$ tokens, the row-switch overhead, the token load/drain and
+refresh set it:
 \begin{equation}
   \fMAC = \frac{(1 - \rho)\, c\, \tslot}{c\, \tslot + \trow + A\, \ttok}, \label{eq:fmac}
 \end{equation}
-% useful-MAC table (cited first in III-B's Sweep-factor paragraph): defined inside that paragraph, past its equation, so it
-% lands at the top of the column that cites it, opposite Fig. timeline; generated by
-% scripts/make_tables.py (simulated values, evaluation/dac_2x2 Sec. 2h)
+where $\rho$ is the share of time that refresh takes. Fitted on stock AiM at $M = 1$, \trow is 87.73\,ns, \ttok is
+4.26\,ns and $\rho$ is 0.070 on the mobile platform; on the edge server, \trow is 94.76\,ns, \ttok is 9.64\,ns and
+$\rho$ is 0.061. The fitted \trow lies below the 91.2\,ns of the simulated row-switch commands because the fit nets out
+the MAC tail that overlaps them. Over one decoder layer's weight GEMMs on the mobile platform, stock AiM's MAC slots
+fill $\fMAC = 0.717$ of the time.
+
+% P:mot-idle-beats
+\paragraph{Idle beats}
+Even the MAC slots hold wasted time: an idle beat is a clock cycle in which a PU has nothing to compute and waits for
+the next MAC command. A beat is one CK cycle of PU work, so a column period holds $D = 4$ beats
+(Section~\ref{sec:bg:pim}); a useful beat computes a token's MAC, and the other beats of a MAC slot are idle. Stock
+AiM's slot serves one token, so the PU computes the token's beat in one CK cycle and waits for the next command
+(Fig.~\ref{fig:dram_pim}b): one beat of each column period is useful and three are idle. The \emph{slot factor},
+the useful share of a MAC slot, is $\UMAC = A \times b \times \tck / \tslot$, where $b$ is the number of beats per
+token: $b = 1$ on the mobile platform, and $b = 2$ on the edge server, where each MAC command feeds a PU from its two
+banks. Stock AiM's \UMAC is therefore 1/4. The idle segment is the largest of every bar in Fig.~\ref{fig:breakdown},
+53.9\,\% of q\_proj's time on the mobile platform and 57.4\,\% on the edge server, three times the useful beats.
+
+% P:mot-idle-cause
+In stock PIM, a MAC starts only when a column command delivers its weights. HBM-PIM~\cite{hbmpim} executes one
+instruction per column command, and AiM~\cite{aimjssc} clocks its PU at its interface's $t_\mathrm{CCD}$. Column
+commands exist to read the DRAM array: each column command moves one column out of the bank's cells~\cite{hbmpim}, and
+DRAM timing lets the next column command follow only after \tccds{} or \tccdl. Command pacing suits a GEMV, the target
+of these PUs~\cite{aimjssc,p3llm}: in a GEMV each weight column meets one input vector, so one beat per column is
+enough. Replacing stock AiM's PU, which runs one beat per column period, with a PU four times faster, clocked at CK,
+leaves every stock GEMM at the same number of cycles: the command spacing, not the PU clock, sets each MAC slot.
+
+% P:mot-utilization
+The two losses multiply. The useful-MAC utilization $U$ is the MAC-useful share of each bar in
+Fig.~\ref{fig:breakdown} and equals $W \times \tck / T_\mathrm{GEMM}$, where $W$ is the number of useful beats per PU
+and $T_\mathrm{GEMM}$ is the GEMM time; $U$ thus measures a design against a PU that runs one useful beat per CK cycle. $U$ is the product
+of the slot factor and the sweep factor, $U = \UMAC \times \fMAC$.
+% useful-MAC table (cited first in III-B's closing paragraph): defined inside that paragraph so that it lands at the top
+% of the column that cites it; generated by scripts/make_tables.py (simulated values, evaluation/dac_2x2 Sec. 2h)
 \begin{table}[t]
   \caption{Useful-MAC utilization on the mobile platform.}
   \label{tab:umac}
@@ -120,12 +146,9 @@ The row-switch overhead, the token load/drain and refresh set the sweep factor o
   \setlength{\tabcolsep}{3pt}
   \input{tables/tab_umac}
 \end{table}
-where $\rho$ is the share of time that refresh takes. Fitted on stock AiM at $M = 1$, \trow is 87.73\,ns and \ttok
-4.26\,ns with $\rho = 0.070$ on the mobile platform, and \trow is 94.76\,ns and \ttok 9.64\,ns with $\rho = 0.061$ on
-the edge server. The fitted \trow lies below the 91.2\,ns of the simulated row-switch commands because the fit nets out
-the MAC tail that overlaps them. Over one decoder layer's weight GEMMs on the mobile platform, stock AiM's MAC slots
-fill $\fMAC = 0.717$ of the time, so stock AiM's $U$ is $1/4 \times 0.717 = 0.179$ (Table~\ref{tab:umac}); on the edge
-server, stock AiM's $U$ is 0.193.
+Stock AiM's $U$ is $1/4 \times 0.717 = 0.179$ on the mobile platform (Table~\ref{tab:umac}) and 0.193 on the edge
+server. Idle beats set the slot factor, non-MAC commands set the sweep factor, and Section~\ref{sec:bg:walls} examines
+how prior PIM designs answer each root cause.
 
 \subsection{GEMM Support in Prior PIM}
 \label{sec:bg:walls}
