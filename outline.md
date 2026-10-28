@@ -66,23 +66,29 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← intro-skinny-gemm; → mot-stock-crossover
 ### B. DRAM and AiM-Style PIM
 - **[bg-dram-channel]**
-  - Message: Column commands move one 32-byte atom of an open row and may issue every t_CCD_S across bank groups and every t_CCD_L within one, which is twice as long.
-  - Floats: Fig. 1
-  - Numbers: 16 banks, four bank groups, 32 B ← structural
-  - Cites: ramulator2, p3llm
-  - Links: → mot-faster-pu
+  - Message: An activation opens one row of a bank and each column command moves a 32 B piece of it (an LPDDR5 row holds 2 KB); column commands issue every t_CCD_S across bank groups and every t_CCD_L within one, which is twice as long.
+  - Floats: Fig. 1, Table III (row size)
+  - Numbers: 16 banks, four bank groups, 32 B, 2 KB row ← structural; row size in Table III ← tables [platform_block] (2x2 raw cvs_sum labels; JEDEC page size)
+  - Cites: jedeclpddr5, ramulator2, p3llm
+  - Links: → bg-row-sweep, mot-faster-pu
 - **[bg-aim-pu]**
-  - Message: AiM-style PIM puts a PU beside each bank and a shared global buffer on the die, and one all-bank MAC command every t_CCD_L starts one MAC beat in every PU; the column period spans D = 4 CK cycles, so a PU at CK could run D beats per column read (D defined here, its first point of need); commercial PIM ships the same per-bank layout (HBM-PIM, Samsung's LPDDR5X-PIM).
+  - Message: AiM-style PIM puts a PU beside each bank and a shared global buffer on the die, and one all-bank MAC command every t_CCD_L starts one MAC beat in every PU; the column period spans D = 4 CK cycles (D defined here as a timing fact; the "D beats per column read" opportunity is mot-depth's, the GEMV-to-bank mapping des-mapping's); commercial PIM ships the same per-bank layout (HBM-PIM, Samsung's LPDDR5X-PIM).
   - Floats: Fig. 1, Table III (first cite; configuration table, F12 exception)
   - Numbers: 32 INT8 multiplies per beat; D = 4 (t_col / t_CK, Table III) ← structural
   - Cites: aimjssc, hbmpim, lp5xpim (layout only: one PIM block per bank; no clock or bandwidth)
-  - Links: → mot-time-breakdown, mot-idle-beats, mot-prior-families, mot-depth, des-beat-decouple
-- **[bg-row-sweep]**
-  - Message: A GEMV runs as row sweeps of about 62 all-bank MAC commands between non-MAC commands, and stock AiM sweeps each row once per token.
-  - Floats: Fig. 1
-  - Numbers: c ≈ 62 ← tables [umac_table] (2x2 §2h)
+  - Links: → bg-mac-sequence, mot-time-breakdown, mot-idle-beats, mot-prior-families, mot-depth, des-beat-decouple, des-mapping
+- **[bg-mac-sequence]**
+  - Message: MAC commands need non-MAC commands before and after them: the all-bank MAC command is the only MAC command, and WRGB, WRMAC16, TMOD and PREA + ACT16 precede the MAC commands of a row while a second TMOD and RDMAC16 follow them, in the order the simulator issues them.
+  - Floats: Fig. 1 (c)
+  - Numbers: — (command order ← microarch 05_reports/d1/useful_mac_util.md §11.2, §11.4)
   - Cites: aimjssc
-  - Links: → mot-nonmac-commands, des-row-reuse
+  - Links: ← bg-aim-pu; → bg-row-sweep, mot-nonmac-commands, meth-simulator
+- **[bg-row-sweep]**
+  - Message: A row sweep streams c all-bank MAC commands over one open row, c = row bytes / column bytes = 2 KB / 32 B = 64 (the edge server's 1 KB HBM2 rows give 64 columns over two rows opened in turn), and stock AiM sweeps each row once per token.
+  - Floats: Fig. 1 (c), Table III (row size)
+  - Numbers: c = 2 KB / 32 B = 64; 1 KB HBM2 rows, two per sweep ← tables [platform_block] (2x2 raw cvs_sum labels); the layer-mean 62.38 (re-opens after refresh, short last chunks) is not printed
+  - Cites: jedechbm2
+  - Links: ← bg-dram-channel, bg-mac-sequence; → mot-nonmac-commands, des-row-reuse
 
 ## III. Motivation  (sections/03_motivation.tex)
 ### A. PIM–Host Crossover
@@ -128,7 +134,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Fig. 1 (c), Fig. 3
   - Numbers: order setting (what each class is and what it costs per row sweep: t_row once, t_tok per token, refresh) → finding → per-command split; 91.2 vs 78.0 ns; TMOD 40.5, ACT16 37.9, PREA 11.5, WRMAC16 1.2 ns; row switch 19.5 / 13.8 %; RDMAC16 ≤ 1.0 %; 64 / 16 / 1 sweeps per fill; token load 0.6 / 2.4 % vs 28.3 / 28.5 % (kept: eval-vsweep-robust's token-load-bound one-tile kernel rests on it); refresh 7.1 / 6.2 %; edge 146.2 incl. 41.8 vs 123.3 ns ← tables [umac_src_table] (2x2 §2h–2i, §2p), brk
   - Cites: —
-  - Links: ← mot-time-breakdown, bg-row-sweep; → mot-sweep-factor, mot-rival-row-switch, des-row-reuse
+  - Links: ← mot-time-breakdown, bg-mac-sequence (commands defined there; III-B only groups them into classes), bg-row-sweep; → mot-sweep-factor, mot-rival-row-switch, des-row-reuse
 - **[mot-sweep-factor]** "Sweep factor"
   - Message: Eq. 1 sets the sweep factor from a row sweep's MAC slots, its row-switch overhead and its tokens' load/drain, and stock AiM's MAC slots fill 0.717 of the time, so stock AiM's U is 0.179.
   - Floats: Eq. 1 (eq:fmac), Table I (first cite; float defined inside the paragraph, past the equation)
@@ -174,7 +180,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← mot-wider-pu, mot-faster-pu, mot-rival-row-switch; → mot-depth (stays last in III-C: user, 2026-10-27)
 ### D. The Opportunity: DRAM Timing Bounds Access, Not MACs
 - **[mot-depth]**
-  - Message: DRAM timing bounds how often a column is read, not how many MACs may consume it, so one column read can feed the D beats of II-B.
+  - Message: DRAM timing bounds how often a column is read, not how many MACs may consume it, so one column read can feed D beats, one per CK cycle of the column period of II-B.
   - Floats: —
   - Numbers: — (D points back to bg-aim-pu; not re-derived)
   - Cites: hbmpim, p3llm
@@ -429,7 +435,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 | Fig. 5 | fig:sequence | figs/fig_sequence.pdf ← seq (04_design.tex) | des-tile-mac-overview (p6 L) | p6 L |
 | Fig. 6 | fig:tile | figs/fig_tile.pdf ← figs/src/fig_tile.html, html2pdf.py (04_design.tex) | des-beat-slot-factor (p6 R) | p6 R |
 | Table II | tab:cmds | tables/tab_cmds.tex ← seq (04_design.tex) | des-command-set (p7) | p7 R |
-| Table III | tab:params | tables/tab_params.tex ← tables [platform_block, table4] (05_methodology.tex, V-A) | bg-aim-pu (p2) | p8 L (configuration table: F12 exception; first cite in V on p8) |
+| Table III | tab:params | tables/tab_params.tex ← tables [platform_block, table4] (05_methodology.tex, V-A) | bg-dram-channel (p2) | p8 L (configuration table: F12 exception; first cite in V on p8) |
 | Fig. 7 | fig:phone | figs/fig_phone.pdf ← phone (05_methodology.tex, figure*) | eval-phone-summary (p8–9) | p9 top, both columns |
 | Fig. 8 | fig:hbm2 | figs/fig_hbm2.pdf ← hbm2 (06_evaluation.tex) | eval-server-summary (p9 R) | p10 L |
 | Fig. 9 | fig:vsweep | figs/fig_vsweep.pdf ← vsw (06_evaluation.tex) | eval-vsweep-summary (p10 L) | p10 R |

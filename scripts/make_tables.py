@@ -32,7 +32,8 @@ HBM2 = [("stock", "Stock AiM"), ("p3_500", "P3-LLM-style"), ("h2", "LP-Spec-styl
 def platform_block():
     """Platform block of the configuration table (tab:params), one row per platform value the paper uses. Every value
     is read from a collected evaluation input (dac_sd8g3 / dac_2x2 raw), or is a cited spec value (cite in the cell), or
-    is labelled as a simulator preset / [assumption] as the prose had it. Row size has no collected source and stays out."""
+    is labelled as a simulator preset / [assumption] as the prose had it. Row size: the collected kernel labels (cvs_sum.csv)
+    give 64 columns of 32 B in one LPDDR5 row and in two HBM2 rows; the cells cite the JEDEC page sizes."""
     sraw, hraw = os.path.join(EVAL, "dac_sd8g3", "raw"), os.path.join(EVAL, "dac_2x2", "raw")
     host = {"phone": {r["row_id"]: r for r in read("ev57_host.csv", sraw)}["npu42"],
             "hbm2": {r["row_id"]: r for r in read("ev57_host.csv", hraw)}["peak"]}
@@ -58,6 +59,10 @@ def platform_block():
     assert ref and all(f(r["gap_next_ns"]) == 280.0 and "A-REF1" in r["rule"] for r in ref)
     with open(os.path.join(EVAL, "dac_sd8g3", "context.md")) as fh:
         assert "tREFI 3.906 µs, tRFCab 280 ns `[A-REF1]`" in fh.read()
+    lab = {r["row_id"]: r["workload_label"] for r in read("cvs_sum.csv", hraw)}
+    assert "one row per bank (K 2048 INT8 = 64 columns" in lab["phone/W1/stock"]                  # 64 x 32 B = 2 KB
+    assert "64 columns over two 1 KB rows" in lab["hbm2/W1/stock"]                                # 2 x 32 x 32 B
+    assert 64 * 32 == 2048 and 2 * 32 * 32 == 2048
     rows = [
         (r"Host NPU", r"Snapdragon 8 Gen 3~\cite{sd8g3}", r"P3-LLM's~\cite{p3llm}"),
         (r"NPU TOPS, GB/s", r"12, 42", r"131, 256"),
@@ -66,6 +71,7 @@ def platform_block():
         (r"Internal bandwidth", r"409.6\,GB/s", r"1,024\,GB/s"),
         (r"\tck (CK)", r"1.25\,ns (0.8\,GHz)", r"1\,ns (1\,GHz)"),
         (r"\tccds, \tccdl{} (column)", r"2.5, 5\,ns~\cite{lpspec,ramulator2}", r"2, 4\,ns~\cite{hbmpim,p3llm}"),
+        (r"Row (page) size", r"2\,KB~\cite{jedeclpddr5}", r"1\,KB~\cite{jedechbm2}"),
         (r"PU placement", r"one per bank", r"one per two banks"),
         (r"$t_\mathrm{REFI}$, $t_\mathrm{RFCab}$", r"3.906\,\textmu s, 280\,ns", r"simulator preset"),
         (r"Precision", r"INT8", r"W4A8"),

@@ -88,17 +88,16 @@ three times the time of the useful beats and form the largest segment of every b
 % P:mot-nonmac-commands
 \paragraph{Non-MAC commands}
 Each row sweep of $c$ MAC slots (Fig.~\ref{fig:dram_pim}c) pays two kinds of non-MAC commands. Its \emph{row-switch
-commands}, the two mode switches (TMOD), the row's PREA and ACT16 pair and the WRMAC16, cost the \emph{row-switch
-overhead} \trow once per row sweep; its \emph{token load/drain commands}, each token's share of WRGB and its RDMAC16
-drain, cost \ttok once per token; refresh adds to both. Stock AiM's row-switch commands outlast the useful MAC work of
+commands}, the two TMODs, the PREA and ACT16 pair of each row it opens and the WRMAC16, cost the \emph{row-switch
+overhead} \trow once per row sweep; its \emph{token load/drain commands}, each token's share of WRGB and its RDMAC16,
+cost \ttok once per token; refresh adds to both. Stock AiM's row-switch commands outlast the useful MAC work of
 their row sweep. Over one decoder layer's weight GEMMs on the mobile platform, where each stock row sweep serves one
 token, the simulated row-switch commands take 91.2\,ns per sweep, against 78.0\,ns of useful MAC work, the time
 $c\,b\,\tck$ that the reference PU needs for the sweep's beats. The two TMODs take the largest part, 40.5\,ns, and the
 ACT16 pair, timed by a simulator preset, takes 37.9\,ns. PREA takes 11.5\,ns and WRMAC16 1.2\,ns. In
 Fig.~\ref{fig:breakdown}, the row-switch commands take 19.5\,\% of q\_proj's time on the mobile platform and 13.8\,\%
-on the edge server. The token load/drain commands scale with the tokens and the GB fills instead. RDMAC16 drains each
-token's sums once per row sweep and takes at most 1.0\,\% of a kernel's time. WRGB fills the GB once per token and $K$
-chunk, and one fill serves every row sweep over that chunk: 64 row sweeps in the mobile q\_proj, 16 in the edge-server
+on the edge server. The token load/drain commands scale with the tokens and the GB fills instead. RDMAC16 takes at most
+1.0\,\% of a kernel's time. One WRGB fill per token and $K$ chunk serves every row sweep over that chunk: 64 row sweeps in the mobile q\_proj, 16 in the edge-server
 q\_proj and one in either one-tile kernel. Token load therefore takes 0.6\,\% and 2.4\,\% of q\_proj's time but
 28.3\,\% and 28.5\,\% of the one tile's. Refresh takes 7.1\,\% of q\_proj's time on the mobile platform and 6.2\,\% on
 the edge server. On the edge server, stock AiM's non-MAC commands over the layer, 146.2\,ns per row sweep including
@@ -216,7 +215,7 @@ multipliers or added commands, and a row sweep serves only the tokens of one MAC
 
 % P:mot-depth
 DRAM timing bounds how often a column is read, not how many MACs may consume the column, so one column read can feed
-the $D$ beats of Section~\ref{sec:bg:pim}. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
+$D$ beats, one per CK cycle of the column period of Section~\ref{sec:bg:pim}. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
 boundary~\cite{hbmpim}, so a column the PU has latched stays usable after its command: P3-LLM~\cite{p3llm} reuses a
 latched column for two tokens at unchanged cell-access and column-decoder power, the majority of PIM power. The column
 period thus sets how often weights arrive at a PU, and the PU clock sets how often the PU computes on them, so a PU
