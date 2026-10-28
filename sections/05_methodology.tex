@@ -57,7 +57,7 @@ simulator times them. On the mobile platform the simulator issues an all-bank re
 the rank for $t_\mathrm{RFCab}$, the JEDEC values of a 16\,Gb die (Table~\ref{tab:params}), which we assume for our
 dies\ASSUMPTION;
 refresh then takes $\rho = 0.070$ of stock AiM's time at $M = 1$ (Section~\ref{sec:bg:cmd}). Area comes from synthesis of each PU's lanes and registers in a 45\,nm library, scaled to a 1z DRAM process by
-the published area of AttAcc's~\cite{attacc} GEMV unit in that process; the GB is priced as DRAM-process
+the estimated area of AttAcc's~\cite{attacc} GEMV unit in that process; the GB is priced as DRAM-process
 SRAM\ASSUMPTION. PU power and energy come from synthesis of each design's whole PU with Yosys and ABC~\cite{abc} on the
 Nangate45 library, OpenROAD~\cite{openroad} placement and clock-tree synthesis, and OpenSTA power from a zero-delay
 simulation with random operands. We scale the synthesised energy to the DRAM process so that an AiM-style bf16 PU from

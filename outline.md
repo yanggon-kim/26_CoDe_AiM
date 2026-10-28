@@ -34,7 +34,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[intro-prior-families]**
   - Message: Prior PIM raises the ceiling either with more multipliers (wider PU) or with more commands (faster PU), and both families keep every MAC paced by a DRAM command.
   - Floats: —
-  - Numbers: 4× multipliers; 16.92 % of an LPDDR5 die ← lpspec (cited); two tokens per read (structural)
+  - Numbers: 4× multipliers; 16.92 % of an LPDDR5 die for compute units and buffers ← lpspec (cited, p. 7); two tokens per read (structural)
   - Cites: lpspec, p3llm
   - Links: → mot-wider-pu, mot-faster-pu, mot-logic-cost
 - **[intro-timing-insight]**
@@ -72,10 +72,10 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: ramulator2, p3llm
   - Links: → mot-faster-pu
 - **[bg-aim-pu]**
-  - Message: AiM-style PIM puts a PU beside each bank and a shared global buffer on the die, and one all-bank MAC command every t_CCD_L starts one MAC beat in every PU; the column period spans D = 4 CK cycles, so a PU at CK could run D beats per column read (D defined here, its first point of need).
+  - Message: AiM-style PIM puts a PU beside each bank and a shared global buffer on the die, and one all-bank MAC command every t_CCD_L starts one MAC beat in every PU; the column period spans D = 4 CK cycles, so a PU at CK could run D beats per column read (D defined here, its first point of need); commercial PIM ships the same per-bank layout (HBM-PIM, Samsung's LPDDR5X-PIM).
   - Floats: Fig. 1, Table III (first cite; configuration table, F12 exception)
   - Numbers: 32 INT8 multiplies per beat; D = 4 (t_col / t_CK, Table III) ← structural
-  - Cites: aimjssc, hbmpim
+  - Cites: aimjssc, hbmpim, lp5xpim (layout only: one PIM block per bank; no clock or bandwidth)
   - Links: → mot-time-breakdown, mot-idle-beats, mot-prior-families, mot-depth, des-beat-decouple
 - **[bg-row-sweep]**
   - Message: A GEMV runs as row sweeps of about 62 all-bank MAC commands between non-MAC commands, and stock AiM sweeps each row once per token.
@@ -151,8 +151,8 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[mot-logic-cost]** "Cost of logic in a DRAM die"
   - Message: Logic in a DRAM die costs capacity, so per logic mm² the wider-PU family keeps only part of its four-fold ceiling over stock AiM.
   - Floats: —
-  - Numbers: 10× less dense, 3 vs 10+ metal layers; 0.19 mm² per PU; 50 % capacity; 16.92 % vs 20–25 % ← cited; LP-Spec-style 314 / 697 vs stock AiM 216 / 492 GOPS/mm² ← roof
-  - Cites: devaux, aimjssc, hbmpim, pimpal, lpspec
+  - Numbers: 10× less dense, 3 vs 10+ metal layers (UPMEM's report, devaux); 0.19 mm² per PU; 50 % capacity ← hbmpim (halved sub-arrays, p. 8); 16.92 % for compute units and buffers (lpspec p. 7) vs 20–25 % ← cited; LP-Spec-style 314 / 697 vs stock AiM 216 / 492 GOPS/mm² ← roof
+  - Cites: devaux, aimjssc, hbmpim, lpspec
   - Links: ← intro-prior-families, mot-wider-pu; → eval-phone-per-mm2, eval-server-area
 - **[mot-faster-pu]** "Faster-PU family"
   - Message: A faster PU paced by per-token commands fills at most two beats per column read, so P3-LLM-style, the edge-server rival, stops at U_MAC = 1/2 but keeps a higher ceiling per logic mm² than LP-Spec-style.
@@ -180,10 +180,10 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: hbmpim, p3llm
   - Links: ← intro-timing-insight, bg-aim-pu, mot-idle-beats, mot-other-pim; → conc-summary
 - **[mot-pu-clock-precedent]** "PU clock in a DRAM die"
-  - Message: A PU clocked at CK has precedent in DRAM silicon, from UPMEM's 500 MHz cores to GDDR6-AiM's 1 GHz multipliers and an HBM-PIM-style PU at CK.
+  - Message: A PU clocked at CK has precedent in DRAM silicon, from UPMEM's 500 MHz design (350 MHz deployed) to GDDR6-AiM's 1 GHz multipliers and an HBM-PIM-style PU at CK, and DRAM periphery has since gained logic-process features (HKMG at three vendors, 5–6 metal layers on 1a-nm dies); never "a PU at CK is the trend", never the vendors' pin-rate speed claims.
   - Floats: —
-  - Numbers: 1.0–1.2 GHz bus, 250–300 MHz, 20 nm; 500 MHz, 2x-nm; 1 GHz, 1y-nm; eight 1y-nm dies ← cited
-  - Cites: hbmpim, devaux, aimjssc, flashbolt, pfpu
+  - Numbers: 1.0–1.2 GHz bus, 250–300 MHz, 20 nm; 500 MHz design, 2x-nm; 350 MHz deployed ← prim (p. 5); 1 GHz, 1y-nm; eight 1y-nm dies; five to six metal layers, 1a-nm ← tid1a16, tid1a24 ← cited
+  - Cites: hbmpim, devaux, prim, aimjssc, flashbolt, pfpu, tiroadmap, tid1a16, tid1a24
   - Links: ← intro-timing-insight; → des-pu-clock
 - **[mot-two-levers]**
   - Message: Stock AiM uses one of the D = 4 beats each column read offers and pays a row sweep's row-switch commands for every token, which leaves one lever per root cause: beat filling (IV-B) for the idle beats and the slot factor, row reuse (IV-C) for the non-MAC commands, by cutting their time per token (no claim that row reuse raises f_MAC; the rival contrast moved to des-row-reuse).
@@ -246,7 +246,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: → eval-vsweep-summary, eval-vsweep-robust
 - **[des-pu-clock]** "PU clock"
-  - Message: The tile keeps the PU clock within the reach of III-D's DRAM silicon because each accumulator slot takes one update per V ≥ D beats and the lanes multiply narrow integers.
+  - Message: CoDe needs a PU clock above the column rate, not one equal to CK, and the tile keeps that clock within the reach of III-D's DRAM silicon because each accumulator slot takes one update per V ≥ D beats and the lanes multiply narrow integers.
   - Floats: —
   - Numbers: — (precedent and its citations live only in mot-pu-clock-precedent)
   - Cites: —
@@ -278,7 +278,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[meth-simulator]**
   - Message: A cycle-level AiM simulator on Ramulator 2.0 times every design's commands, including JEDEC refresh, and synthesis-based models give area, peak power and energy per token.
   - Floats: — (Fig. 7 float defined here)
-  - Numbers: 1.78× vs 1.6× ← tables [phone_levels]; U 0.355 → 0.351 ← tables [umac_table]; t_REFI / t_RFCab → Table III [assumption]; ρ 0.070 ← tables [umac_table]; 45 nm → 1z, Nangate45, 1.05 V; 87.6 / 54.8 mW fetch ← tables [table_power]
+  - Numbers: 1.78× vs 1.6× ← tables [phone_levels]; U 0.355 → 0.351 ← tables [umac_table]; t_REFI / t_RFCab → Table III [assumption]; ρ 0.070 ← tables [umac_table]; 45 nm → 1z by AttAcc's estimated GEMV-unit area, Nangate45, 1.05 V; 87.6 / 54.8 mW fetch ← tables [table_power]
   - Cites: ramulator2, cent, p3llm, attacc, abc, openroad, horowitz
   - Links: ← mot-nonmac-commands; → eval-power-peak
 ### D. Algorithms and Workloads

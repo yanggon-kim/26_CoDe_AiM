@@ -131,7 +131,8 @@ chunk and a 512-bit slice, and one PU serves two banks, so an added slot costs a
 
 % P:des-pu-clock
 \paragraph{PU clock}
-The tile keeps the PU clock within the reach of the DRAM silicon of Section~\ref{sec:bg:depth}. Beat $k$ writes
+CoDe needs a PU clock above the column rate, not one equal to CK, and the tile keeps that clock within the reach of
+the DRAM silicon of Section~\ref{sec:bg:depth}. Beat $k$ writes
 accumulator slot $k$, so each slot takes one update per tile of $V \ge D$ beats, and the add loop of each slot spans a
 column period or more. CoDe's lanes multiply integers, INT8 on the mobile platform and INT4\,$\times$\,INT8 on HBM2,
 narrower operands than the BF16 of that section's 1\,GHz multipliers. Each added structure grows with $V$, not with

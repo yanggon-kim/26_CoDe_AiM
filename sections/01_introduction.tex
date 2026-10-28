@@ -31,7 +31,7 @@ Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,
 Prior PIM designs raise the ceiling in two families, and each family keeps every MAC paced by a DRAM command. The wider-PU
 family spends multipliers: LP-Spec~\cite{lpspec} keeps one MAC step per column command and widens the step, feeding one
 read to four 32-wide ALUs. The four ALUs carry four times the multipliers, and LP-Spec~\cite{lpspec} estimates that its
-matrix units take 16.92\,\% of an LPDDR5 die. The faster-PU family spends commands: P3-LLM~\cite{p3llm}
+compute units and buffers take 16.92\,\% of an LPDDR5 die. The faster-PU family spends commands: P3-LLM~\cite{p3llm}
 latches a weight and issues one command per token, so P3-LLM's MACs inherit the minimum command spacing \tccds, half the
 column period: at most two tokens share a read.
 

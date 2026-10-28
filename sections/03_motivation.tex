@@ -164,10 +164,10 @@ AiM's.
 
 % P:mot-logic-cost
 \paragraph{Cost of logic in a DRAM die}
-Logic in a DRAM die costs area: a DRAM process builds logic 10$\times$ less dense than an ASIC process and routes the
-logic in three metal layers instead of ten or more~\cite{devaux}. In GDDR6-AiM~\cite{aimjssc} silicon, one PU occupies
-0.19\,mm$^2$. Samsung's HBM-PIM~\cite{hbmpim} halves its DRAM sub-arrays to make room for its PUs, and the PU-based
-prototypes lose 50\,\% of memory capacity~\cite{pimpal}. By LP-Spec's~\cite{lpspec} own estimate its matrix units take
+Logic in a DRAM die costs area: UPMEM~\cite{devaux} reports that a DRAM process builds logic 10$\times$ less dense
+than an ASIC process and routes the logic in three metal layers instead of ten or more. In GDDR6-AiM~\cite{aimjssc} silicon, one PU occupies
+0.19\,mm$^2$. Samsung's HBM-PIM~\cite{hbmpim} halves its DRAM sub-arrays to make room for its PUs and so gives up 50\,\% of
+the die's memory capacity. By LP-Spec's~\cite{lpspec} own estimate its compute units and buffers take
 16.92\,\% of a 16\,Gb LPDDR5 die, against 20--25\,\% of the chip for all of AiM's~\cite{aimjssc} compute circuits.
 Four times the multipliers per bank therefore cost capacity, and per unit of logic area the wider-PU family keeps
 only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 314\,GOPS on the mobile platform and
@@ -227,10 +227,13 @@ clocked at CK can spend all $D$ beats of a column period on one latched column.
 A PU clocked at CK has precedent in DRAM silicon and in a PIM design for HBM2. HBM2's DRAM core runs at a quarter of
 the 1.0--1.2\,GHz bus clock, and Samsung's HBM-PIM~\cite{hbmpim} sets its FP16 PU to the core frequency,
 250--300\,MHz, in a 20\,nm DRAM process. Logic in later DRAM processes runs faster: UPMEM's processor~\cite{devaux}
-executes 32-bit integer instructions at 500\,MHz in a 2x-nm DRAM process, and GDDR6-AiM~\cite{aimjssc} runs BF16
+is designed to execute 32-bit integer instructions at 500\,MHz in a 2x-nm DRAM process, a deployed UPMEM system
+runs the processor at 350\,MHz~\cite{prim}, and GDDR6-AiM~\cite{aimjssc} runs BF16
 multipliers and adder trees at 1\,GHz in a 1y-nm DRAM process. The 1y-nm process also builds HBM: Samsung's
 HBM2E~\cite{flashbolt} stacks eight 1y-nm DRAM dies. The Precision-Flexible PU~\cite{pfpu} clocks an HBM-PIM-style
-PU at CK on HBM2 and splits each 4-\tck column interval into four phases.
+PU at CK on HBM2 and splits each 4-\tck column interval into four phases. DRAM periphery has gained logic-process
+features: Samsung, SK hynix and Micron build periphery transistors with high-k metal gates~\cite{tiroadmap}, and
+1a-nm dies route in five to six metal layers~\cite{tid1a16,tid1a24}.
 
 % P:mot-two-levers
 Stock AiM's PU computes one of the $D = 4$ beats that each column read can feed (Fig.~\ref{fig:dram_pim}b), and stock

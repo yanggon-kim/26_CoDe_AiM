@@ -29,7 +29,8 @@ LPDDR5~\cite{ramulator2} and on HBM~\cite{p3llm}.
 
 % P:bg-aim-pu
 AiM-style PIM adds a processing unit (PU) beside each bank (beside each pair of banks in HBM2) and a global buffer (GB),
-shared by all PUs, that holds the input vector~\cite{aimjssc,hbmpim}; Fig.~\ref{fig:dram_pim}a enlarges one bank with its PU. An all-bank
+shared by all PUs, that holds the input vector~\cite{aimjssc,hbmpim}; Fig.~\ref{fig:dram_pim}a enlarges one bank with its PU. Commercial
+PIM ships the same per-bank layout, in HBM-PIM~\cite{hbmpim} and in Samsung's LPDDR5X-PIM~\cite{lp5xpim}. An all-bank
 MAC command reads one column from every open bank at once and starts one MAC beat in each PU; on the mobile platform,
 one beat is 32 INT8 multiplies of the column against 32 GB elements, accumulated into the PU's output register. The
 all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the MAC commands in Fig.~\ref{fig:dram_pim}b. This column period \tcol spans $D = 4$ cycles \tck of the
