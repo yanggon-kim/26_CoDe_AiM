@@ -1,5 +1,5 @@
 # Commands Are the Bottleneck: CoDe, a Command-Decoupled PIM for Skinny GEMMs on Mobile and Server DRAM: outline
-Synced with: 60fd10d; body ends p. 11 col R (≈ 0.2 column); refs end p. 13.
+Synced with: 60fd10d; body ends p. 11 col L (≈ 0.95 column); refs end p. 13.
 Legend: one entry per source paragraph, in source order, tied to the `.tex` by `% P:<id>`; Message = the one claim a reader takes away; Floats = figures/tables/equations cited (first cite marked); Numbers = key printed numbers ← the script that asserts them (evaluation topic in brackets); Cites = bib keys; Links = → promise fulfilled by <id>, ← relies on <id>. Check: `python3 scripts/check_outline.py`.
 
 Number sources, short names: `tables` = scripts/make_tables.py (functions in brackets); `roof` = make_fig_roofline.py; `brk` = make_fig_breakdown.py; `seq` = make_fig_sequence.py; `vsw` = make_fig_vsweep.py; `phone` / `hbm2` = make_fig_phone.py / make_fig_hbm2.py. Evaluation topics: `2x2` = evaluation/dac_2x2, `sd8g3` = evaluation/dac_sd8g3 (EV-58 pack via scripts/dac_data.py).
@@ -134,7 +134,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Fig. 3, Fig. 1 (c), Table III
   - Numbers: — (structural)
   - Cites: —
-  - Links: ← mot-breakdown-setup, bg-mac-sequence (commands defined there; III-B only groups them into classes), bg-row-sweep; → mot-rowswitch-cost, mot-sweep-factor, mot-rival-row-switch, des-row-reuse
+  - Links: ← mot-breakdown-setup, bg-mac-sequence (commands defined there; III-B only groups them into classes), bg-row-sweep; → mot-rowswitch-cost, mot-sweep-factor, mot-other-pim (closing: a row sweep serves one MAC slot's tokens), des-row-reuse
 - **[mot-rowswitch-cost]**
   - Message: Row-switch commands are the largest non-MAC class, and on the mobile platform they outlast the useful beats; token load/drain and refresh take less, and on the edge server only all non-MAC commands together outlast the useful beats (absorbs the former mot-load-refresh-cost; q_proj shares only, no ns values).
   - Floats: Fig. 3 (row-switch, token-load, token-drain, refresh segments)
@@ -146,7 +146,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Eq. 1 (eq:fmac)
   - Numbers: mobile case study only: t_row 87.73 ns, t_tok 4.26 ns, ρ 0.070 (ρ relied on by meth-simulator) → f_MAC 0.717 of a decoder layer's time ← tables [umac_table, umac_src_table]; edge fit values (94.76, 9.64, 0.061) and the 91.2 ns MAC-tail sentence cut (guard-only asserts)
   - Cites: —
-  - Links: ← mot-nonmac-classes, mot-rowswitch-cost; → mot-utilization, mot-rival-row-switch, meth-simulator
+  - Links: ← mot-nonmac-classes, mot-rowswitch-cost; → mot-utilization, meth-simulator
 - **[mot-idle-beats]** "Idle beats" (run-in head over mot-idle-beats and mot-idle-cause)
   - Message: Even inside the MAC slots three of every four beats are idle: plain opener (an idle beat is a CK cycle in which a PU has nothing to compute) → a column period holds D = 4 such cycles, or beats (II-B); a beat is useful when it computes a token's MAC → stock's slot serves one token, so one beat per column period is useful and three are idle (Fig. 1b) → slot factor U_MAC = A × b × t_CK / t_slot = 1/4 (b defined here) → Fig. 3's idle segment.
   - Floats: Fig. 1 (b), Fig. 3 (MAC-idle segment)
@@ -167,17 +167,17 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← mot-breakdown-setup, mot-sweep-factor, mot-idle-beats; → mot-prior-families, mot-wider-pu, mot-two-levers, des-tile-mac-overview
 ### C. GEMM Support in Prior PIM
 - **[mot-prior-families]**
-  - Message: Prior PIM designs fill the idle beats in two families, with more multipliers or with more commands (pure framing opener; the row-sweep claim lives only in mot-rival-row-switch).
-  - Floats: Fig. 4 (first cite; fig:timeline, float defined after this paragraph)
-  - Numbers: M = 8, D = 4 (from II-B); 8 periods, 8 commands, 8 reads (stock row) ← structural
-  - Cites: —
+  - Message: Prior PIM designs fill the idle beats in two families, with more multipliers or with more commands; Fig. 4 follows one weight column through eight tokens in stock AiM and one design of each family (LP-Spec, P3-LLM), and the next paragraphs take the families in turn (pure framing opener; the figure's setup and counts moved into mot-wider-pu and mot-faster-pu; the row-sweep claim lives in mot-other-pim's closing; Fig. 4's CoDe row is explained in des-beat-decouple).
+  - Floats: Fig. 4 (first cite; fig:timeline, float defined after mot-wider-pu)
+  - Numbers: — (eight tokens, structural)
+  - Cites: lpspec, p3llm
   - Links: ← intro-prior-families, mot-utilization; → mot-wider-pu, mot-faster-pu
 - **[mot-wider-pu]** "Wider-PU family"
-  - Message: Wider-PU designs fill a column period's idle beats with four times the multipliers, so LP-Spec-style, the mobile rival, reaches U_MAC = 1, but per multiplier its U stays below stock AiM's.
-  - Floats: Fig. 2, Table I, Table III
-  - Numbers: four 32-wide ALUs, one MAC step per column period (200 MHz → Table III); crossover M = 20–24; U per multiplier 0.173–0.174 / 0.185 ← roof, tables [umac_table]
+  - Message: Wider-PU designs trade area for MAC throughput by filling the idle beats with more multipliers per PU (opener), so LP-Spec-style, the mobile rival, reaches U_MAC = 1 only by quadrupling the multipliers, and per multiplier its U stays below stock AiM's (closing).
+  - Floats: Fig. 4 (column periods T of D = 4 beats defined for reading it), Fig. 2, Table I, Table III
+  - Numbers: four 32-wide ALUs, one MAC step per column period (200 MHz → Table III); Fig. 4 counts: stock 8 column periods / 8 commands / 8 reads, LP-Spec 2 / 2 / 2 (M = 8, D = 4 from II-B) ← structural; crossover M = 20–24; U per multiplier 0.173–0.174 / 0.185 ← roof, tables [umac_table]
   - Cites: lpspec, papi, stepstone, duplex, h2llm, monde
-  - Links: ← intro-prior-families, mot-idle-beats; → mot-logic-cost, eval-phone-summary
+  - Links: ← intro-prior-families, mot-prior-families, mot-idle-beats; → mot-logic-cost, mot-two-levers (area a PIM die gives to beat filling), eval-phone-summary
 - **[mot-logic-cost]** "Cost of logic in a DRAM die"
   - Message: Logic in a DRAM die costs capacity, so per logic mm² the wider-PU family keeps only part of its four-fold ceiling over stock AiM.
   - Floats: —
@@ -185,42 +185,36 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: devaux, aimjssc, hbmpim, lpspec
   - Links: ← intro-prior-families, mot-wider-pu; → eval-phone-per-mm2, eval-server-area
 - **[mot-faster-pu]** "Faster-PU family"
-  - Message: A faster PU paced by per-token commands fills at most two beats per column read, so P3-LLM-style, the edge-server rival, stops at U_MAC = 1/2 but keeps a higher ceiling per logic mm² than LP-Spec-style.
-  - Floats: Fig. 2, Table III
-  - Numbers: one beat per t_CCD_S (500 MHz → Table III); 4 periods, 8 commands, 4 reads; U_MAC stops at 1/2 wherever t_CCD_L = 2 t_CCD_S ("depth cap" wording cut); crossover M = 4–6; 390 / 830 GOPS/mm² ← roof
+  - Message: Faster-PU designs speed up the PU but still start every MAC with a command, so DRAM command timing, not the PU clock, caps them at two beats per column read (opener; the user's top point in this paragraph): commands issue every t_CCD_S, half of t_CCD_L, so P3-LLM-style, the edge-server rival, stops at U_MAC = 1/2 however fast its PU runs, yet keeps a higher ceiling per logic mm² than LP-Spec-style.
+  - Floats: Fig. 4 (P3-LLM row), Fig. 2, Table III
+  - Numbers: one beat per t_CCD_S (500 MHz → Table III); Fig. 4 counts 4 column periods, 8 commands, 4 reads ← structural; U_MAC stops at 1/2 wherever t_CCD_L = 2 t_CCD_S; crossover M = 4–6; 390 / 830 GOPS/mm² ← roof
   - Cites: p3llm, hbmpim
-  - Links: ← bg-dram-channel, intro-prior-families, mot-idle-beats, mot-logic-cost; → eval-server-summary
-- **[mot-rival-row-switch]** "Row-switch commands in prior designs"
-  - Message: Both families share a row sweep's row-switch commands only among the tokens of one MAC slot, so their non-MAC time per token falls only as far as the slot widens (absolute form; a flat f_MAC is not framed as the defect; paragraph ends at the Table I pointer, the "more tokens only when the MAC slot does" restatement cut).
-  - Floats: Table I
-  - Numbers: A = 2 / 4; non-MAC time per token 123.39 → 63.94 (P3-LLM-style) / 34.41 ns (LP-Spec-style), mobile ← tables [umac_table] (Table I); Eq. 1's 0.33 % / 0.59 % fit cut (scope of detail; asserted in make_tables only)
-  - Cites: p3llm (p. 11: each access reused twice, fewer duplicated row activations)
-  - Links: ← mot-nonmac-classes, mot-sweep-factor, mot-utilization, mot-wider-pu, mot-faster-pu; → mot-other-pim, des-row-reuse
+  - Links: ← bg-dram-channel, intro-prior-families, mot-prior-families, mot-idle-beats, mot-logic-cost; → mot-depth (the per-token command is what a PU at CK must drop), eval-server-summary
 - **[mot-other-pim]**
   - Message: The remaining LLM PIM designs either serve one input vector per weight read or reorganize the work around the PU, and the three that run several beats per column read still hold one vector; closing C → D transition: across the two families and these three designs, a column read feeds several tokens only through added multipliers or added commands, and a row sweep serves only one MAC slot's tokens.
   - Floats: —
   - Numbers: —
-  - Cites: newton, cent, pimgpt, localut, pimpal, pimdl, pimba, paise, splitsync, dots, pimphony, paik2022, salpim, pfpu, cdpim
-  - Links: ← mot-wider-pu, mot-faster-pu, mot-rival-row-switch; → mot-depth (stays last in III-C: user, 2026-10-27)
+  - Cites: newton, cent, pimgpt, localut, pimpal, pimdl, pimba, paise, splitsync, dots, pimphony, salpim, pfpu, cdpim (paik2022 cut 2026-10-29; bib entry kept, uncited)
+  - Links: ← mot-wider-pu, mot-faster-pu, mot-nonmac-classes (closing's row-sweep claim; the former "Row-switch commands in prior designs" paragraph was cut 2026-10-29); → mot-depth, des-row-reuse (stays last in III-C: user, 2026-10-27)
 ### D. The Opportunity: DRAM Timing Bounds Access, Not MACs
 - **[mot-depth]**
-  - Message: DRAM timing bounds how often a column is read, not how many MACs may consume it (opener); the PU's latched column stays usable after its command, so the column period sets how often weights arrive and the PU clock how often the PU computes, and a PU clocked at CK can spend all D beats of a column period on one latched column (conclusion).
+  - Message: DRAM timing bounds how often a column is read, not how many MACs may consume it (opener); the PU's latched column stays usable after its command, so the column period sets how often weights arrive and the PU clock how often the PU computes, and a PU clocked at CK can spend all D beats of a column period on one latched column, as long as its MACs do not wait for per-token commands (conclusion; answers mot-faster-pu).
   - Floats: —
   - Numbers: — (D points back to bg-aim-pu; not re-derived)
   - Cites: hbmpim, p3llm
-  - Links: ← intro-timing-insight, bg-aim-pu, mot-idle-beats, mot-idle-cause, mot-other-pim; → conc-summary
-- **[mot-pu-clock-precedent]** "PU clock in a DRAM die"
+  - Links: ← intro-timing-insight, bg-aim-pu, mot-idle-beats, mot-idle-cause, mot-faster-pu, mot-other-pim; → conc-summary
+- **[mot-pu-clock-precedent]** (no run-in head since 2026-10-29; III-D is three unheaded paragraphs)
   - Message: A PU clocked at CK has precedent in DRAM silicon, from UPMEM's 500 MHz design (350 MHz deployed) to GDDR6-AiM's 1 GHz multipliers and an HBM-PIM-style PU at CK, and DRAM periphery has since gained logic-process features (HKMG at three vendors, 5–6 metal layers on 1a-nm dies); never "a PU at CK is the trend", never the vendors' pin-rate speed claims.
   - Floats: —
   - Numbers: 1.0–1.2 GHz bus, 250–300 MHz, 20 nm; 500 MHz design, 2x-nm; 350 MHz deployed ← prim (p. 5); 1 GHz, 1y-nm; eight 1y-nm dies; five to six metal layers, 1a-nm ← tid1a16, tid1a24 ← cited
   - Cites: hbmpim, devaux, prim, aimjssc, flashbolt, pfpu, tiroadmap, tid1a16, tid1a24
-  - Links: ← intro-timing-insight; → des-pu-clock
+  - Links: ← intro-timing-insight; → mot-two-levers, des-pu-clock
 - **[mot-two-levers]**
-  - Message: One lever answers each root cause of III-B (opener; the stock restatement cut): beat filling (IV-B) uses all D beats of a column period without adding multipliers and answers the idle beats; row reuse (IV-C) answers the non-MAC commands by cutting their time per token (no claim that row reuse raises f_MAC; the rival contrast moved to des-row-reuse).
+  - Message: A PU at CK fits in a DRAM die, and the wider-PU family shows how much logic area a PIM die already gives to filling idle beats, so we keep the stock multipliers, run them at CK within that area, and answer each root cause of III-B with one lever (opener): beat filling (IV-B) uses all D beats of a column period without adding multipliers and answers the idle beats; row reuse (IV-C) answers the non-MAC commands by cutting their time per token (no claim that row reuse raises f_MAC; the rival contrast lives in des-row-reuse). "Within that area" checked against Table III: CoDe's logic 1.406 vs LP-Spec-style 2.610 mm² per die (0.539×), 0.821 vs 1.469 mm² per pCH (0.56×).
   - Floats: Fig. 1
   - Numbers: D = 4 beats per column read, one used ← structural; no CoDe number
   - Cites: —
-  - Links: ← mot-idle-beats, mot-nonmac-classes, mot-rowswitch-cost, mot-depth; → des-tile-mac-overview, des-beat-decouple, des-row-reuse
+  - Links: ← mot-idle-beats, mot-nonmac-classes, mot-rowswitch-cost, mot-depth, mot-pu-clock-precedent, mot-logic-cost; → des-tile-mac-overview, des-beat-decouple, des-row-reuse, meth-designs-area
 
 ## IV. CoDe Design  (sections/04_design.tex)  — mirrors III: IV-A one mechanism, IV-B ↔ III-B idle beats, IV-C ↔ III-B non-MAC commands; each component paragraph: cause recalled → mechanism → contrast with the III-C family → effect in its Fig. 5 panel
 ### A. Overview: One Command, Many MAC Beats
@@ -245,11 +239,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← mot-idle-beats, mot-wider-pu, mot-faster-pu; → des-tile-mac-pu, eval-phone-per-mm2, eval-gain-sources
 ### C. Row Reuse
 - **[des-row-reuse]**
-  - Message: Row reuse answers III-B's non-MAC commands by letting a tile's V tokens share one row sweep, so the row-switch commands are paid once per V tokens set by V rather than by one MAC slot as in the rivals, and the non-MAC time per token falls (absolute form; never "raises f_MAC").
+  - Message: Row reuse answers III-B's non-MAC commands by letting a tile's V tokens share one row sweep, so the row-switch commands are paid once per V tokens set by V rather than by one MAC slot as in the rivals (A = 2 and 4, Table I, pointed to from the families of III-C), and the non-MAC time per token falls (absolute form; never "raises f_MAC").
   - Floats: Fig. 5 (c, d), Table I
   - Numbers: t_row / A + t_tok plus refresh per token; non-MAC time per token 123.39 → 22.15 ns (mobile, V = 8), 146.17 → 43.51 ns (edge server, V = 4) ← tables [umac_table]; 8 → 1 row switch, 2,629 ns; combined window 3,250 → 738.75 ns, 4.40× ← seq (61.25 ns drain block cut; 4.32× whole-GEMM cut, asserted in seq only)
   - Cites: —
-  - Links: ← mot-nonmac-classes, mot-rival-row-switch, mot-two-levers; → des-storage, eval-gain-sources
+  - Links: ← mot-nonmac-classes, mot-other-pim (closing), mot-two-levers; → des-storage, eval-gain-sources
 ### D. Tile MAC Command and PU Microarchitecture
 - **[des-command-set]** "Command set"
   - Message: CoDe adds the tile MAC and the burst drain to AiM's all-bank interface and keeps every other command.
@@ -481,9 +475,9 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 | 11 | untraced number | meth-platforms, Table III | 2.285 W host power (derived from cites, no script); Table III's t_REFI 3.906 µs is asserted from evaluation/dac_sd8g3/context.md text ([A-REF1]) and t_RFCab 280 ns from the collected trace (utrace_run_core8_gbfill REFab gap), neither has a JEDEC cite; 131 TOPS (assumption with cite only); 56 / 68 / 51.2 GB/s (cites; only the 42 GB/s result is asserted). |
 | 12 | number outside evaluation | eval-power-clock-cost | The 2.4 % clock cost is asserted by make_tables.py from microarch/04_data/d1/pu_power/pu_peak_power.csv, which no evaluation topic has collected. |
 | 13 | structure | mot-other-pim | Stays last in III-C (user, 2026-10-27); no related-work section remains (options kept for later: (a) a short Related Work section before the Conclusion, from the ≈ 1 free column; (b) a landscape paragraph at the end of II-B; (c) keep it as the last paragraph of III-C, as now). mot-other-pim now closes III-C with the C → D transition (a column read feeds several tokens only through added multipliers or commands; a row sweep serves one MAC slot's tokens). Labels `sec:bg:*` point into Section III (cosmetic). |
-| 14 | unverified source | mot-rival-row-switch, mot-idle-cause | LP-Spec's own text on row activations was not checked: no LP-Spec PDF exists under 00_doc (paper_isca2's is empty; paper_dac's references hold p3llm.pdf, the AiM JSSC paper and others, not LP-Spec), so LP-Spec-style's sharing of a row sweep among its four tokens rests on our model (Table I, A = 4). P3-LLM's own text (p. 11) supports its two-token row-activation saving. HBM-PIM's statement of a GEMV target was not checked (no PDF); AiM JSSC p. 1 (RNN and MLP layers with low memory reuse, evaluated on GEMV) and P3-LLM p. 3 (both PCUs perform GEMV) were. |
+| 14 | unverified source | mot-other-pim (closing), des-row-reuse, mot-idle-cause | LP-Spec's own text on row activations was not checked: no LP-Spec PDF exists under 00_doc (paper_isca2's is empty; paper_dac's references hold p3llm.pdf, the AiM JSSC paper and others, not LP-Spec), so LP-Spec-style's sharing of a row sweep among its four tokens rests on our model (Table I, A = 4). P3-LLM's own text (p. 11) supports its two-token row-activation saving. HBM-PIM's statement of a GEMV target was not checked (no PDF); AiM JSSC p. 1 (RNN and MLP layers with low memory reuse, evaluated on GEMV) and P3-LLM p. 3 (both PCUs perform GEMV) were. |
 | 15 | timing | Table III, mot-idle-beats | HBM2's column period prints t_CCD_L = 4 ns (cited) while the simulator's all-bank HBM2 MAC slot is 8 ns (b = 2, two banks per PU; dac2x2_setup); U_MAC's b = 2 reconciles them, but Table III shows no 8 ns slot. |
-| 16 | resolved | mot-prior-families, mot-rival-row-switch, mot-two-levers, des-row-reuse, eval-gain-sources | Resolved (user, 2026-10-27): f_MAC is a share, so row reuse is stated in absolute form in III-C, III-D and IV-C (it cuts the non-MAC time per token: 123.39 → 22.15 ns mobile, 146.17 → 43.51 ns edge server) and in relative form in VI-B (it keeps f_MAC near stock AiM's level once beat filling shortens the slots: 0.779 / 0.739 vs 0.717 / 0.771). Guard: no sentence says CoDe raises f_MAC on the edge server (0.739 < 0.771) or frames the rivals' flat f_MAC as their defect; only the D = 1 row-reuse-only row lifts f_MAC (0.892 / 0.887). |
+| 16 | resolved | mot-prior-families, mot-other-pim, mot-two-levers, des-row-reuse, eval-gain-sources | Resolved (user, 2026-10-27): f_MAC is a share, so row reuse is stated in absolute form in III-C, III-D and IV-C (it cuts the non-MAC time per token: 123.39 → 22.15 ns mobile, 146.17 → 43.51 ns edge server) and in relative form in VI-B (it keeps f_MAC near stock AiM's level once beat filling shortens the slots: 0.779 / 0.739 vs 0.717 / 0.771). Guard: no sentence says CoDe raises f_MAC on the edge server (0.739 < 0.771) or frames the rivals' flat f_MAC as their defect; only the D = 1 row-reuse-only row lifts f_MAC (0.892 / 0.887). |
 | 17 | ordering | mot-logic-cost, mot-faster-pu | With logic cost before the faster-PU family (user order), mot-logic-cost compares LP-Spec-style's per-mm² ceiling with stock AiM's (314 / 697 vs 216 / 492) and P3-LLM-style's 390 / 830 moved into mot-faster-pu after P3-LLM-style is named. |
 | 18 | restatement | intro-prior-families, intro-timing-insight vs mot-prior-families, mot-depth | The introduction still repeats III-C's two families and III-D's insight (and derives D itself); left untouched by the III/IV mirror pass (user plan, 2026-10-27). |
 | 19 | number pairing | eval-server-area | CoDe's edge ceiling per logic mm² (1,247 vs P3-LLM-style's 830 GOPS, 1.50×), moved here from IV-A, sits next to the measured 1.26× from batch 8; a reviewer may ask why the step keeps only part of the ceiling ratio. The mobile pair (583 vs 314) matches the 1.86× floor. |

@@ -69,7 +69,8 @@ $\trow / A + \ttok$ of non-MAC commands per row sweep, plus its share of refresh
 per token: WRGB writes each token's input chunk into the GB, and the burst drain reads each token's sums once per row
 sweep. Row reuse needs the $V$ tokens' inputs next to the PU for the whole row sweep and $V$ partial sums per tile; the
 global buffer, the staging buffer and the accumulator file hold them (Section~\ref{sec:design:pu}). The two families
-of Section~\ref{sec:bg:walls} tie the tokens of a row sweep to one MAC slot, whereas CoDe sets them by $V$ and leaves
+of Section~\ref{sec:bg:walls} tie the tokens of a row sweep to one MAC slot ($A = 2$ and 4 in Table~\ref{tab:umac}),
+whereas CoDe sets them by $V$ and leaves
 the PU's lanes unchanged. The simulated non-MAC time per token thus falls from stock AiM's 123.39\,ns to CoDe's
 22.15\,ns at $V = 8$ on the mobile platform (Table~\ref{tab:umac}) and from 146.17 to 43.51\,ns at $V = 4$ on the edge
 server. In Fig.~\ref{fig:sequence}c, row reuse alone cuts the row switches from eight to one and keeps the idle
