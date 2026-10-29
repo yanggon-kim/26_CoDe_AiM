@@ -5,8 +5,9 @@
 to dark token 8); red boxes mark one bank's work in one row sweep: the 8 tokens' K chunk (in the GB), one matrix
 column of W over that chunk (one bank's 2 KB DRAM row = one output's weights), and that output's 8 sums.
 (b) One weight row of one bank (Llama-2-7B q_proj, steady state). Both lanes start at the same x; lane length is
-proportional to time with two drawing allowances (the paper needs only the ~4x impression): the drain slivers are
-widened to stay visible, and CoDe's tile-MAC block is widened to hold its label (drawn ratio asserted near 4.40x).
+proportional to time with two drawing allowances (the paper needs only the impression of the gap): RS and D boxes are
+widened to hold their 7 pt labels (CoDe's as wide as stock AiM's), and CoDe's tile-MAC block is widened to hold its
+label (drawn ratio asserted in 2.5..4.40, about 3:1). Lane names sit above the lanes (left-aligned).
 Stock AiM: 8 units RS | MAC x64 | D, one per token; CoDe: RS | tile MAC x64 | D (burst drain), one row sweep. A red
 double arrow "speedup" spans CoDe's end to stock's end (no ratio printed). The zoom shows one tile MAC: one column
 read, 8 beats, two column periods, x64. Table: MAC beats / row opens / column reads / MAC time per weight row.
@@ -206,69 +207,65 @@ def draw(row_ns, split, tab):
         g.t(x, ya, s, 8.0, fill=RED)
 
     # ---------------- (b) one weight row of one bank: stock AiM against CoDe ----------------
+    # Lane names sit above their lanes, so the lanes span the width and each stock unit gets about 31 pt. RS and D
+    # carry their labels inside at 7 pt and stock AiM's "x64" sits at 6.5 pt: the user's explicit decision (2026-10-29).
     yb = ya + 15.0
     g.t(1, yb, "(b) one weight row of one bank", 8.5, bold=True)
-    lx, lend = 41.0, 250.0
-    assert width("stock AiM", 8.0) * 1.06 + 1 < lx - 3                         # bold lane label fits left of the lane
+    lx, lend = 1.5, 250.0
     T = row_ns["stock"]
     sx = (lend - lx) / T                                                        # pt per ns
     lh = 14.0
-    # stock AiM: 8 units RS | MAC x64 | D, widths from the per-sweep split; the D sliver widened to stay visible
-    ys = yb + 15.0
+    # stock AiM: 8 adjacent units RS | MAC x64 | D; the lane length is the data (3,250 ns), and RS and D are widened
+    # to hold their labels, the MAC block taking the rest of each unit
+    yn = yb + 12.0                                                              # lane name
+    ys = yn + 13.0                                                              # lane top (token numbers between)
     uw = (lend - lx) / SWEEPS
-    rs_w = split["stock"]["row"] * sx
-    d_w = max(split["stock"]["drain"] * sx, 2.5)
+    rs_w = max(split["stock"]["row"] * sx, width("RS", 7.0) + 2.4)
+    d_w = max(split["stock"]["drain"] * sx, width("D", 7.0) + 2.4)
     mac_w = uw - rs_w - d_w
-    assert abs(uw - (split["stock"]["row"] + split["stock"]["mac"] + split["stock"]["drain"]) * sx) < 1e-9
-    assert mac_w > width("&#215;64".replace("&#215;", "x"), 8.0) + 3
-    g.t(1, ys + lh / 2 + 3.0, "stock AiM", 8.0, bold=True)
+    assert abs(uw * SWEEPS - (split["stock"]["row"] + split["stock"]["mac"] + split["stock"]["drain"]) * SWEEPS * sx) < 1e-9
+    assert uw > 30 and mac_w > width("x64", 6.5) + 2.4, (uw, mac_w)
+    g.t(lx, yn, "stock AiM", 8.0, bold=True)
     for k in range(SWEEPS):
         x = lx + k * uw
         g.r(x, ys, rs_w, lh, GRAY_RS, INK, 0.5)
+        g.t(x + rs_w / 2, ys + lh / 2 + 2.5, "RS", 7.0, "middle")
         g.r(x + rs_w, ys, mac_w, lh, TOK[k], INK, 0.5)
-        g.t(x + rs_w + mac_w / 2, ys + lh / 2 + 2.8, "&#215;64", 8.0, "middle", TOKT[k])
+        g.t(x + rs_w + mac_w / 2, ys + lh / 2 + 2.3, "&#215;64", 6.5, "middle", TOKT[k])
         g.r(x + rs_w + mac_w, ys, d_w, lh, GRAY_D, INK, 0.5)
+        g.t(x + rs_w + mac_w + d_w / 2, ys + lh / 2 + 2.5, "D", 7.0, "middle")
         g.t(x + rs_w + mac_w / 2, ys - 2.5, f"{k + 1}", 8.0, "middle")
-    # RS and D named on token 1's unit, below the lane, with short leaders
-    yl = ys + lh + 9.0
-    rs_c, d_c = lx + rs_w / 2, lx + rs_w + mac_w + d_w / 2
-    g.l(rs_c, ys + lh, rs_c, yl - 6.2, INK, 0.4)
-    g.l(d_c, ys + lh, d_c, yl - 6.2, INK, 0.4)
-    g.t(rs_c, yl, "RS", 8.0, "middle")
-    g.t(d_c, yl, "D", 8.0, "middle")
-    assert rs_c + width("RS", 8.0) / 2 + 3 < d_c - width("D", 8.0) / 2
-    yk = yl + 3.5
+    assert yn + 2.5 < ys - 2.5 - 6.0                                            # lane name clear of the token numbers
+    yk = ys + lh + 2.0
     g.bracket(lx, lend, yk, "8 row sweeps, one per token")
-    # CoDe: RS | tile MAC x64 | D (burst drain), one row sweep; the block widened to hold its label
+    # CoDe: RS | tile MAC x64 | D (burst drain), one row sweep; RS and D as wide as stock AiM's, the tile-MAC block
+    # widened to hold its label, so the drawn lanes keep about 3:1 of the 4.40x
     yc = yk + 3 + 9.5 + 14.0
-    g.t(lx, yc - 3.0, "1 row sweep, tokens 1&#8211;8", 8.0, fill=EDGE)
-    g.t(1, yc + lh / 2 + 3.0, "CoDe", 8.0, fill=EDGE, bold=True)
-    c_rs = split["core8"]["row"] * sx
-    c_d = max(split["core8"]["drain"] * sx, 3.0)
+    g.t(lx, yc - 3.0, "CoDe", 8.0, fill=EDGE, bold=True)
+    sub = "1 row sweep, tokens 1&#8211;8"
+    sub_x = lx + width("CoDe", 8.0) * 1.06 + 5.0
+    g.t(sub_x, yc - 3.0, sub, 8.0, fill=EDGE)
+    c_rs, c_d = rs_w, d_w
     c_mac = max(split["core8"]["mac"] * sx, width("tile MAC &#215;64".replace("&#215;", "x"), 8.0) + 3.0)
     cend = lx + c_rs + c_mac + c_d
     drawn = (lend - lx) / (cend - lx)
-    assert 3.5 < drawn <= row_ns["stock"] / row_ns["core8"], drawn                 # about 4:1, never above 4.40
+    assert 2.5 < drawn <= row_ns["stock"] / row_ns["core8"], drawn                 # about 3:1, never above 4.40
     g.r(lx, yc, c_rs, lh, GRAY_RS, INK, 0.5)
+    g.t(lx + c_rs / 2, yc + lh / 2 + 2.5, "RS", 7.0, "middle")
     g.r(lx + c_rs, yc, c_mac, lh, TINT, EDGE, 0.7)
     g.t(lx + c_rs + c_mac / 2, yc + lh / 2 + 2.8, "tile MAC &#215;64", 8.0, "middle", EDGE)
-    g.r(lx + c_rs + c_mac, yc, c_d, lh, TINT, EDGE, 0.5)
+    g.r(lx + c_rs + c_mac, yc, c_d, lh, GRAY_D, INK, 0.5)
+    g.t(lx + c_rs + c_mac + c_d / 2, yc + lh / 2 + 2.5, "D", 7.0, "middle")
     # speedup: from CoDe's end to stock AiM's end
     ay = yc + lh / 2
-    g.l(cend, yc - 1.5, cend, yc + lh + 1.5, "#808080", 0.5, "2 1.5")
+    g.l(cend, yc, cend, yc + lh + 1.5, "#808080", 0.5, "2 1.5")
     g.l(lend, ys + lh, lend, yc + lh + 1.5, "#808080", 0.5, "2 1.5")
     g.l(cend + 1.0, ay, lend - 1.0, ay, RED, 0.9, extra=' marker-start="url(#ar)" marker-end="url(#ar)"')
     g.t((cend + lend) / 2, ay - 3.0, "speedup", 8.5, "middle", RED, True)
-    assert lx + width("1 row sweep, tokens 1-8", 8.0) + 4 < (cend + lend) / 2 - width("speedup", 8.5) * 0.55
-    # RS and D named on CoDe's unit: RS to the left (clear of the zoom's left edge line), D straight below
-    yl2 = yc + lh + 9.0
-    crs_c, cd_c = lx + c_rs / 2, lx + c_rs + c_mac + c_d / 2
-    g.l(crs_c, yc + lh, lx - 5.5, yl2 - 5.0, INK, 0.4)
-    g.t(lx - 6.0, yl2, "RS", 8.0, "end")
-    g.l(cd_c, yc + lh, cd_c, yl2 - 6.2, INK, 0.4)
-    g.t(cd_c, yl2, "D", 8.0, "middle")
+    assert sub_x + width("1 row sweep, tokens 1-8", 8.0) + 4 < (cend + lend) / 2 - width("speedup", 8.5) * 0.55
     # zoom of the whole tile-MAC block: one tile MAC = one column read, 8 beats over two column periods, x64
-    zx, zy, zw, zh = lx, yl2 + 6.0, 199.0, 47.0
+    zw, zh = 199.0, 47.0
+    zx, zy = (W - zw) / 2, yc + lh + 9.0
     g.l(lx + c_rs, yc + lh, zx, zy, EDGE, 0.5, "2 1.5")
     g.l(lx + c_rs + c_mac, yc + lh, zx + zw, zy, EDGE, 0.5, "2 1.5")
     g.r(zx, zy, zw, zh, "#FFFFFF", EDGE, 0.7)
@@ -314,7 +311,9 @@ def draw(row_ns, split, tab):
     marker = ('<marker id="ar" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="4.5" markerHeight="4.5" '
               f'orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="{RED}"/></marker>')
     fig.o = ["<defs>" + marker + "</defs>"] + g.o
-    fig.write("fig_mapping", "scripts/make_fig_mapping.py from evaluation/dac_2x2/raw/utrace_run_{stock,core8}.csv")
+    fig.write("fig_mapping", "scripts/make_fig_mapping.py from evaluation/dac_2x2/raw/utrace_run_{stock,core8}.csv. "
+              "Text below 8 pt is the user's explicit decision (2026-10-29): panel (b)'s RS and D labels inside their "
+              "boxes at 7 pt and stock AiM's x64 at 6.5 pt (and the t_col subscript at 6 pt)")
     print(f"drawn lane ratio {drawn:.2f} (data {row_ns['stock'] / row_ns['core8']:.2f})")
 
 

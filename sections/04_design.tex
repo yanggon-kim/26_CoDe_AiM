@@ -13,11 +13,12 @@
 \label{sec:design:overview}
 
 % P:des-tile-mac-overview
-CoDe (Command-Decoupled PIM) issues one MAC command per weight column for a tile of $V$ token vectors, and this single
-\emph{tile MAC} command carries both levers of Section~\ref{sec:bg:depth}: row reuse (Section~\ref{sec:design:reuse})
-and beat filling (Section~\ref{sec:design:beat}). Every command still obeys every DRAM
-timing parameter: activations, column reads and refreshes issue exactly as in stock AiM, and only the MAC beats leave
-the command stream. Both levers come from the tile, so neither lever exists without it: sharing a row sweep needs $V$
+CoDe (Command-Decoupled PIM) issues one MAC command per weight column for a tile of $V$ token vectors of a skinny
+GEMM, and this single \emph{tile MAC} command carries CoDe's two levers: row reuse (Section~\ref{sec:design:reuse})
+and beat filling (Section~\ref{sec:design:beat}). Every command still obeys every DRAM timing parameter: activations,
+column reads and refreshes issue exactly as in stock AiM, and only the MAC beats leave the command stream. Both levers
+come from the tile, and the tile comes from the global buffer, which CoDe extends from stock AiM's one input vector to
+the input vectors of $V$ tokens (Fig.~\ref{fig:tile}, Section~\ref{sec:design:pu}): sharing a row sweep needs $V$
 tokens' inputs beside the PU, and filling $D$ beats needs at least $D$ tokens per command. Fig.~\ref{fig:tile} groups
 the PU's structures by lever: the staging buffer, the accumulator file and the burst drain carry row reuse, and the
 weight latch and the beat sequencer carry beat filling. With both levers, CoDe's useful-MAC utilization $U$ reaches

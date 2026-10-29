@@ -219,11 +219,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 ## IV. CoDe Design  (sections/04_design.tex)  — mirrors III: IV-A one mechanism, IV-B ↔ III-B non-MAC commands, IV-C ↔ III-B idle beats (III-B's order; row reuse first since 2026-10-29); each component paragraph: cause recalled → mechanism → contrast with the III-C family → effect in Fig. 6
 ### A. Overview: One Command, Many MAC Beats
 - **[des-tile-mac-overview]**
-  - Message: CoDe's tile MAC command serves V tokens per weight column and carries both levers of III-D, row reuse then beat filling, neither of which exists without the tile (sharing a row sweep needs V tokens' inputs beside the PU; filling D beats needs ≥ D tokens per command), while every command keeps every DRAM timing parameter; Fig. 5 groups the PU's structures by lever (staging buffer, accumulator file, burst drain → row reuse; weight latch, beat sequencer → beat filling).
+  - Message: One tile MAC per weight column for V tokens of a skinny GEMM carries both levers (row reuse, then beat filling); both come from the tile, held in a global buffer extended from one input vector to V (sharing a row sweep needs V tokens' inputs beside the PU; filling D beats needs ≥ D tokens per command), while every command keeps every DRAM timing parameter; Fig. 5 groups the PU's structures by lever (staging buffer, accumulator file, burst drain → row reuse; weight latch, beat sequencer → beat filling).
   - Floats: Fig. 5 (fig:tile, first cite; its two brackets), Table I (CoDe row)
   - Numbers: U 0.779 (mobile) against stock 0.179 ← tables [umac_table]; 583 / 1,247 GOPS/mm² moved to eval-phone-per-mm2 / eval-server-area; both-order gains left IV (eval-gain-sources is their only home); the old Fig. 5 walk-through sentence cut with fig:sequence
   - Cites: —
-  - Links: ← mot-two-levers; → des-row-reuse, des-beat-decouple, des-tile-mac-pu, eval-gain-sources
+  - Links: → des-row-reuse, des-beat-decouple, des-tile-mac-pu, eval-gain-sources
 ### B. Row Reuse
 - **[des-row-reuse]**
   - Message: Row reuse answers III-B's non-MAC commands by letting a tile's V tokens share one row sweep, so the row-switch commands are paid once per V tokens set by V rather than by one MAC slot as in the rivals (A = 2 and 4, Table I, pointed to from the families of III-C), and the non-MAC time per token falls (absolute form; never "raises f_MAC"); Fig. 6a defines the tile in GEMM terms (V tokens × one K chunk in the GB, one bank's 2 KB row = one output's weights, V sums), Fig. 6b's lanes show stock AiM paying a row switch and a drain per token against one row switch per tile.
