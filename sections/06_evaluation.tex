@@ -135,7 +135,8 @@ returns 1.324$\times$ $V = 4$'s throughput per mm$^2$; up to $M = 4$ both tiles 
 peaks at 0.944$\times$ at $M = 5$. Against the best of $V = 2$, 4, 8 and 16 at each $M$ from 3 to 16, the mobile
 $V = 4$'s worst per-mm$^2$ loss is 29.4\,\% on q\_proj and 24.5\,\% on the verify step, both at $M = 5$, while
 $V = 8$'s is 13.8\,\%, its area premium at $M = 3$--4. On HBM2, $V = 4$ loses at most 11.7\,\% and $V = 8$
-loses 28.8--30.0\,\%. The mobile one-tile kernel, bound by token load, is the exception: it loses 4.6\,\% with $V = 4$ and
+loses 28.8--30.0\,\%. The mobile one-tile kernel is the exception, because its single GB fill serves one row sweep and token load
+takes 28.3\,\% of stock AiM's time at $M = 8$ (Fig.~\ref{fig:breakdown}): it loses 4.6\,\% with $V = 4$ and
 13.8\,\% with $V = 8$. The speculative loop's best $M$ is 3 with the 1.1B draft and 4 with EAGLE, where $V = 8$ pays
 its area premium; CoDe still sets $V = 8$ on the mobile platform, because $V = 8$ caps the per-mm$^2$ loss at 13.8\,\%
 over $M = 3$--16, against $V = 4$'s 29.4\,\%.

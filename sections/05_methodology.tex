@@ -25,9 +25,9 @@ while the PIM works\ASSUMPTION.
 \subsection{PIM Designs and Area}
 % P:meth-designs-area
 Each substrate carries four designs, stock AiM~\cite{aimjssc}, P3-LLM-style, LP-Spec-style and CoDe, with one
-controller and the platform's PU placement (Table~\ref{tab:params}). Every design computes at its rival's
-precision: INT8 on the mobile platform, as LP-Spec~\cite{lpspec} does, and W4A8 with a 4-bit KV cache on HBM2, as
-P3-LLM~\cite{p3llm} does, with every design's arithmetic priced as INT4\,$\times$\,INT8 integers\ASSUMPTION. On the
+controller and the platform's PU placement (Table~\ref{tab:params}). Every design computes at its
+platform's precision (Section~\ref{sec:bg:cmd}), with a 4-bit KV cache on HBM2, and every design's arithmetic is
+priced as INT4\,$\times$\,INT8 integers\ASSUMPTION. On the
 mobile platform CoDe's tile of $V = 8$ spans two column periods, so one MAC command serves eight tokens. On HBM2 each
 token's staging slice is twice as large and every PU serves two banks, so CoDe uses $V = D = 4$
 there; Section~\ref{sec:eval:ablation} sizes $V$ on both platforms. CoDe reaches LP-Spec-style's peak on

@@ -223,7 +223,8 @@ def umac_table():
     mech = {(r["substrate"], r["design"]): r3(r["pu_busy_trace"]) for r in read("dac_mech.csv")
             if r["scope"].startswith("one decoder") and r["M"] == "8"}
     assert mech[("phone", "core8")] == 0.779 and mech[("phone", "h2")] == 0.694 and mech[("hbm2", "core4")] == 0.739
-    # formula constants (III-B): t_row (data key t_fix) / t_tok, refresh share, columns per run
+    # formula constants (III-B prints the mobile case study only: 87.73, 4.26, 0.070; the HBM2 fit values 94.76 / 9.64 /
+    # 0.061 are guard-only since 2026-10-29): t_row (data key t_fix) / t_tok, refresh share, columns per run
     assert round(tid["umac.paper.phone.t_fix_paper_ns"], 2) == 87.73 == round(const["phone/t_fix_factor"], 2)
     assert round(const["phone/rho"], 3) == 0.070
     assert round(tid["umac.paper.hbm2.t_fix_paper_ns"], 2) == 94.76 == round(const["hbm2/t_fix_factor"], 2)
@@ -307,7 +308,7 @@ def umac_src_table():
     assert (r3(g("phone", "bf", "U")), r3(g("hbm2", "bf", "U"))) == (0.425, 0.506)
     assert (r2(g("phone", "bf", "step_speedup")), r2(g("phone", "oo", "step_speedup"))) == (2.37, 1.83)
     assert (r2(g("hbm2", "bf", "step_speedup")), r2(g("hbm2", "oo", "step_speedup"))) == (2.62, 1.46)
-    # III-B row-switch overhead, stock AiM, layer, M = 8, ns per token per sweep (= per sweep: a stock row sweep serves one token)
+    # guard only (III-B prints q_proj shares since 2026-10-29): stock row-switch overhead, layer, M = 8, ns per sweep
     cls = {c: nm[f"phone/stock/8/{c}"] for c in ("TMOD", "ACT16", "PREA", "WRMAC16")}
     assert [round(cls[c], 1) for c in ("TMOD", "ACT16", "PREA", "WRMAC16")] == [40.5, 37.9, 11.5, 1.2], cls
     assert sorted(cls, key=cls.get, reverse=True) == ["TMOD", "ACT16", "PREA", "WRMAC16"]   # printed largest first
@@ -317,9 +318,10 @@ def umac_src_table():
     assert round(f(pm["useful_mac_ns_per_token_per_run"]), 1) == 78.0
     assert f(pm["framing_full_over_useful"]) > 1                                       # mobile: framing > useful work
     assert tid["umac.src.phone.stock.M8.framing_full_ns_per_run"] == tid["umac.src.phone.stock.M8.framing_full_ns"]
-    # fitted t_fix (III-B, 87.73, factor form) lies below the framing sum: the fit nets out the MAC tail under the framing
+    # fitted t_fix (87.73, factor form) lies below the framing sum: the fit nets out the MAC tail (guard only)
     assert const["phone/t_fix_factor"] < tid["umac.src.phone.stock.M8.framing_full_ns"] and nm["phone/stock/8/pu_tail"] < 0
-    # edge server: only the whole non-MAC time exceeds the useful work (never "run framing exceeds it", D-35)
+    # edge server: only the whole non-MAC time exceeds the useful work (never "run framing exceeds it", D-35); III-B prints
+    # this as q_proj shares (23.4 % vs 19.1 %, make_fig_breakdown.py); the ns values are guard only
     assert round(f(hm["nonmac_ns_per_token_per_run"]), 1) == 146.2 and round(nm["hbm2/stock/8/refresh"], 1) == 41.8
     assert round(f(hm["useful_mac_ns_per_token_per_run"]), 1) == 123.3
     assert f(hm["nonmac_over_useful"]) > 1 > f(hm["framing_full_over_useful"])

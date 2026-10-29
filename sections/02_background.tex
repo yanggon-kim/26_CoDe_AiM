@@ -21,9 +21,9 @@ paper targets verification on the mobile platform ($M = 2$--32~\cite{sdnpu,lpspe
 \label{sec:bg:pim}
 
 % P:bg-dram-channel
-A DRAM channel holds 16 banks in four bank groups (Fig.~\ref{fig:dram_pim}a). An activation opens one row of a bank
-into its sense amplifiers, and each column command then moves one 32-byte piece of that row. An LPDDR5 row holds
-2\,KB~\cite{jedeclpddr5}, so one column access picks 32\,B of the 2\,KB (Table~\ref{tab:params}). Column commands may
+A DRAM channel holds 16 banks in four bank groups (Fig.~\ref{fig:dram_pim}a). An activation opens one row of a bank,
+2\,KB on LPDDR5~\cite{jedeclpddr5} (Table~\ref{tab:params}), into its sense amplifiers, and each column command moves
+one 32\,B column of that row. Column commands may
 issue every \tccds{} to different bank groups and every \tccdl{} to the same bank group, as the three reads of
 Fig.~\ref{fig:dram_pim}b do; \tccdl{} is twice \tccds{} on LPDDR5~\cite{ramulator2} and on HBM~\cite{p3llm}.
 
@@ -35,13 +35,13 @@ LPDDR5X-PIM~\cite{lp5xpim}. An all-bank MAC command reads one column from every 
 beat in each PU; on the mobile platform, one beat is 32 INT8 multiplies of the column against 32 GB elements,
 accumulated into the PU's output register. The all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the
 MAC commands in Fig.~\ref{fig:dram_pim}b. This column period \tcol spans $D = 4$ cycles \tck of the command clock CK on
-both platforms (Table~\ref{tab:params}).
+both platforms (Table~\ref{tab:params}). We call $D$, the number of CK cycles in one column period, the \emph{depth};
+\tcol equals $D \times \tck$.
 
 % P:bg-mac-sequence
 MAC commands need non-MAC commands before and after them (Fig.~\ref{fig:dram_pim}c). The all-bank MAC command is the
 only MAC command; every other command is a non-MAC command. In the AiM command set~\cite{aimjssc}, as our simulator
-issues it (Section~\ref{sec:method}), the non-MAC commands surround the MAC commands of one open row in a fixed order.
-WRGB writes one token's input chunk into the GB once, and the MAC commands of every row that multiplies that chunk
+issues it (Section~\ref{sec:method}), the non-MAC commands follow a fixed order: WRGB writes one token's input chunk into the GB once, and the MAC commands of every row that multiplies that chunk
 read it from the GB. WRMAC16 sets the output registers to the bias. A mode switch (TMOD) moves the controller from
 register commands to MAC commands, and PREA and ACT16 close the previous row and open the next one in all banks. After
 the MAC commands, a second TMOD returns the controller to register commands, and RDMAC16 drains each token's sums.
@@ -50,6 +50,5 @@ the MAC commands, a second TMOD returns the controller to register commands, and
 A \emph{row sweep} streams $c$ all-bank MAC commands over one open row, one command per column, between these non-MAC
 commands (Fig.~\ref{fig:dram_pim}c). The count $c$ is the row size over the column size: on the mobile platform,
 $c = 2\,\text{KB} / 32\,\text{B} = 64$. An HBM2 row holds 1\,KB~\cite{jedechbm2}, so the edge server's row sweep covers
-two rows opened in turn, 64 columns as well (Table~\ref{tab:params}). A row sweep belongs to one row of weights and
-serves the $A$ tokens whose inputs the GB holds; stock AiM's row sweep serves one token, so stock AiM sweeps each row
-once per token.
+two rows opened in turn, 64 columns as well (Table~\ref{tab:params}). A row sweep serves the $A$ tokens whose inputs the GB
+holds, and stock AiM's row sweep serves one ($A = 1$).

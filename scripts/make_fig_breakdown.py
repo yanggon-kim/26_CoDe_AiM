@@ -84,12 +84,28 @@ def checks(data):
     assert all(max(v, key=v.get) == "MAC idle beats" for v in sh.values())
     # Idle beats: q_proj idle shares 53.9 % (mobile) and 57.4 % (edge server)
     assert round(sh[("phone", "W2")]["MAC idle beats"], 1) == 53.9 and round(sh[("hbm2", "W2")]["MAC idle beats"], 1) == 57.4
-    # Non-MAC commands: row switch 19.5 % / 13.8 % of q_proj; token load 0.6 / 2.4 % of q_proj, 28.3 / 28.5 % of the
-    # one tile; refresh 7.1 % / 6.2 % of q_proj; token drain at most 1.0 %
-    assert round(sh[("phone", "W2")]["row switch"], 1) == 19.5 and round(sh[("hbm2", "W2")]["row switch"], 1) == 13.8
+    # III-B mot-rowswitch-cost (q_proj shares only): row switch 19.5 % / 13.8 %, the largest non-MAC class on both
+    # platforms; on the mobile platform above the useful beats' 18.0 %; edge useful 19.1 %
+    PQ, HQ = ("phone", "W2"), ("hbm2", "W2")
+    assert round(sh[PQ]["row switch"], 1) == 19.5 and round(sh[HQ]["row switch"], 1) == 13.8
+    assert round(sh[PQ]["MAC useful beats"], 1) == 18.0 and round(sh[HQ]["MAC useful beats"], 1) == 19.1
+    assert sh[PQ]["row switch"] > sh[PQ]["MAC useful beats"]
+    for k in (PQ, HQ):
+        assert sh[k]["row switch"] > max(sh[k]["token load"] + sh[k]["token drain"], sh[k]["refresh"]), k
+    # mobile row-switch parts: the two TMODs 8.1 %, the ACT16 pair 8.5 % (8.545: not 8.6), together most of the 19.5 %
+    part = {n: v[1] for n, v in data[PQ]["comp"].items() if v[2].startswith("part of row switch")}
+    tmod, act = [next(v for n, v in part.items() if n.startswith(x)) for x in ("TMOD", "ACT16 pair")]
+    assert (round(tmod, 1), round(act, 1)) == (8.1, 8.5) and tmod + act > sh[PQ]["row switch"] / 2
+    assert abs(sum(part.values()) - sh[PQ]["row switch"]) < 1e-2                 # the four parts make the row switch
+    # token load / drain at most 2.4 % / 1.0 % of q_proj; refresh 7.1 % / 6.2 % of q_proj
+    assert (round(max(sh[k]["token load"] for k in (PQ, HQ)), 1), round(max(sh[k]["token drain"] for k in (PQ, HQ)), 1)) == (2.4, 1.0)
+    assert round(sh[HQ]["refresh"], 1) == 6.2   # 6.245 %: 6.2, not 6.3 (no double rounding)
+    assert round(sh[PQ]["refresh"], 1) == 7.1
+    # edge server: all non-MAC commands together 23.4 % > useful 19.1 %
+    assert round(nonmac[HQ], 1) == 23.4 and nonmac[HQ] > sh[HQ]["MAC useful beats"]
+    # VI-C eval-vsweep-robust: the mobile one tile's token load 28.3 % of stock AiM's time (M = 8; one fill, one sweep);
+    # guard only: edge one tile 28.5 %, q_proj 0.6 % (no longer printed)
     assert [round(sh[k]["token load"], 1) for k in WANT] == [28.3, 0.6, 28.5, 2.4]
-    assert round(sh[("hbm2", "W2")]["refresh"], 1) == 6.2   # 6.245 %: 6.2, not 6.3 (no double rounding)
-    assert round(sh[("phone", "W2")]["refresh"], 1) == 7.1
     assert round(max(v["token drain"] for v in sh.values()), 1) == 1.0
     # one GB fill serves 64 row sweeps (mobile q_proj), 16 (server q_proj), 1 (one tile)
     for p, w, n in (("phone", "W2", 64), ("hbm2", "W2", 16), ("phone", "W1", 1), ("hbm2", "W1", 1)):
@@ -99,7 +115,8 @@ def checks(data):
                                 ("hbm2", "W1"): ("4096x256", "30"), ("hbm2", "W2"): ("4096x4096", "30")}.items():
         assert (data[(p, w)]["row"]["shape"], data[(p, w)]["row"]["channel"]) == (shape, ch), (p, w)
     print("breakdown: useful 14.1-19.1 %, idle 42.2-57.4 %, non-MAC 23.4-43.7 %; q_proj row switch 19.5 / 13.8 %, "
-          "token load 0.6 / 2.4 % (q_proj) vs 28.3 / 28.5 % (one tile), q_proj refresh 7.1 / 6.2 %")
+          "useful 18.0 / 19.1 %, TMOD 8.1 %, ACT16 8.5 %, load / drain <= 2.4 / 1.0 %, q_proj refresh 7.1 / 6.2 %, "
+          "edge non-MAC 23.4 %; mobile one-tile token load 28.3 %")
 
 
 def draw(data):
