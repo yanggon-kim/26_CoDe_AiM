@@ -8,7 +8,7 @@
      multiplier lanes (cells with an ellipsis, 32 lanes = Table II, mobile) and adder tree; the beat sequencer as a
      control bar under the datapath, clocked at CK = D / t_col (2). Right group (bracket "row reuse"): the staging
      buffer, on the mobile platform a three-entry queue of 512-bit GB words, two tokens' slices each, fed by GB words from the shared global buffer (full-height block beside the bank, V tokens x K
-     chunk), the accumulator file (2V slots in two sets) and the drain port (5). Circled 1-5 = the IV-D walk-through:
+     chunk), the accumulator file (2V scalar slots in two sets of V, drawn as one narrow column: a vector, not a matrix) and the drain port (5). Circled 1-5 = the IV-D walk-through:
      (1) latch the column, (2) step k, (3) lanes multiply by token k's slice from the staging buffer, (4) add into accumulator slot k, (5) burst
      drain. Tint = what CoDe adds or sizes by V. Text >= 8 pt (caption size).
      Drawn at final size (252 x 173 pt; \columnwidth = 252 pt), 1 user unit = 1 pt. Build:
@@ -118,27 +118,27 @@
 <polyline points="237.5,57 188,57" fill="none" stroke="#000000" stroke-width="0.7" marker-end="url(#ah)"/>
 <text x="213" y="54.5" font-size="8" text-anchor="middle">GB word</text>
 <polyline points="162,66 140,66" fill="none" stroke="#000000" stroke-width="0.7" marker-end="url(#ah)"/>
-<rect x="159" y="76.5" width="32" height="48.5" fill="#FFFFFF" stroke="#2B5FA8" stroke-width="0.6"/>
-<rect x="162" y="78.5" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="81.1" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="83.7" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="86.3" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="88.9" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="91.5" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="94.1" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="96.7" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="101.9" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="104.5" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="107.1" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="109.7" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="112.3" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="114.9" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="117.5" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<rect x="162" y="120.1" width="26" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
-<text x="203" y="95" font-size="8" text-anchor="middle" transform="rotate(-90 203 95)">accumulators (2<tspan font-style="italic">V</tspan>)</text>
-<polyline points="140,83 159,83" fill="none" stroke="#000000" stroke-width="0.7" marker-end="url(#ah)"/>
+<rect x="170.75" y="76.5" width="8.5" height="48.5" fill="#FFFFFF" stroke="#2B5FA8" stroke-width="0.6"/>
+<rect x="172.75" y="78.5" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="81.1" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="83.7" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="86.3" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="88.9" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="91.5" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="94.1" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="96.7" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="101.9" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="104.5" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="107.1" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="109.7" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="112.3" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="114.9" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="117.5" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<rect x="172.75" y="120.1" width="4.5" height="2.6" fill="#CFE2F3" stroke="#2B5FA8" stroke-width="0.5"/>
+<text x="196" y="98" font-size="8" text-anchor="middle" transform="rotate(-90 196 98)">accumulators (2<tspan font-style="italic">V</tspan>)</text>
+<polyline points="140,83 170.75,83" fill="none" stroke="#000000" stroke-width="0.7" marker-end="url(#ah)"/>
 <polyline points="140,105.5 152,105.5 152,49 162,49" fill="none" stroke="#2B5FA8" stroke-width="0.6" stroke-dasharray="1.6,1" marker-end="url(#ab)"/>
-<polyline points="152,105.5 152,112 159,112" fill="none" stroke="#2B5FA8" stroke-width="0.6" stroke-dasharray="1.6,1" marker-end="url(#ab)"/>
+<polyline points="152,105.5 152,112 170.75,112" fill="none" stroke="#2B5FA8" stroke-width="0.6" stroke-dasharray="1.6,1" marker-end="url(#ab)"/>
 <text x="150" y="97" font-size="8" text-anchor="end" font-style="normal" style="fill:#2B5FA8">token <tspan font-style="italic">k</tspan></text>
 <rect x="36" y="129" width="30" height="10" fill="#FFFFFF" stroke="#000000" stroke-width="0.6"/>
 <text x="51" y="136.6" font-size="8" text-anchor="middle">C/A port</text>

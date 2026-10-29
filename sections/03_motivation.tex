@@ -236,7 +236,7 @@ features: Samsung, SK hynix and Micron build periphery transistors with high-k m
 % P:mot-two-levers
 A PU at CK thus fits in a DRAM die, and the wider-PU family shows how much logic area a PIM die already gives to
 filling idle beats. We therefore keep the stock multipliers, run them at CK within that area, and answer each root
-cause of Section~\ref{sec:bg:cmd} with one lever. \emph{Beat filling} (Section~\ref{sec:design:beat}) uses all $D$
-beats of a column period (Fig.~\ref{fig:dram_pim}b) without adding multipliers and answers the idle beats. \emph{Row
-reuse} (Section~\ref{sec:design:reuse}) lets the $V$ tokens of a tile share one row sweep and pay its row-switch
-commands once, and answers the non-MAC commands by cutting their time per token.
+cause of Section~\ref{sec:bg:cmd} with one lever. \emph{Row reuse} (Section~\ref{sec:design:reuse}) lets the $V$
+tokens of a tile share one row sweep and pay its row-switch commands once, and answers the non-MAC commands by cutting
+their time per token. \emph{Beat filling} (Section~\ref{sec:design:beat}) uses all $D$ beats of a column period
+(Fig.~\ref{fig:dram_pim}b) without adding multipliers and answers the idle beats.
