@@ -344,6 +344,8 @@ def stock_checks():
 
 
 def headline():
+    """Guard only since the Sec. VI restructure (2026-10-30): the end-to-end numbers the paper prints come from
+    scripts/make_fig_e2e.py (isca.e2e ids); these pack values are no longer printed."""
     h = read("dac_headline.csv")
     e2e = {(r["draft"], r["design"]): r for r in h if r["item"].startswith("phone end to end")}
     g = lambda k, c: f(e2e[k][c])  # noqa: E731
@@ -384,6 +386,8 @@ def headline():
 
 
 def phone_levels():
+    """Printed: the P3-LLM reproduction (V-C, 1.78x vs 1.6x). The Fig. 5-pack bands, the attention-layer energy and the
+    loop-speed range are guard only since the Sec. VI restructure (2026-10-30; Sec. VI prints make_fig_gemm / _e2e ids)."""
     rows = read("dac_fig5_phone.csv")
 
     def band(level, metric, lo=1, hi=64):

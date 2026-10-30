@@ -23,6 +23,7 @@ P3-LLM's~\cite{p3llm} NPU, priced at its peak rate\ASSUMPTION, with one HBM2 sta
 while the PIM works\ASSUMPTION.
 
 \subsection{PIM Designs and Area}
+\label{sec:method:designs}
 % P:meth-designs-area
 Each substrate carries four designs, stock AiM~\cite{aimjssc}, P3-LLM-style, LP-Spec-style and CoDe, with one
 controller and the platform's PU placement (Table~\ref{tab:params}). Every design computes at its
@@ -37,13 +38,13 @@ of LP-Spec-style's. On HBM2, CoDe's logic is 0.56$\times$ LP-Spec-style's and 1.
 that buys twice P3-LLM-style's beats per column.
 
 \subsection{Simulator and Models}
-% figure* (Section VI-A): defined at V-C's start (page 8), so it renders at the top of the next page, where VI-A cites it
+% figure* (Section VI-A): placement checked on the float map after each build
 \begin{figure*}[t]
   \centering
-  \includegraphics[width=\textwidth]{figs/fig_phone.pdf}
-  \caption{Mobile platform: (a)~decode-step speed; (b)~GEMM, (c)~attention-layer and (d)~decode-step throughput per
-  logic mm$^2$.}
-  \label{fig:phone}
+  \includegraphics[width=\textwidth]{figs/fig_gemm.pdf}
+  \caption{GEMMs against $M$, mobile platform (top) and edge server (bottom): (a)~speed-up over stock AiM;
+  (b)~GOPS per logic mm$^2$.}
+  \label{fig:gemm}
 \end{figure*}
 
 % P:meth-simulator
@@ -70,13 +71,20 @@ energies. In every design a PU's clock runs only on its MAC beats, so an idle PU
 only\ASSUMPTION.
 
 \subsection{Algorithms and Workloads}
+\label{sec:method:work}
 % P:meth-workloads
-The mobile platform runs speculative decoding of Llama-2-7B in INT8 with a 1.1B-parameter draft model or an EAGLE
-head~\cite{eagle}: $M - 1$ drafted tokens and one verify pass of $M$ rows, acceptance rate 0.7 per token, context
-$L = 128$--1024, and each design at its fastest $M$. GEMMs use six FC shapes of Llama-2-7B and Llama-3.2-1B, and attention layers use three head configurations at $L = 128$--4096. The edge server runs batched decoding of Llama-2-7B
-and 13B, Llama-3.1-8B, Llama-3.2-3B and Mistral-7B at a 4K context, batch $M = 1$--64, one token per request per step.
+The mobile platform runs speculative decoding of Llama-2-7B in INT8 with a 1.1B-parameter draft model: $M - 1$
+drafted tokens and one verify pass of $M$ rows, acceptance rate 0.7 per token and context $L = 1024$. The ablation of Section~\ref{sec:eval:ablation} also drafts with
+an EAGLE~\cite{eagle} head. The edge server runs batched decoding of
+Llama-2-7B and 13B, Llama-3.1-8B, Llama-3.2-3B and Mistral-7B at a 4K context, one token per request per step. End to
+end, every system runs the mobile loop at $M = 4$ and the edge server's batch at $M = 8$. NPU only runs the whole model
+on the NPU; in NPU + $X$, PIM design $X$ runs every weight GEMM and attention layer and the NPU runs the element-wise
+work. GEMMs use six FC shapes of Llama-2-7B and Llama-3.2-1B on the mobile platform and the 25 FC shapes of the five
+models on the edge server.
 
 \subsection{Metrics}
 % P:meth-metrics
-Speed is tokens per second, end to end or of one decode step; area efficiency is that throughput per mm$^2$ of PIM
-logic, over all dies or pseudo-channels of Table~\ref{tab:params}; energy is system energy per token. On HBM2 one all-bank column counts as one command and as two half-column slots in the C-bus occupancy. Ranges on the mobile platform span every $M$ and $L$; ranges on the edge server are the minimum and maximum of per-$M$ geometric means over the five models.
+GEMM speed counts a GEMM's operations over its time including the drain of its output sums, relative to stock AiM;
+end-to-end speed is tokens per second, relative to NPU only. Area efficiency divides
+either throughput by the PIM logic area over all dies or pseudo-channels of Table~\ref{tab:params}. Energy is system
+energy per token. Edge-server values are geometric means over the five models.

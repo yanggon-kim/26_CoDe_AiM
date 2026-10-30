@@ -4,105 +4,124 @@
 % P:eval-modelled
 All results are modelled, and ratios above 1 favour CoDe.
 
-\subsection{Mobile Platform against LP-Spec-Style}
-\label{sec:eval:phone}
+\subsection{GEMM Speed and Area Efficiency}
+\label{sec:eval:gemm}
 
-% P:eval-phone-summary
-CoDe matches LP-Spec-style's decode speed on the mobile platform with 0.539$\times$ its logic area, so each unit of
-decode throughput costs about half the silicon. Fig.~\ref{fig:phone} plots one decode step of Llama-2-7B and geometric
-means over the FC shapes and the attention head configurations; the decode step and attention layers run at
-$L = 1024$.
+% P:eval-gemm-summary
+CoDe matches LP-Spec-style's GEMM speed on about half its logic and outruns P3-LLM-style once a GEMM has more than two
+token rows. Fig.~\ref{fig:gemm} plots each design's GEMM speed-up over stock AiM and its GEMM throughput per logic
+mm$^2$ against $M$, with the NPU's GEMM speed as a line; each point is the geometric mean over the FC shapes of
+Section~\ref{sec:method:work}.
 
-% P:eval-phone-per-mm2
+% P:eval-gemm-speed
+\paragraph{GEMM speed}
+Up to $M = 2$ the column period paces every design: one column read serves every token, and P3-LLM-style,
+LP-Spec-style and CoDe all run 1.96--1.97$\times$ faster than stock AiM at $M = 2$ (Fig.~\ref{fig:gemm}a). From
+$M = 3$ P3-LLM-style needs a second pass for the tokens beyond its two per read, while CoDe fills up to four beats per
+command: at $M = D = 4$ CoDe runs 3.74$\times$ stock AiM's speed on the mobile platform and 3.82$\times$ on the edge
+server, against P3-LLM-style's 1.95$\times$. LP-Spec-style also fills four beats per column period, with four times
+the multipliers, so its curve coincides with CoDe's up to $M = 4$, and at every $M$ on the edge server, where CoDe's
+tile of $V = D = 4$ issues LP-Spec-style's command stream. On the mobile platform CoDe's eight-token tile also covers
+$M = 5$--8 in one row sweep where LP-Spec-style needs a second pass, and CoDe runs 1.62$\times$ LP-Spec-style's speed
+at $M = 5$.
+
+% P:eval-gemm-per-mm2
+\paragraph{GEMM throughput per logic mm$^2$}
+Per logic mm$^2$, CoDe nearly doubles LP-Spec-style's GEMM throughput on both platforms. CoDe fills the same beats as
+LP-Spec-style but spends its logic on storage rather than multipliers, so it reaches LP-Spec-style's speed with
+0.539$\times$ its logic area on the mobile platform and 0.56$\times$ on the edge server
+(Section~\ref{sec:method:designs}). CoDe therefore returns 1.86$\times$ LP-Spec-style's GEMM throughput per logic
+mm$^2$ on the mobile platform up to $M = 4$ and 1.99--2.07$\times$ from $M = 8$, with a peak of 3.01$\times$ at
+$M = 5$, where LP-Spec-style runs its second pass; on the edge server the ratio is 1.79$\times$ at every $M$
+(Fig.~\ref{fig:gemm}b). Against P3-LLM-style, CoDe's speed outgrows its larger logic from $M = 3$: CoDe returns
+1.43$\times$ P3-LLM-style's throughput per logic mm$^2$ at $M = 4$ and 1.53--1.59$\times$ from $M = 8$ on the mobile
+platform, and 1.46--1.48$\times$ at $M = 3$--4 and from $M = 8$ on the edge server. Only at $M \le 2$, where CoDe's
+third and fourth beats sit idle, does P3-LLM-style's smaller PU lead, with CoDe at 0.75$\times$.
+
+% figure* (Section VI-B): placement checked on the float map after each build
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figs/fig_e2e.pdf}
+  \caption{End-to-end decoding, mobile platform (top) and edge server (bottom): (a)~speed-up over NPU only, tokens/s
+  on bars; (b)~tokens/s per logic mm$^2$; (c)~energy per token.}
+  \label{fig:e2e}
+\end{figure*}
+
+\subsection{End-to-End Speedup}
+\label{sec:eval:e2e}
+
+% P:eval-e2e-phone
+\paragraph{Mobile platform}
+Fig.~\ref{fig:e2e} runs whole decoding on the five systems of Section~\ref{sec:method:work}: the speculative loop at
+$M = 4$ on the mobile platform and a batch of 8 on the edge server. On the mobile platform CoDe and LP-Spec-style
+decode fastest, 4.37$\times$ and 4.34$\times$ faster than NPU only, at 46.4 and 46.1 tokens/s
+(Fig.~\ref{fig:e2e}a). P3-LLM-style reaches 2.96$\times$, because its two-token read needs two passes over the four
+token rows, and stock AiM reaches 1.81$\times$. At each system's own best $M$ the order holds: CoDe reaches
+47.1 tokens/s and LP-Spec-style 46.8 at $M = 3$, P3-LLM-style 43.8 and stock AiM 26.5 at $M = 2$, and NPU only 10.6
+at $M = 4$. Past $M = 4$ CoDe's eight-token tile pulls ahead: CoDe's loop runs 1.31$\times$ faster than
+LP-Spec-style's at $M = 5$ and 1.05--1.31$\times$ faster over $M = 5$--16.
+
+% P:eval-e2e-server
+\paragraph{Edge server}
+On the edge server only CoDe and LP-Spec-style decode a batch of 8 faster than NPU only, both 1.28$\times$ at
+456 tokens/s (Fig.~\ref{fig:e2e}a). Stock AiM runs at 0.45$\times$ and P3-LLM-style at 0.76$\times$ NPU only's speed,
+so at the batch where P3-LLM~\cite{p3llm} moves its linear layers to the NPU, CoDe decodes 1.68$\times$ faster than
+P3-LLM-style. On the geometric mean over the five models, NPU only overtakes CoDe from batch 16.
+
+% P:eval-e2e-per-mm2
 \paragraph{Throughput per logic mm$^2$}
-CoDe nearly doubles LP-Spec-style's throughput per logic mm$^2$ for GEMMs, attention layers and decode steps alike. Per
-logic mm$^2$, CoDe delivers 1.86--3.06$\times$ LP-Spec-style's GEMM throughput, 1.86--2.34$\times$ its
-attention-layer throughput and 1.86--2.85$\times$ its decode-step throughput over $M = 1$--64
-(Fig.~\ref{fig:phone}b--d). The floor is the area ratio, which also separates the two ceilings per logic mm$^2$, 583\,GOPS for CoDe and 314 for
-LP-Spec-style: up to $M = 4$ CoDe and LP-Spec-style issue the same command stream for the weight
-GEMMs and the decode step, while CoDe's attention layer already runs 1.01--1.14$\times$ faster at $M = 2$--4. The GEMM and decode-step peaks at $M = 5$ add speed, because LP-Spec-style needs a second pass of its four-token step
-while CoDe's eight-token tile covers $M = 5$ in one pass. For one decoder layer's weight GEMMs of Llama-2-7B at
-$M = 8$, CoDe issues 0.125 MAC commands per token per weight column, half LP-Spec-style's. CoDe's useful-MAC
-utilization $U$ reaches 0.779 against LP-Spec-style's 0.694 with a quarter of LP-Spec-style's multipliers
-(Table~\ref{tab:umac}), because eight tokens share each of CoDe's row sweeps. Up to $M = 4$ CoDe issues
-LP-Spec-style's command stream and shares LP-Spec-style's $U$, 0.695 at $M = 4$.
+At LP-Spec-style's decoding speed, CoDe nearly doubles LP-Spec-style's tokens per second per logic mm$^2$ on both
+platforms. CoDe returns 1.87$\times$ LP-Spec-style's decoding throughput per logic mm$^2$ on the mobile platform and
+1.79$\times$ on the edge server (Fig.~\ref{fig:e2e}b), because CoDe matches LP-Spec-style's speed on about half its
+logic. Against P3-LLM-style, whose PU takes less logic than CoDe's, CoDe's speed lead more than repays the area:
+CoDe returns 1.10$\times$ P3-LLM-style's decoding throughput per logic mm$^2$ on the mobile platform and 1.26$\times$ on the
+edge server.
 
-% P:eval-phone-decode-speed
-\paragraph{Decode speed}
-CoDe never decodes slower than LP-Spec-style. End to end at $L = 1024$, the speculative loop on CoDe produces 47.1 tokens/s against LP-Spec-style's 46.8 with the
-1.1B draft (best $M = 3$), and 68.1 tokens/s on either design with the EAGLE head ($M = 4$); over $L = 128$--1024 CoDe's loop runs at
-1.00--1.006$\times$ LP-Spec-style's speed. Per decode step, CoDe is
-1.54$\times$ faster at $M = 5$ and 1.07--1.31$\times$ from $M = 8$ (Fig.~\ref{fig:phone}a). CoDe's step beats the
-NPU's up to $M = 24$--26, and CoDe's loop runs 7.71$\times$ faster than plain NPU decode at 6.1 tokens/s, against
-10.6 tokens/s for the NPU's own speculative loop.
+\subsection{Energy and Peak Power}
+\label{sec:eval:energy}
 
-% P:eval-phone-energy
+% P:eval-energy
 \paragraph{Energy per token}
-The speculative loop on PIM needs an order of magnitude less energy per token than the NPU. With the draft and the verify pass on CoDe, the loop spends 66.2\,mJ per token with the 1.1B draft and 49.8\,mJ with EAGLE, against 971\,mJ for plain
-NPU decode and 558\,mJ for the NPU's speculative loop. Against LP-Spec-style CoDe also saves energy per attention
-layer: LP-Spec-style spends 1.05--1.16$\times$ CoDe's energy at $M \le 4$ and 1.16--1.28$\times$ from $M = 8$.
+CoDe spends the least energy per token of the five systems on both platforms. On the mobile platform the speculative
+loop on CoDe spends 70.5\,mJ per token at $M = 4$, while NPU only spends 7.9$\times$, stock AiM 1.80$\times$,
+P3-LLM-style 1.28$\times$ and LP-Spec-style 1.04$\times$ CoDe's energy (Fig.~\ref{fig:e2e}c). On the edge server,
+with the NPU idling at 55\,W while the PIM works, NPU only spends 1.48$\times$ and P3-LLM-style 1.64$\times$ CoDe's
+energy per token, and LP-Spec-style ties CoDe; with the idle NPU power-gated, P3-LLM-style still spends 1.46$\times$
+CoDe's energy.
 
+% P:eval-power
+\paragraph{Peak power}
+CoDe's faster PU clock keeps its peak power within a few percent of LP-Spec-style's, and each of its clock edges
+draws less charge. With every PU at its full MAC rate, CoDe draws 1.04$\times$ LP-Spec-style's peak power per die on
+the mobile platform and 1.03$\times$ per pseudo-channel on HBM2 (Table~\ref{tab:params}); stock AiM and P3-LLM-style
+draw less because they run fewer MACs per column period. CoDe spreads the same MAC rate over four times as many clock
+edges: its PUs switch 522\,pJ per die every 1.25\,ns against LP-Spec-style's 1,776\,pJ every 5\,ns, so each CoDe edge
+draws 3.4$\times$ less charge, and 3.1$\times$ less on HBM2, which lowers the current step that the die's power grid
+absorbs. Clock gates on CoDe's mostly idle accumulator slots and staging words would cut its peak power to
+0.92$\times$ and 0.87$\times$ ungated LP-Spec-style's; every other number describes the ungated designs.
 
-\subsection{Edge-Server Platform against P3-LLM-Style}
-\label{sec:eval:server}
-
-% P:eval-server-summary
-CoDe runs batched decode steps on HBM2 faster than P3-LLM-style, and the speed more than repays CoDe's larger logic;
-Fig.~\ref{fig:hbm2} plots the geometric mean over the five LLMs at each batch.
-
-% P:eval-server-beats
-\paragraph{Beats per command}
-CoDe runs four beats per command where P3-LLM-style runs two. From batch 8 CoDe's step is 1.68$\times$
-P3-LLM-style's and 2.87--2.88$\times$ stock AiM's; at batch 3--6 CoDe's step is 1.43--1.71$\times$ P3-LLM-style's
-(Fig.~\ref{fig:hbm2}a). For one decoder layer's weight GEMMs of Llama-3.1-8B at batch 8, P3-LLM-style still issues one
-command per token and fills 0.791 of the C bus, while CoDe fills 0.431 at about twice P3-LLM-style's useful-MAC
-utilization ($U = 0.739$ against 0.379). CoDe's step stays ahead of the NPU up to batch 8--12, so a batch of 8, where P3-LLM~\cite{p3llm} moves its
-linear layers to the NPU, still runs faster on CoDe.
-
-% P:eval-server-area
-\paragraph{Speed against area}
-CoDe's speed more than pays for its larger logic. CoDe's ceiling per logic mm$^2$ reaches 1,247\,GOPS against
-P3-LLM-style's 830, and CoDe returns 1.26$\times$ P3-LLM-style's throughput per logic
-mm$^2$ from batch 8 and 1.08--1.28$\times$ at batch 3--6 (Fig.~\ref{fig:hbm2}b). At batch 1--2, where CoDe's third and
-fourth beats sit idle, P3-LLM-style's smaller PU leads (0.80--0.84$\times$).
-
-% P:eval-server-energy
-\paragraph{System energy}
-CoDe's speed lead carries over to system energy. From batch 8, P3-LLM-style spends 1.64$\times$ CoDe's system energy per token with P3-LLM's~\cite{p3llm} NPU idling at 55\,W
-during PIM steps and 1.46$\times$ with the NPU power-gated, so CoDe's lead does not rest on the idle charge.
+\subsection{Ablation Study}
+\label{sec:eval:ablation}
 
 % P:eval-gain-sources
 \paragraph{Sources of CoDe's gain}
-CoDe's gain over stock AiM has two sources, and each source is worth more once the other is present. Both sources
-come from one mechanism, the $V$ tokens that one \emph{tile MAC} command serves: beat filling raises the slot factor of
-Section~\ref{sec:bg:cmd}, and row reuse keeps the sweep factor near stock AiM's level once beat filling shortens the
-MAC slots. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
+CoDe's gain over stock AiM has two sources, row reuse and beat filling, and each source is worth more once the other
+is present. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
 of Llama-3.1-8B on the edge server. The row-reuse-only design keeps the stock PU's pace of one beat per column
-period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$ rather than compose it from the other rows. Row reuse alone lifts
-\fMAC, yet $U$ reaches only 0.223 on the mobile platform and 0.222 on the edge server, because \UMAC stays at 1/4.
+period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$. Row reuse alone speeds
+the layer up 1.24$\times$ on the mobile platform and 1.15$\times$ on the edge server, yet $U$ reaches only 0.223 and
+0.222, because \UMAC stays at 1/4.
 Beat filling, the command decoupling of Section~\ref{sec:design:beat}, then fills the idle beats and supplies the large step,
 3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
-near stock AiM's 0.717 and 0.771. In the other order, beat filling alone, composed per row sweep as a quarter of stock AiM's MAC slots plus its non-MAC
-time, would cut \fMAC,
+near stock AiM's 0.717 and 0.771. In the other order, which we model as a quarter of stock AiM's MAC slots plus its non-MAC time per row sweep rather
+than simulate, beat filling alone would cut \fMAC,
 and with \UMAC at 1 also $U$, to 0.425 and 0.506, in steps of 2.37$\times$ then 1.83$\times$ on the mobile platform
 and 2.62$\times$ then 1.46$\times$ on the edge server: the unchanged non-MAC commands would take more than half of the
 shortened time on the mobile platform and about half on the edge server. Beat filling thus earns its full step only
 once row reuse has removed most of the row-switch overhead per token.
 
-
-
-% Fig. hbm2: defined at VI-B's end, past page 9's full-width Fig. phone, so it renders at the top of page 10's left column
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figs/fig_hbm2.pdf}
-  \caption{Edge server, batched decode step: (a)~tokens per second; (b)~tokens per second per logic mm$^2$.}
-  \label{fig:hbm2}
-\end{figure}
-
-\subsection{Ablation Study}
-\label{sec:eval:ablation}
-
 % P:eval-vsweep-summary
+\paragraph{Choice of tile size}
 Throughput per logic mm$^2$ peaks at the tile size $V = D$ on both platforms, and the mobile platform's $V = 8$
 bounds the per-mm$^2$ loss across the token rows of a decode step. Fig.~\ref{fig:vsweep}a sweeps $V$ from 1 to 64 for
 q\_proj at $M = 64$ with the staging of Section~\ref{sec:design:pu}, which on the mobile platform is a register of
@@ -150,47 +169,8 @@ over $M = 3$--16, against $V = 4$'s 29.4\,\%.
   \label{fig:vsweep}
 \end{figure}
 
-\subsection{Peak Power}
-\label{sec:eval:power}
-
-% P:eval-power-peak
-CoDe's faster PU clock leaves its peak power within a few percent of LP-Spec-style's on both platforms, so CoDe's peak
-power stays at the level of the wider-PU design that LP-Spec~\cite{lpspec} proposes. With every PU at its full MAC
-rate, CoDe draws 1.04$\times$ LP-Spec-style's peak power per die on the mobile platform and 1.03$\times$ per
-pseudo-channel on HBM2 (Table~\ref{tab:params}). Stock AiM and P3-LLM-style draw less because they run fewer MACs per
-column period.
-
-
-% P:eval-power-clock-cost
-\paragraph{Cost of the faster clock}
-CoDe's faster mobile clock itself costs little energy. Synthesised for 800\,MHz, the same 32-lane INT8 arithmetic
-spends 2.4\,\% more energy per MAC than for 200\,MHz. The rest of CoDe's higher PU power comes from its clocked
-storage: CoDe's staging buffer and clock tree take the clock at four times LP-Spec-style's rate, even in cycles
-where a register holds its value. LP-Spec-style pays in leakage instead: its PU, with four times CoDe's multipliers,
-leaks 2.9$\times$ CoDe's power on the mobile platform and 2.8$\times$ on HBM2.
-
-
-% P:eval-power-edge-charge
-\paragraph{Charge per clock edge}
-CoDe spreads the same MAC rate over four times as many clock edges, so each edge draws far less charge. CoDe's PUs
-switch 522\,pJ per die every 1.25\,ns against LP-Spec-style's 1,776\,pJ every 5\,ns, so each CoDe edge draws
-3.4$\times$ less charge from the supply; on HBM2 the ratio is 3.1$\times$. A smaller charge per edge lowers the
-current step that the die's power grid absorbs.
-
-
-% P:eval-power-gating
-\paragraph{Clock gating in CoDe}
-CoDe's registers sit idle on most cycles, so clock gating cuts CoDe's power far more than LP-Spec-style's. Each of
-CoDe's accumulator slots takes one write every 16 cycles, and each staging word takes one every 6 cycles on the mobile
-platform and every 8 on HBM2, while LP-Spec-style's mobile PU writes every register on every cycle. A clock gate on
-each accumulator slot, on each 32 bits of a staging word and on the weight latch cuts CoDe's peak power by 11.6\,\% on
-the mobile platform and 15.1\,\% on HBM2, against 0.5\,\% and 3.6\,\% for the same gates on LP-Spec-style's
-accumulators and staging words. Gated CoDe then draws 0.92$\times$ ungated LP-Spec-style's peak power on the mobile
-platform and 0.87$\times$ on HBM2. Gating remains an option: every other number in this paper describes the ungated
-designs.
-
-% sources-of-gain table (D-35): defined at VI-D's end, so it renders at the top of page 11's left column, after
-% Fig. vsweep takes page 10's right column; generated by scripts/make_tables.py (simulated rows, evaluation/dac_2x2 Sec. 2i)
+% sources-of-gain table (D-35; generated by scripts/make_tables.py, simulated rows, evaluation/dac_2x2 Sec. 2i):
+% placement checked on the float map after each build
 \begin{table}[t]
   \caption{Useful-MAC utilization from stock AiM to CoDe, one source at a time.}
   \label{tab:umac_src}

@@ -1,4 +1,4 @@
-"""Line charts as inline SVG at final size (Figs. 2, 6, 7), shared by make_fig_{roofline,phone,hbm2}.py.
+"""Line and bar charts as inline SVG at final size (Figs. 2, 7, 8, 9), shared by make_fig_{roofline,gemm,e2e,vsweep}.py.
 
 Style (user, 2026-10-17; BTS ISCA'22 Fig. 1 and Centaur ISCA'20 Fig. 7(b) as style references only): every series one
 thin solid line (LW pt) through small hollow markers at its data points, joined by straight segments that stop at the
@@ -102,6 +102,17 @@ class Fig:
             x += sample + gap + width(lab, FL) + space
         return tot
 
+    def legend_patches(self, items, y, x_center=None, sample=9.0, gap=3.0, space=11.0):
+        """One row of bar-colour samples: items = [(label, fill, edge)], centred on x_center (Fig. 8)."""
+        tot = sum(sample + gap + width(lab, FL) for lab, _, _ in items) + space * (len(items) - 1)
+        x = (self.W / 2 if x_center is None else x_center) - tot / 2
+        for lab, fill, edge in items:
+            self.o.append(f'<rect x="{x:.2f}" y="{y - FL * 0.72:.2f}" width="{sample}" height="{FL * 0.72:.2f}" '
+                          f'fill="{fill}" stroke="{edge}" stroke-width="{LW}"/>')
+            self.text(x + sample + gap, y, lab)
+            x += sample + gap + width(lab, FL) + space
+        return tot
+
     def write(self, name, note):
         W, H = self.W, self.H
         head = f"""<!doctype html>
@@ -124,6 +135,12 @@ class Fig:
         with open(out, "w", encoding="utf-8") as f:
             f.write(head + "\n".join(self.o) + "\n</svg>\n</body>\n</html>\n")
         print("wrote", out, f"({W:g} x {H:g} pt)")
+
+
+def tint(color, a=0.4):
+    """The hue at share a over white: the fill of a bar whose edge is the full hue (F5: a bar is a thin mark)."""
+    c = [int(color[i:i + 2], 16) for i in (1, 3, 5)]
+    return "#" + "".join(f"{round(a * v + (1 - a) * 255):02X}" for v in c)
 
 
 def log_ticks(lo, hi):

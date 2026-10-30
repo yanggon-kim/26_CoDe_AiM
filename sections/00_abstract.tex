@@ -8,8 +8,7 @@ compute serves one token, not 32. Prior designs keep every MAC paced by a DRAM c
 MAC step with 4$\times$ the multipliers, and P3-LLM's command per token caps a read at two tokens. We observe that
 DRAM timing parameters bound column accesses, not MACs on a latched column: a column lasts 5\,ns on LPDDR5-6400 and
 4\,ns on HBM2, and each period fits four PU beats at 0.8--1\,GHz. We propose CoDe (Command-Decoupled PIM): one
-command delivers a weight column, which the PU applies to a tile of tokens at its own clock. On each rival's
-memory, workload and precision, CoDe reaches 1.86$\times$ LP-Spec-style's GEMM throughput per logic mm$^2$ at the
-same decode speed (1.00--1.006$\times$) on a mobile platform, and on HBM2 runs batched decode steps 1.68$\times$
-faster than P3-LLM-style at 1.26$\times$ its throughput per logic mm$^2$ and 1.64$\times$ its system energy efficiency.
+command delivers a weight column, which the PU applies to a tile of tokens at its own clock. On each rival's memory, workload and precision, CoDe matches LP-Spec-style's end-to-end decoding speed on a mobile
+platform with 1.87$\times$ its throughput per logic mm$^2$, and on HBM2 decodes a batch of 8 1.68$\times$ faster than
+P3-LLM-style at 1.26$\times$ its throughput per logic mm$^2$ and 1.64$\times$ its system energy efficiency.
 \end{abstract}

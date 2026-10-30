@@ -158,7 +158,7 @@ PAPI~\cite{papi} places four processing units in each bank, and StepStone~\cite{
 bank groups or beside the devices of a memory module. Duplex~\cite{duplex} and H$^2$-LLM~\cite{h2llm} build their
 multipliers on a logic die under the DRAM, and MoNDE~\cite{monde} builds them into a memory-side controller. We take
 LP-Spec~\cite{lpspec} as the representative of the wider-PU family and model it as an \textbf{LP-Spec-style} design,
-the rival on the mobile platform (Section~\ref{sec:eval:phone}). LP-Spec-style's slot serves four tokens, so
+the rival on the mobile platform (Section~\ref{sec:eval}). LP-Spec-style's slot serves four tokens, so
 LP-Spec-style reaches $\UMAC = 1$ (Table~\ref{tab:umac}) only by quadrupling the multipliers: per multiplier its $U$
 is 0.173--0.174 on the mobile platform and 0.185 on the edge server, below stock AiM's.
 
@@ -195,7 +195,7 @@ On every memory family whose \tccdl{} is twice \tccds{}, the faster-PU family's 
 fast its PU runs. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
 server (Fig.~\ref{fig:roofline}b). P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we
 take P3-LLM as the representative of the faster-PU family and model it as a \textbf{P3-LLM-style} design, the rival on
-the edge server (Section~\ref{sec:eval:server}). With the stock multiplier count, P3-LLM-style's ceiling per logic
+the edge server (Section~\ref{sec:eval}). With the stock multiplier count, P3-LLM-style's ceiling per logic
 mm$^2$, 390\,GOPS on the mobile platform and 830 on the edge server, lies above LP-Spec-style's.
 
 % P:mot-other-pim

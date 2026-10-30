@@ -53,6 +53,12 @@ def read(name, base=None):
         return list(csv.DictReader(f))
 
 
+def ids(topic):
+    """Touched ids of an evaluation topic ("dac_sd8g3" or "dac_2x2"): {id: float value}."""
+    with open(os.path.join(EVAL, topic, "touched.csv")) as fh:
+        return {r["id"]: float(r["value"]) for r in csv.DictReader(fh)}
+
+
 def f(x):
     return float(x) if x not in ("", None) else None
 

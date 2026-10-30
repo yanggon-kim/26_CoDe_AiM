@@ -48,10 +48,10 @@ fits $D = 4$ beats into each column period, of which a stock PU uses one.
 To this end, this paper proposes CoDe (Command-Decoupled PIM). One column command reads a weight column once; the PU holds the
 column and runs $D$ beats per column period over a tile of $V$ token vectors, at its own clock and the stock
 multiplier count. We evaluate CoDe against each rival on that rival's own memory, workload and precision. On a mobile
-platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe reaches 1.86$\times$
-LP-Spec-style's GEMM throughput per logic mm$^2$ at the same decode speed, 1.00--1.006$\times$ end to end, on
-0.539$\times$ the logic area. On an edge server with HBM2 at W4A8, CoDe runs batched decode steps 1.68$\times$ faster
-than P3-LLM-style, with 1.26$\times$ the throughput per logic mm$^2$ and 1.64$\times$ the system energy efficiency.
+platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe matches LP-Spec-style's
+end-to-end decoding speed on 0.539$\times$ its logic area, so CoDe returns 1.87$\times$ LP-Spec-style's tokens per
+second per logic mm$^2$. On an edge server with HBM2 at W4A8, CoDe decodes a batch of 8 1.68$\times$ faster than
+P3-LLM-style, with 1.26$\times$ the throughput per logic mm$^2$ and 1.64$\times$ the system energy efficiency.
 
 % P:intro-contributions
 In summary, this paper makes the following contributions:
