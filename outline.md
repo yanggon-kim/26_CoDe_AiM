@@ -335,22 +335,22 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: ← intro-contributions, mot-wider-pu, mot-faster-pu, meth-workloads, meth-metrics
 - **[eval-gemm-speed]** "GEMM speed"
-  - Message: Up to M = 2 the column period paces every design; from M = 3 P3-LLM-style needs a second pass while CoDe fills up to D = 4 beats per command, and LP-Spec-style fills four with 4× multipliers, so its curve coincides with CoDe's (to M = 4 mobile, every M edge); CoDe's eight-token mobile tile covers M = 5–8 in one row sweep.
+  - Message: Up to M = 2 the column period paces every design; beyond M = 2 P3-LLM-style needs a second pass while CoDe fills up to D = 4 beats per command, and LP-Spec-style fills four with 4× multipliers, so its curve coincides with CoDe's (to M = 4 mobile, every M edge); CoDe's eight-token mobile tile halves LP-Spec-style's row sweeps from M = 8. Fig. 7 plots M = 1, 2, 4, …, 64 only, and every range is taken over those M (no claim at a rival's partial-tile dip, user 2026-10-30).
   - Floats: Fig. 7a
-  - Numbers: 1.96–1.97× at M = 2; 3.74× / 3.82× vs P3-LLM-style 1.95× at M = 4; 1.62× LP-Spec-style at M = 5 (mobile) ← gemm (sd8g3 §2f, 2x2 §2p)
+  - Numbers: 1.96–1.97× at M = 2; 3.74× / 3.82× vs P3-LLM-style 1.95× at M = 4; 1.11× LP-Spec-style from M = 8 (mobile) ← gemm (sd8g3 §2f, 2x2 §2p)
   - Cites: —
   - Links: ← des-beat-slot-factor, des-mapping
 - **[eval-gemm-per-mm2]** "GEMM throughput per logic mm$^2$" (headline)
-  - Message: Per logic mm², CoDe nearly doubles LP-Spec-style's GEMM throughput on both platforms (same beats, area on storage instead of multipliers), and it beats P3-LLM-style from M = 3; P3-LLM-style's smaller PU leads only at M ≤ 2.
+  - Message: Per logic mm², CoDe nearly doubles LP-Spec-style's GEMM throughput on both platforms (same beats, area on storage instead of multipliers), and it beats P3-LLM-style beyond M = 2; P3-LLM-style's smaller PU leads only at M ≤ 2. No peak at LP-Spec-style's partial-tile dip (M = 5) is printed (user, 2026-10-30).
   - Floats: Fig. 7b
-  - Numbers: 0.539× / 0.56× logic ← tables [table4], gemm; vs LP-Spec-style 1.86× (M ≤ 4), 1.99–2.07× (M ≥ 8), 3.01× peak at M = 5 (mobile), 1.79× every M (edge); vs P3-LLM-style 1.43× (M = 4), 1.53–1.59× (M ≥ 8) mobile, 1.46–1.48× (M = 3–4, ≥ 8) edge; 0.75× at M ≤ 2 ← gemm
+  - Numbers: 0.539× / 0.56× logic ← tables [table4], gemm; vs LP-Spec-style 1.86× (M ≤ 4), 2.07× (M ≥ 8) mobile, 1.79× every M (edge); vs P3-LLM-style 1.43× (M = 4), 1.59× (M ≥ 8) mobile, 1.46–1.47× (M ≥ 4) edge; 0.75× at M ≤ 2 ← gemm (M = 1, 2, 4, …, 64)
   - Cites: —
   - Links: ← mot-logic-cost, meth-designs-area
 ### B. End-to-End Speedup
 - **[eval-e2e-phone]** "Mobile platform"
   - Message: Fig. 8 runs whole decoding on the five systems (mobile M = 4, edge batch 8); on the mobile platform CoDe and LP-Spec-style decode fastest, P3-LLM-style's two-token read needs two passes at M = 4, the order holds at each system's own best M, and CoDe pulls ahead of LP-Spec-style past M = 4.
   - Floats: Fig. 8 (fig:e2e, first cite), Fig. 8a
-  - Numbers: 4.37× / 4.34× NPU only at 46.4 / 46.1 tok/s; P3-LLM-style 2.96×, stock 1.81×; best M: 47.1 / 46.8 (M = 3), 43.8 / 26.5 (M = 2), NPU only 10.6 (M = 4); 1.31× at M = 5, 1.05–1.31× over M = 5–16 ← e2e (sd8g3 §2f; ev56_best L 1024)
+  - Numbers: 4.37× / 4.34× NPU only at 46.4 / 46.1 tok/s; P3-LLM-style 2.96×, stock 1.81×; best M: 47.1 / 46.8 (M = 3), 43.8 / 26.5 (M = 2), NPU only 10.6 (M = 4); 1.07× at M = 8 and 16 ← e2e (sd8g3 §2f; ev56_best / ev56_chain L 1024)
   - Cites: —
   - Links: ← intro-code-proposal, abs-summary, meth-workloads, des-mapping
 - **[eval-e2e-server]** "Edge server"

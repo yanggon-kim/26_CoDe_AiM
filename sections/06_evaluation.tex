@@ -16,14 +16,13 @@ Section~\ref{sec:method:work}.
 % P:eval-gemm-speed
 \paragraph{GEMM speed}
 Up to $M = 2$ the column period paces every design: one column read serves every token, and P3-LLM-style,
-LP-Spec-style and CoDe all run 1.96--1.97$\times$ faster than stock AiM at $M = 2$ (Fig.~\ref{fig:gemm}a). From
-$M = 3$ P3-LLM-style needs a second pass for the tokens beyond its two per read, while CoDe fills up to four beats per
+LP-Spec-style and CoDe all run 1.96--1.97$\times$ faster than stock AiM at $M = 2$ (Fig.~\ref{fig:gemm}a). Beyond
+$M = 2$ P3-LLM-style needs a second pass for the tokens beyond its two per read, while CoDe fills up to four beats per
 command: at $M = D = 4$ CoDe runs 3.74$\times$ stock AiM's speed on the mobile platform and 3.82$\times$ on the edge
 server, against P3-LLM-style's 1.95$\times$. LP-Spec-style also fills four beats per column period, with four times
 the multipliers, so its curve coincides with CoDe's up to $M = 4$, and at every $M$ on the edge server, where CoDe's
-tile of $V = D = 4$ issues LP-Spec-style's command stream. On the mobile platform CoDe's eight-token tile also covers
-$M = 5$--8 in one row sweep where LP-Spec-style needs a second pass, and CoDe runs 1.62$\times$ LP-Spec-style's speed
-at $M = 5$.
+tile of $V = D = 4$ issues LP-Spec-style's command stream. On the mobile platform CoDe's eight-token tile halves
+LP-Spec-style's row sweeps from $M = 8$, and CoDe runs 1.11$\times$ LP-Spec-style's speed there.
 
 % P:eval-gemm-per-mm2
 \paragraph{GEMM throughput per logic mm$^2$}
@@ -31,11 +30,10 @@ Per logic mm$^2$, CoDe nearly doubles LP-Spec-style's GEMM throughput on both pl
 LP-Spec-style but spends its logic on storage rather than multipliers, so it reaches LP-Spec-style's speed with
 0.539$\times$ its logic area on the mobile platform and 0.56$\times$ on the edge server
 (Section~\ref{sec:method:designs}). CoDe therefore returns 1.86$\times$ LP-Spec-style's GEMM throughput per logic
-mm$^2$ on the mobile platform up to $M = 4$ and 1.99--2.07$\times$ from $M = 8$, with a peak of 3.01$\times$ at
-$M = 5$, where LP-Spec-style runs its second pass; on the edge server the ratio is 1.79$\times$ at every $M$
-(Fig.~\ref{fig:gemm}b). Against P3-LLM-style, CoDe's speed outgrows its larger logic from $M = 3$: CoDe returns
-1.43$\times$ P3-LLM-style's throughput per logic mm$^2$ at $M = 4$ and 1.53--1.59$\times$ from $M = 8$ on the mobile
-platform, and 1.46--1.48$\times$ at $M = 3$--4 and from $M = 8$ on the edge server. Only at $M \le 2$, where CoDe's
+mm$^2$ on the mobile platform up to $M = 4$ and 2.07$\times$ from $M = 8$; on the edge server the ratio is
+1.79$\times$ at every $M$ (Fig.~\ref{fig:gemm}b). Against P3-LLM-style, CoDe's speed outgrows its larger logic
+beyond $M = 2$: CoDe returns 1.43$\times$ P3-LLM-style's throughput per logic mm$^2$ at $M = 4$ and 1.59$\times$ from
+$M = 8$ on the mobile platform, and 1.46--1.47$\times$ from $M = 4$ on the edge server. Only at $M \le 2$, where CoDe's
 third and fourth beats sit idle, does P3-LLM-style's smaller PU lead, with CoDe at 0.75$\times$.
 
 % figure* (Section VI-B): placement checked on the float map after each build
@@ -58,8 +56,8 @@ decode fastest, 4.37$\times$ and 4.34$\times$ faster than NPU only, at 46.4 and 
 (Fig.~\ref{fig:e2e}a). P3-LLM-style reaches 2.96$\times$, because its two-token read needs two passes over the four
 token rows, and stock AiM reaches 1.81$\times$. At each system's own best $M$ the order holds: CoDe reaches
 47.1 tokens/s and LP-Spec-style 46.8 at $M = 3$, P3-LLM-style 43.8 and stock AiM 26.5 at $M = 2$, and NPU only 10.6
-at $M = 4$. Past $M = 4$ CoDe's eight-token tile pulls ahead: CoDe's loop runs 1.31$\times$ faster than
-LP-Spec-style's at $M = 5$ and 1.05--1.31$\times$ faster over $M = 5$--16.
+at $M = 4$. Past $M = 4$ CoDe's eight-token tile pulls ahead: CoDe's loop runs 1.07$\times$ faster than
+LP-Spec-style's at $M = 8$ and at $M = 16$.
 
 % P:eval-e2e-server
 \paragraph{Edge server}

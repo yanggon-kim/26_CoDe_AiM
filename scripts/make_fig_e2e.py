@@ -70,9 +70,16 @@ def check_prose_numbers(d):
     assert pt["isca.e2e.phone.h3.best_M.d1b"] == 2 and abs(pt["isca.e2e.phone.h3.best_tok_s.d1b"] - best["all_h3"][1]) < 1e-9
     assert abs(best["all_npu"][1] - ph["tok"]["npu"]) < 1e-9
     assert best["all_core"][1] > best["all_h2"][1] > best["all_h3"][1] > best["all_stock"][1] > best["all_npu"][1]
-    # CoDe's loop leads LP-Spec-style 1.31x at M = 5 and 1.05-1.31x over M = 5-16
-    assert r2(pt["isca.e2e.phone.core8_over_h2.speed_M5"]) == 1.31
-    assert (r2(pt["isca.e2e.phone.core8_over_h2.speed_Mge5.min"]), r2(pt["isca.e2e.phone.core8_over_h2.speed_Mge5.max"])) == (1.05, 1.31)
+    # past M = 4 CoDe's loop leads LP-Spec-style: 1.07x at M = 8 and at M = 16 (powers of two, as Fig. 7; no claim at
+    # LP-Spec-style's partial-tile dip M = 5). Read from the collected ev56_chain rows (L 1024, 1.1B draft, alpha 0.7);
+    # the M >= 5 band agrees with the collected ids isca.e2e.phone.core8_over_h2.speed_Mge5.*
+    with open(os.path.join(PHONE_RAW, "ev56_chain.csv")) as fh:
+        ch = {r["row_id"]: float(r["tok_s"]) for r in csv.DictReader(fh)}
+    lead = {M: ch[f"npu42/1024/d1b/all_core/{M}/0.7"] / ch[f"npu42/1024/d1b/all_h2/{M}/0.7"] for M in range(4, 17)}
+    assert abs(lead[4] - pt["isca.e2e.phone.core8_over_h2.speed"]) < 1e-9
+    assert abs(min(lead[M] for M in range(5, 17)) - pt["isca.e2e.phone.core8_over_h2.speed_Mge5.min"]) < 1e-9
+    assert abs(max(lead[M] for M in range(5, 17)) - pt["isca.e2e.phone.core8_over_h2.speed_Mge5.max"]) < 1e-9
+    assert r2(lead[8]) == 1.07 == r2(lead[16]), (lead[8], lead[16])
     # eval-e2e-server: CoDe = LP-Spec-style 1.28x NPU only (456 tok/s); stock 0.45x, P3-LLM-style 0.76x; CoDe 1.68x P3
     assert [r2(hb["sp"][s]) for s in ("stock", "p3", "lpspec", "code")] == [0.45, 0.76, 1.28, 1.28]
     assert hb["tok"]["code"] == hb["tok"]["lpspec"] and round(hb["tok"]["code"]) == 456
@@ -100,7 +107,7 @@ def check_prose_numbers(d):
     assert abs(hb["en"]["npu"] / hb["en"]["code"] - ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) < 1e-9
     assert min(hb["en"], key=hb["en"].get) == "code"
     # abstract / intro / conclusion: 1.87x per mm2 at matched speed (mobile); 1.68x, 1.26x, 1.64x (edge server)
-    print("Secs. VI-B/C numbers hold: mobile 4.37 / 4.34 / 2.96 / 1.81x, best M 47.1 / 46.8 / 43.8 / 26.5 / 10.6, M = 5 1.31x; "
+    print("Secs. VI-B/C numbers hold: mobile 4.37 / 4.34 / 2.96 / 1.81x, best M 47.1 / 46.8 / 43.8 / 26.5 / 10.6, M = 8 / 16 1.07x; "
           "edge 1.28 / 1.28 / 0.76 / 0.45x, 1.68x, NPU from batch 16; per mm2 1.87 / 1.79, 1.10 / 1.26; energy 70.5 mJ, "
           "7.9 / 1.80 / 1.28 / 1.04x; edge 1.48 / 1.64x (gated 1.46 / 2.46x)")
 
