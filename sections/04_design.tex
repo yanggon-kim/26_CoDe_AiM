@@ -20,7 +20,7 @@ column reads and refreshes issue exactly as in stock AiM, and only the MAC beats
 come from the tile, and the tile comes from the global buffer, which CoDe extends from stock AiM's one input vector to
 the input vectors of $V$ tokens (Fig.~\ref{fig:tile}, Section~\ref{sec:design:pu}): sharing a row sweep needs $V$
 tokens' inputs beside the PU, and filling $D$ beats needs at least $D$ tokens per command. Fig.~\ref{fig:tile} groups
-the PU's structures by lever: the staging buffer, the accumulator file and the burst drain carry row reuse, and the
+the PU's structures by lever: the staging buffer, the accumulator file and the \emph{burst drain} carry row reuse, and the
 weight latch and the beat sequencer carry beat filling. With both levers, CoDe's useful-MAC utilization $U$ reaches
 0.779 on the mobile platform, against stock AiM's 0.179 (Table~\ref{tab:umac}).
 
@@ -30,7 +30,7 @@ weight latch and the beat sequencer carry beat filling. With both levers, CoDe's
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_mapping.pdf}
   \caption{A skinny GEMM at $M = 8$: (a)~one bank's work per row sweep; (b)~one weight row, stock AiM and CoDe, one
-  tile MAC enlarged. RS = row switch; D = drain.}
+  \emph{tile MAC} enlarged. RS = row switch; D = drain.}
   \label{fig:mapping}
 \end{figure}
 
@@ -39,7 +39,7 @@ weight latch and the beat sequencer carry beat filling. With both levers, CoDe's
 
 % P:des-row-reuse
 Row reuse answers the non-MAC commands of Section~\ref{sec:bg:cmd}, whose row-switch commands stock AiM pays once per
-token. Row reuse lets the $V$ tokens of a tile share one row sweep: the tile MACs sweep the open row's columns once for
+token. Row reuse lets the $V$ tokens of a tile share one row sweep: the \emph{tile MAC}s sweep the open row's columns once for
 all $V$ tokens, so the row-switch commands are paid once per $V$ tokens. Fig.~\ref{fig:mapping}a draws the tile in
 GEMM terms at $M = V = 8$: the GB holds the eight tokens' inputs for one chunk of $K$, one bank's open 2\,KB row holds
 one output's weights over that chunk, and the tile produces that output's eight sums. In Fig.~\ref{fig:mapping}b,
@@ -47,7 +47,7 @@ stock AiM sweeps the weight row once per token and pays a row switch and a drain
 CoDe pays one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64,
 because the tile reads each weight from the array once. With $A$ tokens per row sweep, a token pays
 $\trow / A + \ttok$ of non-MAC commands per row sweep, plus its share of refresh. The token load/drain commands stay
-per token: WRGB writes each token's input chunk into the GB, and the burst drain reads each token's sums once per row
+per token: WRGB writes each token's input chunk into the GB, and the \emph{burst drain} reads each token's sums once per row
 sweep. Row reuse needs the $V$ tokens' inputs next to the PU for the whole row sweep and $V$ partial sums per tile; the
 global buffer, the staging buffer and the accumulator file hold them (Section~\ref{sec:design:pu}). The two families
 of Section~\ref{sec:bg:walls} tie the tokens of a row sweep to one MAC slot ($A = 2$ and 4 in Table~\ref{tab:umac}),
@@ -62,12 +62,11 @@ from stock AiM's 123.39\,ns to CoDe's 22.15\,ns at $V = 8$ on the mobile platfor
 Beat filling answers the idle beats of Section~\ref{sec:bg:cmd}, three of a stock MAC slot's four beats, by decoupling
 the PU's MAC beats from the command stream. The PU runs its beats at its own clock, $f_\mathrm{PU} = D /
 t_\mathrm{col}$, which equals CK on both platforms (Table~\ref{tab:params}), so the PU fits $D$ beats into each column
-period whatever the command spacing. A tile MAC holds its column in the PU for $V/D$ column periods, and the next tile
-MAC issues $V/D$ periods later. The enlarged tile MAC of Fig.~\ref{fig:mapping}b shows one tile of $V = 8$ tokens at
+period whatever the command spacing. A \emph{tile MAC} holds its column in the PU for $V/D$ column periods, and the next \emph{tile
+MAC} issues $V/D$ periods later. The enlarged \emph{tile MAC} of Fig.~\ref{fig:mapping}b shows one tile of $V = 8$ tokens at
 $D = 4$: one column read feeds eight beats, one per token and four per column period, and each beat adds into its
-token's accumulator slot. The bank holds the column for $V/D = 2$ periods, the next tile MAC issues two periods later,
-and the tile's partial sums leave in one burst drain after its last column. With $V = D$ the tile fills exactly one
-column period, and the MAC commands follow the bank's column rate.
+token's accumulator slot. The bank holds the column for $V/D = 2$ periods, the next \emph{tile MAC} issues two periods later,
+and the tile's partial sums leave in one \emph{burst drain} after its last column.
 
 % P:des-beat-slot-factor
 Beat filling raises the slot factor from stock AiM's 1/4 to 1, because every beat of a MAC slot computes for one token
@@ -84,25 +83,25 @@ against stock AiM's 3,250\,ns, 4.40$\times$ shorter, the speedup gap of Fig.~\re
 % P:des-command-set
 \paragraph{Command set}
 CoDe adds two commands to the all-bank interface of AiM-style PIM~\cite{aimjssc} and keeps every other command
-(Table~\ref{tab:cmds}). The tile MAC (col, $V$) reads one column from every open bank with the stock MAC command's
-timing and tells each PU to run $V$ beats on that column. The burst drain moves a tile's $V$ sums out of every PU in
+(Table~\ref{tab:cmds}). The \emph{tile MAC} (col, $V$) reads one column from every open bank with the stock MAC command's
+timing and tells each PU to run $V$ beats on that column. The \emph{burst drain} moves a tile's $V$ sums out of every PU in
 one burst after the tile's last column. WRGB, TMOD, PREA, ACT16 and WRMAC16 keep their stock definitions, and of these
 only the row-switch commands change their count per token.
 
 
 % P:des-tile-mac-pu
 \paragraph{Tile MAC in the PU}
-Fig.~\ref{fig:tile} follows one tile MAC through the PU. The tile MAC latches the column that the bank delivers in the
+Fig.~\ref{fig:tile} follows one \emph{tile MAC} through the PU. The \emph{tile MAC} latches the column that the bank delivers in the
 weight latch (\ding{172}). The beat sequencer then steps a token index $k$ from 0 to $V-1$, one beat per CK cycle
 (\ding{173}). Beat $k$ multiplies the latched weights by token $k$'s slice from the staging buffer in the lanes (\ding{174}), and the adder
-tree adds the products into accumulator slot $k$ (\ding{175}). After the tile's last column, the burst drain moves the
+tree adds the products into accumulator slot $k$ (\ding{175}). After the tile's last column, the \emph{burst drain} moves the
 $V$ sums out through the drain port (\ding{176}).
 
 % P:des-storage
 \paragraph{Storage}
 The global buffer holds the tile's $V$ tokens for one chunk of $K$. On the mobile platform a $K$ chunk holds 2,048 INT8
 inputs, 2\,KB per token, so the GB of an eight-token tile holds 16\,KB (Table~\ref{tab:params}); one WRGB burst of 512
-writes of 32\,B fills it. The staging buffer next to the lanes is a three-entry queue of 512-bit GB words on the mobile platform, each word
+writes of 32\,B fills it. The staging buffer next to the lanes is a three-entry queue of 512-bit GB words, each word
 packing two tokens' slices, and a register of $V$ slices on HBM2. The accumulator file holds two sets of $V$ slots per bank, so
 one tile's sums drain from one set while the next tile accumulates into the other; an HBM2 PU, which serves two banks,
 holds four sets (Table~\ref{tab:params}).
@@ -110,7 +109,7 @@ holds four sets (Table~\ref{tab:params}).
 % P:des-tile-size
 \paragraph{Tile size}
 The tile size $V$ sizes CoDe's storage: the GB holds $V$ tokens' $K$ chunks, the HBM2 staging register holds $V$
-slices, and the accumulator file holds two sets of $V$ slots per bank. The lanes, the weight latch, the beat sequencer and the
+slices, and the accumulator file holds two sets of $V$ slots per bank for double buffering. The lanes, the weight latch, the beat sequencer and the
 mobile staging queue keep their size at any $V$. Below $V = D$ the column period paces the PU and beats idle; from
 $V = D$ every beat computes, and a larger $V$ cuts only the row-switch term of a token's non-MAC time per row sweep,
 about $\trow / V + \ttok$. A weight row takes $\lceil M/V \rceil$ row sweeps, so a last sweep with fewer than $V$
@@ -144,7 +143,7 @@ $D$: CoDe spends its area on storage and keeps the stock multiplier count (Secti
 
 % P:des-mapping
 A $K \times N$ weight matrix maps as in stock AiM: the matrix's $N$ output rows spread over the banks, and each row's $K$ weights run along DRAM columns. CoDe cuts the $M$ token rows into tiles of $V$. For each tile the GB holds the tile's
-activations for a chunk of $K$; every weight column of the chunk takes one tile MAC command, and the next tile repeats
+activations for a chunk of $K$; every weight column of the chunk takes one \emph{tile MAC} command, and the next tile repeats
 the row sweep. A tile with fewer than $V$ tokens runs fewer beats on the same commands. Attention runs on the same path
 with the KV cache as the weight matrix: $QK^\top$ streams the cached keys against the $M$ query rows, and $PV$ the
 cached values against the $M$ rows of probabilities. Speculative decoding verifies $M$ drafted tokens against one

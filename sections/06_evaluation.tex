@@ -74,7 +74,7 @@ during PIM steps and 1.46$\times$ with the NPU power-gated, so CoDe's lead does 
 % P:eval-gain-sources
 \paragraph{Sources of CoDe's gain}
 CoDe's gain over stock AiM has two sources, and each source is worth more once the other is present. Both sources
-come from one mechanism, the $V$ tokens that one tile MAC command serves: beat filling raises the slot factor of
+come from one mechanism, the $V$ tokens that one \emph{tile MAC} command serves: beat filling raises the slot factor of
 Section~\ref{sec:bg:cmd}, and row reuse keeps the sweep factor near stock AiM's level once beat filling shortens the
 MAC slots. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
 of Llama-3.1-8B on the edge server. The row-reuse-only design keeps the stock PU's pace of one beat per column

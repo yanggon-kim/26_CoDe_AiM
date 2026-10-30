@@ -3,8 +3,8 @@
 \toprule
 Command & Action & Unit & CoDe & Stock \\
 \midrule
-tile MAC (col, $V$) & One column read at the stock MAC timing; $V$ beats on it & column & $1/V$ & 1 \\
-burst drain & A tile's $V$ sums out in one burst & row sweep & 1 & 1 \\
+\emph{tile MAC} (col, $V$) & One column read at the stock MAC timing; $V$ beats on it & column & $1/V$ & 1 \\
+\emph{burst drain} & A tile's $V$ sums out in one burst & row sweep & 1 & 1 \\
 row switch & TMOD$\times$2, PREA, ACT16 pair, WRMAC16; unchanged & row sweep & $1/V$ & 1 \\
 WRGB & GB fill; unchanged & 32\,B of input & 1 & 1 \\
 \bottomrule
