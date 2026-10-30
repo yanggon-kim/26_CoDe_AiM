@@ -4,7 +4,7 @@
 % P:eval-modelled
 All results are modelled, and ratios above 1 favour CoDe.
 
-\subsection{GEMM Speed and Area Efficiency}
+\subsection{Skinny GEMM Speedup and Area Efficiency}
 \label{sec:eval:gemm}
 
 % P:eval-gemm-summary
@@ -45,13 +45,16 @@ third and fourth beats sit idle, does P3-LLM-style's smaller PU lead, with CoDe 
   \label{fig:e2e}
 \end{figure*}
 
-\subsection{End-to-End Speedup}
+\subsection{End-to-End Speedup and Area Efficiency}
 \label{sec:eval:e2e}
 
 % P:eval-e2e-phone
 \paragraph{Mobile platform}
 Fig.~\ref{fig:e2e} runs whole decoding on the five systems of Section~\ref{sec:method:work}: the speculative loop at
-$M = 4$ on the mobile platform and a batch of 8 on the edge server. On the mobile platform CoDe and LP-Spec-style
+$M = 4$ on the mobile platform and a batch of 8 on the edge server. At acceptance rate 0.7 a round of the loop yields
+fewer than $1/(1 - 0.7) \approx 3.3$ tokens on average, so the verify pass stays short, and $M = 4$ is NPU only's
+best $M$ and within 2\,\% of NPU + LP-Spec-style's and NPU + CoDe's best throughput; a batch of 8 is a light edge-server
+load and the largest power of two before NPU only overtakes CoDe. On the mobile platform CoDe and LP-Spec-style
 decode fastest, 4.37$\times$ and 4.34$\times$ faster than NPU only, at 46.4 and 46.1 tokens/s
 (Fig.~\ref{fig:e2e}a). P3-LLM-style reaches 2.96$\times$, because its two-token read needs two passes over the four
 token rows, and stock AiM reaches 1.81$\times$. At each system's own best $M$ the order holds: CoDe reaches
@@ -118,45 +121,39 @@ and 2.62$\times$ then 1.46$\times$ on the edge server: the unchanged non-MAC com
 shortened time on the mobile platform and about half on the edge server. Beat filling thus earns its full step only
 once row reuse has removed most of the row-switch overhead per token.
 
-% P:eval-vsweep-summary
-\paragraph{Choice of tile size}
-Throughput per logic mm$^2$ peaks at the tile size $V = D$ on both platforms, and the mobile platform's $V = 8$
-bounds the per-mm$^2$ loss across the token rows of a decode step. Fig.~\ref{fig:vsweep}a sweeps $V$ from 1 to 64 for
-q\_proj at $M = 64$ with the staging of Section~\ref{sec:design:pu}, which on the mobile platform is a register of
-$V$ slices below $V = 8$; Fig.~\ref{fig:vsweep}b sets $V = 8$ against $V = 4$ for $M = 1$--16.
-
 % P:eval-vsweep-gain
-\paragraph{Gain by tile size}
-Up to $V = D$ a larger tile fills idle beats; beyond $V = D$ it removes only row-switch commands. CoDe's q\_proj
-speed-up over stock AiM rises from 1 at $V = 1$ to 3.86$\times$ on the mobile platform and 3.69$\times$ on HBM2 at
-$V = D$, but only to 4.90$\times$ and 4.39$\times$ at $V = 64$. On the mobile platform, of the time that the step from
-$V = 1$ to 2 saves, idle beats supply 72\,\%, row-switch commands 21\,\% and refresh 7\,\%. From $V = 4$ to 8 the
-row-switch commands supply 91.6\,\% of the saving, and their share of the GEMM time falls from 18.9\,\% to 10.4\,\%;
-token load stays at 20.5\,$\mu$s at every $V$.
+\paragraph{Tile size on a full GEMM}
+Fig.~\ref{fig:vsweep}a sweeps the tile size $V$ from 1 to 64 for q\_proj at $M = 64$, where every tile is full; the
+mobile staging is a register of $V$ slices below $V = 8$. Up to $V = D$ a larger tile fills idle beats, and beyond
+$V = D$ it removes only row-switch commands. CoDe's q\_proj speed-up over stock AiM rises from 1 at $V = 1$ to
+3.86$\times$ on the mobile platform and 3.69$\times$ on the edge server at $V = D$, but only to 4.90$\times$ and
+4.39$\times$ at $V = 64$. On the mobile platform idle beats supply 72\,\% of the time saved from $V = 1$ to 2, and
+row-switch commands supply 91.6\,\% of the time saved from $V = 4$ to 8.
 
 % P:eval-vsweep-area
-\paragraph{Area against speed}
-Past $V = D$ CoDe's storage grows faster than its speed. Fig.~\ref{fig:vsweep}a normalises throughput per logic
-mm$^2$ to stock AiM's, and both per-mm$^2$ curves peak at $V = D$, at 3.01$\times$ on the mobile platform and
-2.34$\times$ on HBM2. From $V = 4$ to 8 the mobile
-logic grows by 16\,\%, from 1.212 to 1.406\,mm$^2$ per die, and HBM2's by 40\,\%, from 0.821 to 1.153\,mm$^2$ per
-pseudo-channel, so $V = 8$ breaks even per mm$^2$ only at 1.160$\times$ and 1.405$\times$ $V = 4$'s speed. At
-$M = 64$, $V = 8$ runs 1.117$\times$ and 1.089$\times$ faster and keeps 96.3\,\% and 77.5\,\% of the peak.
+Past $V = D$ CoDe's storage grows faster than its speed. From $V = 4$ to 8 CoDe's logic grows by 16\,\% on the
+mobile platform and by 40\,\% on the edge server, while its speed grows only 1.117$\times$ and 1.089$\times$, so
+throughput per logic mm$^2$ peaks at $V = D$ on both platforms, at 3.01$\times$ and 2.34$\times$ stock AiM's
+(Fig.~\ref{fig:vsweep}a). A full tile thus favours $V = D$, but a decode step runs at small $M$, where the last row
+sweep of a tile is often only partly filled.
 
-% P:eval-vsweep-robust
-\paragraph{Robustness across $M$}
-Partial last row sweeps make $V = 8$ win per mm$^2$ on the mobile platform at $M = 5$--7, 9--10 and 13--15. At
-$M = 5$, $V = 4$ runs two row sweeps of three and two tokens where $V = 8$ runs one, and $V = 8$'s verify step
-returns 1.324$\times$ $V = 4$'s throughput per mm$^2$; up to $M = 4$ both tiles run one row sweep and $V = 8$ returns
-0.862$\times$ (Fig.~\ref{fig:vsweep}b). HBM2's batched step never reaches the 1.405$\times$ break-even, and $V = 8$
-peaks at 0.944$\times$ at $M = 5$. Against the best of $V = 2$, 4, 8 and 16 at each $M$ from 3 to 16, the mobile
-$V = 4$'s worst per-mm$^2$ loss is 29.4\,\% on q\_proj and 24.5\,\% on the verify step, both at $M = 5$, while
-$V = 8$'s is 13.8\,\%, its area premium at $M = 3$--4. On HBM2, $V = 4$ loses at most 11.7\,\% and $V = 8$
-loses 28.8--30.0\,\%. The mobile one-tile kernel is the exception, because its single GB fill serves one row sweep and token load
-takes 28.3\,\% of stock AiM's time at $M = 8$ (Fig.~\ref{fig:breakdown}): it loses 4.6\,\% with $V = 4$ and
-13.8\,\% with $V = 8$. The speculative loop's best $M$ is 3 with the 1.1B draft and 4 with EAGLE, where $V = 8$ pays
-its area premium; CoDe still sets $V = 8$ on the mobile platform, because $V = 8$ caps the per-mm$^2$ loss at 13.8\,\%
-over $M = 3$--16, against $V = 4$'s 29.4\,\%.
+% P:eval-vsweep-partial
+\paragraph{Tile size across $M$}
+Fig.~\ref{fig:vsweep}b sets $V = 8$ against $V = 4$ in a decode step's throughput per logic mm$^2$ for $M = 1$--16:
+the speculative verify step on the mobile platform and the batched step on the edge server. $V = 8$ wins only where
+it saves $V = 4$ a partly filled row sweep, and loses where both tiles run the same row sweeps. At $M = 5$, $V = 4$
+runs two row sweeps of three and two tokens where $V = 8$ runs one, and $V = 8$ returns 1.324$\times$ $V = 4$'s
+throughput per mm$^2$; on the mobile platform $V = 8$ wins at $M = 5$--7, 9--10 and 13--15. Up to $M = 4$ both
+tiles run one row sweep, and $V = 8$ returns 0.862$\times$. On the edge server $V = 8$ never breaks even and returns
+at best 0.944$\times$.
+
+% P:eval-vsweep-choice
+CoDe sets $V$ per platform by the worst loss in throughput per logic mm$^2$ across $M = 3$--16, against the best of
+$V = 2$, 4, 8 and 16 at each $M$. On the mobile platform $V = 8$ loses at most 13.8\,\%, against $V = 4$'s
+29.4\,\% on q\_proj, so CoDe sets $V = 8$, although the one-tile kernel of Fig.~\ref{fig:breakdown} alone would
+favour $V = 4$. On the edge server $V = 4$ loses at most 11.7\,\% and $V = 8$ 28.8--30.0\,\%, so CoDe sets $V = 4$.
+The mobile $V = 8$ pays its worst loss at $M = 3$--4, which includes the $M = 4$ of Section~\ref{sec:eval:e2e}, the
+loop's best $M$ with an EAGLE head.
 
 % Fig. vsweep: one column; placement checked on the float map after each build
 \begin{figure}[t]
@@ -166,14 +163,3 @@ over $M = 3$--16, against $V = 4$'s 29.4\,\%.
   $V = 4$, decode-step throughput per logic mm$^2$ against $M$.}
   \label{fig:vsweep}
 \end{figure}
-
-% sources-of-gain table (D-35; generated by scripts/make_tables.py, simulated rows, evaluation/dac_2x2 Sec. 2i):
-% placement checked on the float map after each build
-\begin{table}[t]
-  \caption{Useful-MAC utilization from stock AiM to CoDe, one source at a time.}
-  \label{tab:umac_src}
-  \centering
-  \footnotesize
-  \setlength{\tabcolsep}{4pt}
-  \input{tables/tab_umac_src}
-\end{table}

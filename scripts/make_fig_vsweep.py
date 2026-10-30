@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Figure (Sec. VI-C): the tile-size ablation, CoDe's V on both platforms (D = 4, SRAM GB, the committed staging).
+"""Figure 9 (Sec. VI-D): the tile-size ablation, CoDe's V on both platforms (D = 4, SRAM GB, the committed staging).
 
 (a) q_proj 4096 x 4096 (Llama-2-7B on the mobile platform, Llama-3.1-8B on HBM2) at M = 64, V = 1 ... 64: speed-up over
     stock AiM, and throughput per logic mm^2 over stock AiM's own (speed-up x A_stock / A(V), A_stock = stock AiM's logic
@@ -10,7 +10,9 @@
 Sources (read only; evaluation/dac_2x2/raw, pass hold adopted, microarch 704c409 / evaluation 7589fe7, current files,
 never *_pre): cvs_sum / cvs_area / cvs_pa (the V sweep, Sec. 2k), cvm_st_pa (phone V x M step, Sec. 2l), hvm_st_pa
 (HBM2 V x M step, Sec. 2m), dacp_table4 (stock area, dac_sd8g3 / dac_2x2 raw), hvm_regret / hvm_st_regret (the minimax table, Sec. 2m-2n), cvm_pa (phone q_proj V x M).
-Every number Sec. VI-C prints is asserted below.
+Every number Sec. VI-D prints is asserted below; the shares 21 / 7 %, 18.9 -> 10.4 %, 20.5 us, the
+mm^2 values, break-even 1.160x / 1.405x, 96.3 / 77.5 % of peak, 24.5 % and the one-tile 4.6 % are no longer printed
+(guards only, 2026-10-30).
 Writes figs/src/fig_vsweep.html; then python3 scripts/html2pdf.py fig_vsweep -> figs/fig_vsweep.pdf (+ .png preview).
 """
 import csv
@@ -125,6 +127,8 @@ def robustness():
     assert reg[("phone", "W2", "fifo", 4)][1] == "5" and reg[("phone", "step", "fifo", 4)][1] == "5"
     assert q("phone", "W2", 8) == q("phone", "step", 8) == q("phone", "W1", 8) == 13.8
     assert round(100 * (1 - 1 / 1.160), 1) == 13.8               # V = 8's area premium where both run one pass
+    # VI-D eval-vsweep-choice: the mobile V = 8 pays its worst loss at M = 3-4 (Sec. VI-B's M = 4 among them)
+    assert all(reg[("phone", w, "fifo", 8)][1] in ("3", "4") for w in ("W1", "W2", "step"))
     assert q("phone", "W1", 4) == 4.6                            # the exception: the one-tile kernel prefers V = 4
     hb4 = [q("hbm2", w, 4) for w in ("W1", "W2", "step batch (gmean)")]
     hb8 = [q("hbm2", w, 8) for w in ("W1", "W2", "step batch (gmean)")]

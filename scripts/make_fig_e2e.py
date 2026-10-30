@@ -17,8 +17,8 @@ then  python3 scripts/html2pdf.py fig_e2e  ->  figs/fig_e2e.pdf (+ .png preview)
 import csv
 import os
 
-from dac_data import PHONE_RAW, STYLE, ids, r2
-from svgchart import FL, FT, LW, TEXTWIDTH, Fig, I, Panel, row, tint, width
+from dac_data import PHONE_RAW, ids, r2
+from svgchart import FL, FT, TEXTWIDTH, Fig, I, Panel, row, width
 
 SYS = ["npu", "stock", "p3", "lpspec", "code"]
 LABEL = {"npu": "NPU only", "stock": "NPU + stock AiM", "p3": "NPU + P3-LLM-style", "lpspec": "NPU + LP-Spec-style",
@@ -29,11 +29,18 @@ TOPIC = {"phone": "dac_sd8g3", "hbm2": "dac_2x2"}
 EKEY = {"phone": "mJ_tok", "hbm2": "mJ_tok_55W"}
 
 
+# Palette (user, 2026-10-30; skill 02 F5 / 11 G6, as Fig. 3 and Mesorasi Fig. 18): the four reference systems in the
+# white / gray ramp, the two lightest told apart by a thin black diagonal hatch; CoDe alone in Fig. 3's blue tint;
+# every bar a thin black edge.
+EDGE, BAR_LW = "#000000", 0.5
+FILL = {"npu": "#FFFFFF", "stock": "#BFBFBF", "p3": "url(#hatch_p3)", "lpspec": "#808080", "code": "#CFE2F3"}
+DEFS = ('<defs><pattern id="hatch_p3" patternUnits="userSpaceOnUse" width="2.6" height="2.6" '
+        'patternTransform="rotate(45)"><rect width="2.6" height="2.6" fill="#E8E8E8"/>'
+        '<line x1="0" y1="0" x2="0" y2="2.6" stroke="#000000" stroke-width="0.45"/></pattern></defs>')
+
+
 def colours(s):
-    if s == "npu":
-        return "#BFBFBF", "#000000"
-    c = STYLE[s]["color"]
-    return tint(c), c
+    return FILL[s], EDGE
 
 
 def load():
@@ -69,6 +76,22 @@ def check_prose_numbers(d):
             assert pt[f"x.ev56.e2e.d1b.{m}.best_M"] == bm and abs(pt[f"x.ev56.e2e.d1b.{m}.tok_s"] - best[m][1]) < 1e-9
     assert pt["isca.e2e.phone.h3.best_M.d1b"] == 2 and abs(pt["isca.e2e.phone.h3.best_tok_s.d1b"] - best["all_h3"][1]) < 1e-9
     assert abs(best["all_npu"][1] - ph["tok"]["npu"]) < 1e-9
+    # eval-e2e-phone setting (user, 2026-10-30): a chain round yields (1 - a^M) / (1 - a) tokens on average (checked
+    # against ev56_chain's T_round x tok/s), below 1 / (1 - 0.7) = 3.3; M = 4 is NPU only's best M and within 2 % of
+    # the best of NPU + CoDe (1.5 %) and NPU + LP-Spec-style (1.7 %)
+    with open(os.path.join(PHONE_RAW, "ev56_chain.csv")) as fh:
+        cr = {r["row_id"]: r for r in csv.DictReader(fh)}
+    for M in range(2, 17):
+        r = cr[f"npu42/1024/d1b/all_core/{M}/0.7"]
+        n = float(r["tok_s"]) * float(r["T_round_us"]) * 1e-6
+        assert abs(n - (1 - 0.7 ** M) / (1 - 0.7)) < 1e-6 and n < 1 / (1 - 0.7), (M, n)
+    assert round(1 / (1 - 0.7), 1) == 3.3
+    assert best["all_npu"][0] == 4
+    gap = {s: 1 - ph["tok"][s] / best[m][1] for m, s in (("all_core", "code"), ("all_h2", "lpspec"))}
+    assert (round(100 * gap["code"], 1), round(100 * gap["lpspec"], 1)) == (1.5, 1.7) and max(gap.values()) < 0.02, gap
+    # VI-D eval-vsweep-choice: the loop's best M with an EAGLE head is 4 (L 1024, alpha 0.7)
+    with open(os.path.join(PHONE_RAW, "ev56_best.csv")) as fh:
+        assert next(int(r["best_M"]) for r in csv.DictReader(fh) if r["row_id"] == "npu42/1024/eagle/all_core/0.7") == 4
     assert best["all_core"][1] > best["all_h2"][1] > best["all_h3"][1] > best["all_stock"][1] > best["all_npu"][1]
     # past M = 4 CoDe's loop leads LP-Spec-style: 1.07x at M = 8 and at M = 16 (powers of two, as Fig. 7; no claim at
     # LP-Spec-style's partial-tile dip M = 5). Read from the collected ev56_chain rows (L 1024, 1.1B draft, alpha 0.7);
@@ -87,6 +110,9 @@ def check_prose_numbers(d):
     assert r2(ht["isca.e2e.hbm2.core4_over_p3_500.speed"]) == 1.68
     # NPU only overtakes CoDe from batch 16 on the gmean (CoDe last ahead at 12)
     assert ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.first_npu_M"] == 16 and ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.last_pim_M"] == 12
+    # eval-e2e-phone setting: batch 8 = the largest power of two at which CoDe still leads NPU only
+    lead_b = ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.last_pim_M"]
+    assert max(2 ** k for k in range(8) if 2 ** k <= lead_b) == 8 < ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.first_npu_M"]
     # eval-e2e-per-mm2: CoDe / LP-Spec-style 1.87x (mobile), 1.79x (edge); CoDe / P3-LLM-style 1.10x, 1.26x
     assert r2(ph["pm"]["code"]) == 1.87 == r2(pt["isca.e2e.phone.core8_over_h2.per_mm2"])
     assert r2(hb["pm"]["code"]) == 1.79 == r2(ht["isca.e2e.hbm2.core4_over_h2.per_mm2"])
@@ -121,6 +147,7 @@ def main():
     check_prose_numbers(d)
     W, H = TEXTWIDTH, 178.0
     fig = Fig(W, H)
+    fig.o.append(DEFS)
     fig.legend_patches([(LABEL[s],) + colours(s) for s in SYS], 8.5)
     box_h, rows_y = 62.0, (24.0, 104.0)
     spec = {"phone": [dict(ylim=(0, 5.6), yticks=[0, 1, 2, 3, 4, 5]), dict(ylim=(0, 2.3), yticks=[0, 0.5, 1, 1.5, 2]),
@@ -153,7 +180,7 @@ def main():
                 fill, edge = colours(s)
                 yv = pn.py(min(v, top))
                 fig.o.append(f'<rect x="{cx - bw / 2:.2f}" y="{yv:.2f}" width="{bw:.2f}" height="{y0 + box_h - yv:.2f}" '
-                             f'fill="{fill}" stroke="{edge}" stroke-width="{LW}"/>')
+                             f'fill="{fill}" stroke="{edge}" stroke-width="{BAR_LW}"/>')
                 if v > top:     # clipped bar: break mark, value inside the bar
                     yb = y0 + 9.0
                     fig.o.append(f'<rect x="{cx - bw / 2 - 1:.2f}" y="{yb:.2f}" width="{bw + 2:.2f}" height="2.2" fill="#FFFFFF"/>')

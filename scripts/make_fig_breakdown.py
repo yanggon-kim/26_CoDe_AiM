@@ -103,7 +103,7 @@ def checks(data):
     assert round(sh[PQ]["refresh"], 1) == 7.1
     # edge server: all non-MAC commands together 23.4 % > useful 19.1 %
     assert round(nonmac[HQ], 1) == 23.4 and nonmac[HQ] > sh[HQ]["MAC useful beats"]
-    # VI-C eval-vsweep-robust: the mobile one tile's token load 28.3 % of stock AiM's time (M = 8; one fill, one sweep);
+    # guard only (no longer printed, 2026-10-30): the mobile one tile's token load 28.3 % of stock AiM's time (M = 8; one fill, one sweep);
     # guard only: edge one tile 28.5 %, q_proj 0.6 % (no longer printed)
     assert [round(sh[k]["token load"], 1) for k in WANT] == [28.3, 0.6, 28.5, 2.4]
     assert round(max(v["token drain"] for v in sh.values()), 1) == 1.0

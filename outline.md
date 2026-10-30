@@ -128,7 +128,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Fig. 3 (first cite; float defined after this paragraph), Fig. 1 (b), Table III
   - Numbers: one tile 2048 × 64 / 4096 × 256 (one row sweep per bank, one GB chunk); q_proj 4096 × 4096; M = 8, one channel; useful 14.1–19.1 %, non-MAC 23.4–43.7 %, idle 42.2–57.4 % ← brk (2x2 §2j; the ≤ 0.015 % stalls stay a guard assert only)
   - Cites: lpspec, p3llm
-  - Links: ← bg-aim-pu, bg-row-sweep, mot-a-summary; → mot-nonmac-classes, mot-idle-beats, mot-utilization, meth-designs-area, eval-vsweep-robust (Fig. 3's one tile)
+  - Links: ← bg-aim-pu, bg-row-sweep, mot-a-summary; → mot-nonmac-classes, mot-idle-beats, mot-utilization, meth-designs-area, eval-vsweep-choice (Fig. 3's one tile)
 - **[mot-nonmac-classes]** "Non-MAC commands" (run-in head over mot-nonmac-classes … mot-sweep-factor)
   - Message: Every row sweep pays a fixed set of non-MAC commands, and stock AiM pays the set for every token: plain opener (non-MAC commands stall every PU: no PU starts a MAC while they run) → Fig. 3's four non-MAC segments form three classes of II-B's commands (row-switch commands cost t_row once per row sweep; token load/drain commands cost t_tok once per token; refresh blocks commands for t_RFCab every t_REFI) → with one token per stock row sweep (A = 1, II-B), a GEMM pays a row's row-switch commands M times, a GEMV once.
   - Floats: Fig. 3, Fig. 1 (c), Table III
@@ -268,7 +268,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: —
   - Numbers: V = 8 / 4; 4 KB K chunk, 512-bit slice ← structural
   - Cites: —
-  - Links: → eval-vsweep-summary, eval-vsweep-robust
+  - Links: → eval-vsweep-gain, eval-vsweep-choice
 - **[des-pu-clock]** "PU clock"
   - Message: CoDe needs a PU clock above the column rate, not one equal to CK, and the tile keeps that clock within the reach of III-D's DRAM silicon because each accumulator slot takes one update per V ≥ D beats and the lanes multiply narrow integers.
   - Floats: —
@@ -297,7 +297,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Table III
   - Numbers: V = 8 / V = D = 4; 0.539×; arithmetic 0.73 / 0.34, storage 0.32 / 0.10; HBM2 0.56× and 1.33× ← tables [table4, area_split]
   - Cites: aimjssc
-  - Links: ← des-tile-size, des-pu-clock, mot-breakdown-setup (precision); → eval-gemm-per-mm2 (0.539× / 0.56×), eval-vsweep-summary
+  - Links: ← des-tile-size, des-pu-clock, mot-breakdown-setup (precision); → eval-gemm-per-mm2 (0.539× / 0.56×), eval-vsweep-area
 ### C. Simulator and Models
 - **[meth-simulator]**
   - Message: A cycle-level AiM simulator on Ramulator 2.0 times every design's commands, including JEDEC refresh, and synthesis-based models give area, peak power and energy per token.
@@ -311,7 +311,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: —
   - Numbers: acceptance 0.7; L = 1024; M = 4, batch 8; six / 25 FC shapes ← configuration (sd8g3 §2f, 2x2 §2p)
   - Cites: eagle
-  - Links: → eval-gemm-summary, eval-e2e-phone, eval-e2e-server, eval-vsweep-robust (EAGLE)
+  - Links: → eval-gemm-summary, eval-e2e-phone, eval-e2e-server, eval-vsweep-choice (EAGLE)
 ### E. Metrics
 - **[meth-metrics]**
   - Message: GEMM speed is operations over time including the output drain, relative to stock AiM; end-to-end speed is tokens per second, relative to NPU only; area efficiency divides either throughput by the PIM logic area (Table III); energy is system energy per token; edge-server values are geometric means over the five models (the C-bus counting rule and the M / L range rule left with eval-server-beats and VI-A's old ranges).
@@ -327,7 +327,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Numbers: —
   - Cites: —
   - Links: —
-### A. GEMM Speed and Area Efficiency
+### A. Skinny GEMM Speedup and Area Efficiency
 - **[eval-gemm-summary]**
   - Message: CoDe matches LP-Spec-style's GEMM speed on about half its logic and outruns P3-LLM-style once a GEMM has more than two token rows; Fig. 7 plots speed-up over stock AiM and GOPS per logic mm² against M (rows mobile / edge server), with the NPU as a line, gmean over the FC shapes.
   - Floats: Fig. 7 (fig:gemm, first cite)
@@ -346,11 +346,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Numbers: 0.539× / 0.56× logic ← tables [table4], gemm; vs LP-Spec-style 1.86× (M ≤ 4), 2.07× (M ≥ 8) mobile, 1.79× every M (edge); vs P3-LLM-style 1.43× (M = 4), 1.59× (M ≥ 8) mobile, 1.46–1.47× (M ≥ 4) edge; 0.75× at M ≤ 2 ← gemm (M = 1, 2, 4, …, 64)
   - Cites: —
   - Links: ← mot-logic-cost, meth-designs-area
-### B. End-to-End Speedup
+### B. End-to-End Speedup and Area Efficiency
 - **[eval-e2e-phone]** "Mobile platform"
-  - Message: Fig. 8 runs whole decoding on the five systems (mobile M = 4, edge batch 8); on the mobile platform CoDe and LP-Spec-style decode fastest, P3-LLM-style's two-token read needs two passes at M = 4, the order holds at each system's own best M, and CoDe pulls ahead of LP-Spec-style past M = 4.
+  - Message: Fig. 8 runs whole decoding on the five systems (mobile M = 4, edge batch 8), with the setting's reason (user, 2026-10-30): at acceptance 0.7 a round yields fewer than 1/(1 − 0.7) ≈ 3.3 tokens, so the verify pass stays short, and M = 4 is NPU only's best M and within 2 % of NPU + LP-Spec-style's and NPU + CoDe's best; batch 8 is a light edge-server load, the largest power of two before NPU only overtakes CoDe; on the mobile platform CoDe and LP-Spec-style decode fastest, P3-LLM-style's two-token read needs two passes at M = 4, the order holds at each system's own best M, and CoDe pulls ahead of LP-Spec-style past M = 4.
   - Floats: Fig. 8 (fig:e2e, first cite), Fig. 8a
-  - Numbers: 4.37× / 4.34× NPU only at 46.4 / 46.1 tok/s; P3-LLM-style 2.96×, stock 1.81×; best M: 47.1 / 46.8 (M = 3), 43.8 / 26.5 (M = 2), NPU only 10.6 (M = 4); 1.07× at M = 8 and 16 ← e2e (sd8g3 §2f; ev56_best / ev56_chain L 1024)
+  - Numbers: 4.37× / 4.34× NPU only at 46.4 / 46.1 tok/s; P3-LLM-style 2.96×, stock 1.81×; best M: 47.1 / 46.8 (M = 3), 43.8 / 26.5 (M = 2), NPU only 10.6 (M = 4); 1.07× at M = 8 and 16; 3.3 (tokens per round = (1 − α^M)/(1 − α), from ev56_chain T_round × tok/s); within 2 % (CoDe 1.5 %, LP-Spec-style 1.7 %) ← e2e (sd8g3 §2f; ev56_best / ev56_chain L 1024)
   - Cites: —
   - Links: ← intro-code-proposal, abs-summary, meth-workloads, des-mapping
 - **[eval-e2e-server]** "Edge server"
@@ -385,30 +385,30 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Numbers: steps 1.24× / 1.15× after row reuse (Table IV); U 0.223 / 0.222 after row reuse; beat-filling step 3.49× / 3.33×; CoDe f_MAC 0.779 / 0.739 vs stock 0.717 / 0.771 (Table IV); other order (beat filling alone, defined here as a per-sweep rule: a quarter of stock AiM's MAC slots plus its non-MAC time; moved from des-beat-slot-factor) f_MAC = U 0.425 / 0.506, steps 2.37× then 1.83× and 2.62× then 1.46× (only home of the both-order gain) ← tables [umac_src_table] (2x2 §2i)
   - Cites: —
   - Links: ← des-tile-mac-overview, des-beat-slot-factor, des-row-reuse
-- **[eval-vsweep-summary]** "Choice of tile size" (run-in head added 2026-10-30, as it follows eval-gain-sources)
-  - Message: Throughput per logic mm² peaks at V = D on both platforms, and the mobile platform's V = 8 bounds the per-mm² loss across a decode step's token rows.
-  - Floats: Fig. 9 (first cite)
-  - Numbers: V 1–64 at M = 64; M = 1–16 ← vsw
+- **[eval-vsweep-gain]** "Tile size on a full GEMM" (run-in head; restructured with eval-vsweep-area / -partial / -choice, user 2026-10-30: two heads of two paragraphs each)
+  - Message: Setting first (V swept 1–64 for q_proj at M = 64, every tile full; mobile staging a V-slice register below V = 8); up to V = D a larger tile fills idle beats, and beyond V = D it removes only row-switch commands.
+  - Floats: Fig. 9 (first cite), Fig. 9a
+  - Numbers: 3.86× / 3.69× at V = D, 4.90× / 4.39× at V = 64; idle beats 72 % of the V 1 → 2 saving, row switches 91.6 % of the V 4 → 8 saving ← vsw (2x2 §2k). Cut 2026-10-30, asserts kept as guards: row-switch 21 % / refresh 7 % shares, 18.9 → 10.4 %, 20.5 µs token load
+  - Cites: —
+  - Links: ← des-tile-size
+- **[eval-vsweep-area]** (no head; second paragraph under "Tile size on a full GEMM")
+  - Message: Past V = D CoDe's storage grows faster than its speed, so throughput per logic mm² peaks at V = D on both platforms; transition: a full tile favours V = D, but a decode step runs at small M, where the last row sweep is often partly filled.
+  - Floats: Fig. 9a
+  - Numbers: V 4 → 8 logic +16 % (mobile) / +40 % (edge server) against speed 1.117× / 1.089×; peaks 3.01× / 2.34× stock AiM ← vsw (2x2 §2k). Cut 2026-10-30 (guards kept): 1.212 → 1.406 / 0.821 → 1.153 mm², break-even 1.160× / 1.405×, 96.3 % / 77.5 % of peak
   - Cites: —
   - Links: ← des-tile-size, meth-designs-area
-- **[eval-vsweep-gain]** "Gain by tile size"
-  - Message: Up to V = D a larger tile fills idle beats, and beyond V = D it removes only row-switch commands.
+- **[eval-vsweep-partial]** "Tile size across $M$"
+  - Message: Setting (V = 8 against V = 4, decode-step throughput per logic mm², M = 1–16); V = 8 wins only where it saves V = 4 a partly filled row sweep, and loses where both tiles run the same sweeps (M ≤ 4); the edge server never reaches break-even. ("Only where" is a necessary condition: V = 8 also saves a sweep at M = 8, 11, 12, 16 and still loses there, 0.97–0.99×.)
+  - Floats: Fig. 9b
+  - Numbers: M = 5: two sweeps of three and two tokens vs one → 1.324×; wins at M = 5–7, 9–10, 13–15; M ≤ 4 → 0.862×; edge server best 0.944× (M = 5) ← vsw (2x2 §2l, §2m)
+  - Cites: —
+  - Links: ← des-tile-size
+- **[eval-vsweep-choice]** (no head; second paragraph under "Tile size across $M$")
+  - Message: CoDe sets V per platform by its worst per-mm² loss over M = 3–16 against the best of V = 2, 4, 8, 16: mobile V = 8, edge server V = 4 (the mobile one-tile kernel alone favours V = 4, one clause); V = 8 pays its worst loss at M = 3–4, which includes Section VI-B's M = 4, the loop's best M with an EAGLE head.
   - Floats: —
-  - Numbers: 3.86× / 3.69× at V = D, 4.90× / 4.39× at V = 64; 72 / 21 / 7 %; 91.6 %; 18.9 → 10.4 %; 20.5 µs ← vsw (2x2 §2k)
+  - Numbers: mobile V = 8 13.8 % vs V = 4 29.4 % (q_proj); edge server V = 4 11.7 % vs V = 8 28.8–30.0 % ← vsw (2x2 §2l–2n); EAGLE best M = 4 ← e2e (ev56_best). Cut 2026-10-30 (guards kept): 24.5 % verify-step loss, one-tile 4.6 %, one-tile token load 28.3 % (brk)
   - Cites: —
-  - Links: ← des-tile-size
-- **[eval-vsweep-area]** "Area against speed"
-  - Message: Past V = D CoDe's storage grows faster than its speed, so both per-mm² curves peak at V = D.
-  - Floats: Fig. 9
-  - Numbers: 3.01× / 2.34×; +16 % (1.212 → 1.406 mm²), +40 % (0.821 → 1.153 mm²); break-even 1.160× / 1.405×; 1.117× / 1.089×; 96.3 % / 77.5 % ← vsw (2x2 §2k, §2l)
-  - Cites: —
-  - Links: ← des-tile-size
-- **[eval-vsweep-robust]** "Robustness across $M$"
-  - Message: Partial last row sweeps make V = 8 win per mm² at several M on the mobile platform, and V = 8 caps the worst per-mm² loss over M = 3–16 at 13.8 % against V = 4's 29.4 %.
-  - Floats: Fig. 9
-  - Numbers: wins at M = 5–7, 9–10, 13–15; 1.324× and 0.862×; HBM2 peak 0.944×; 29.4 / 24.5 % vs 13.8 %; HBM2 11.7 % vs 28.8–30.0 %; one-tile 4.6 / 13.8 %, its token load 28.3 % of stock AiM's time at M = 8 (one GB fill serves one row sweep; moved from mot-load-refresh-cost) ← brk; best M = 3 / 4 ← vsw (2x2 §2l–2n)
-  - Cites: —
-  - Links: ← des-tile-size, meth-workloads (EAGLE), eval-e2e-phone (best M 3 with the 1.1B draft), mot-breakdown-setup (Fig. 3 one tile)
+  - Links: ← des-tile-size, meth-workloads (EAGLE), eval-e2e-phone (M = 4), mot-breakdown-setup (Fig. 3's one tile)
 
 ## VII. Conclusion  (sections/07_conclusion.tex)
 - **[conc-summary]**
@@ -432,8 +432,8 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 | Table III | tab:params | tables/tab_params.tex ← tables [platform_block, table4] (05_methodology.tex, V-A) | bg-dram-channel (p2) | p8 L (configuration table: F12 exception; first cite in V on p8) |
 | Fig. 7 | fig:gemm | figs/fig_gemm.pdf ← gemm, html2pdf.py (05_methodology.tex, figure* at V-C's start) | eval-gemm-summary (p9 L) | p9 top, both columns |
 | Fig. 8 | fig:e2e | figs/fig_e2e.pdf ← e2e, html2pdf.py (06_evaluation.tex, figure* after eval-gemm-per-mm2) | eval-e2e-phone (p9 R) | p10 top, both columns |
-| Fig. 9 | fig:vsweep | figs/fig_vsweep.pdf ← vsw (06_evaluation.tex) | eval-vsweep-summary (p10 R) | p11 L |
-| Table IV | tab:umac_src | tables/tab_umac_src.tex ← tables (06_evaluation.tex, end of VI) | eval-gain-sources (p10 L) | p11 R (next page; p10's top holds Fig. 8) |
+| Fig. 9 | fig:vsweep | figs/fig_vsweep.pdf ← vsw (06_evaluation.tex) | eval-vsweep-gain (p10 R) | p11 L |
+| Table IV | tab:umac_src | tables/tab_umac_src.tex ← tables (07_conclusion.tex, right after the Conclusion heading, so that it misses Fig. 9's column; since 2026-10-30) | eval-gain-sources (p10 L) | p11 R top (next page; p10's top holds Fig. 8) |
 | Eq. 1 | eq:fmac | 03_motivation.tex | mot-sweep-factor | p4 L |
 
 ## Observations
@@ -441,8 +441,8 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 |---|---|---|---|
 | 1 | resolved | mot-nonmac-classes … mot-utilization | Resolved again (user, 2026-10-28): III-B now runs setup (mot-breakdown-setup) → Non-MAC commands (classes, non-MAC cost with row switch first, sweep factor; mot-load-refresh-cost merged into mot-rowswitch-cost, user 2026-10-29) → Idle beats (idle beats, cause) → mot-utilization (U, Table I, transition to III-C). Before (user plan, 2026-10-27): split into Non-MAC commands (what each command costs per row sweep; row switches outlast the useful MAC work) and Sweep factor (Eq. 1, Table I, f_MAC 0.717, U 0.179). Was: one paragraph (≈ 30 source lines, ≈ 25 numbers) carries the f_MAC formula and fit, the per-command row-switch split, token load against GB fills, refresh, the edge-server totals and stock U = 0.179; class names are used before this paragraph defines them. |
 | 2 | two messages | meth-simulator | One paragraph carries five topics: the simulator and PU model, P3-LLM validation and C/A re-timing, refresh, area scaling, and the power/energy flow. |
-| 3 | two messages | eval-vsweep-robust, mot-logic-cost, eval-e2e-phone | eval-vsweep-robust (minimax choice of V = 8) and mot-logic-cost (logic-die designs) still add a second claim; eval-e2e-phone carries the figure setup, the M = 4 result, the best-M check and the M ≥ 5 lead. The former eval-phone-per-mm2 / -energy / eval-server-beats cases left with the VI restructure (2026-10-30). |
-| 4 | placement | eval-gain-sources | Since 2026-10-30 eval-gain-sources opens VI-D (Ablation Study), which fits its stock-to-CoDe, both-platform scope; Table IV still lands on the page after its citation (cite p10 L, table p11 R; p10's top holds Fig. 8). It remains the only home of the both-order gain. |
+| 3 | two messages | mot-logic-cost, eval-e2e-phone | mot-logic-cost (logic-die designs) still adds a second claim (eval-vsweep-robust's two claims split into eval-vsweep-partial / -choice, 2026-10-30); eval-e2e-phone carries the figure setup and its reason (M = 4, batch 8), the M = 4 result, the best-M check and the M ≥ 5 lead. The former eval-phone-per-mm2 / -energy / eval-server-beats cases left with the VI restructure (2026-10-30). |
+| 4 | placement | eval-gain-sources | Since 2026-10-30 eval-gain-sources opens VI-D (Ablation Study), which fits its stock-to-CoDe, both-platform scope; Table IV still lands on the page after its citation (cite p10 L, table p11 R; p10's top holds Fig. 8); its source now sits after the Conclusion heading so that it does not share p11 L with Fig. 9. It remains the only home of the both-order gain. |
 | 5 | resolved | eval-gain-sources | Resolved (user plan, 2026-10-27): des-gain-order deleted; the both-order gain lives only in VI-B (2.37× / 1.83×, Table IV values); the 2.3 % reconciling sentence left IV-B. Was: the two-order gain printed 2.39× then 1.84× (Fig. 5 window) in IV-A and 2.37× then 1.83× (one layer, Table IV) in VI-B; only des-beat-slot-factor's 2.3 % sentence reconciles them. |
 | 6 | restatement | intro-prior-families / mot-prior-families; intro-timing-insight / mot-depth; mot-idle-beats / mot-depth | The two families are named in I and III-C; mot-depth now points to Table III for the column period and CK instead of reprinting the intro's 5 ns / 4 ns / 0.8–1 GHz, and mot-idle-cause's column-access argument is now one sentence (each column command reads one column; t_CCD spacing), leaving the latched-column argument to mot-depth. D is now defined once, in bg-aim-pu (its first point of need), and III and IV point back to it (resolves "D derived late"); intro-timing-insight still derives D = t_col × f_PU itself (introduction untouched). |
 | 7 | restatement | des-tile-size / meth-designs-area; intro-prior-families / mot-logic-cost | The reason for V = 4 on HBM2 (twice the slice, one PU per two banks) is given in IV-D and again in V-B; LP-Spec's 16.92 % is printed in I and III-C; 0.539× appears in I, V-B and VI-A. |
