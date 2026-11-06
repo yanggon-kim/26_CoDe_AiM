@@ -128,7 +128,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Fig. 3 (first cite; float defined after this paragraph), Fig. 1 (b), Table III
   - Numbers: one tile 2048 × 64 / 4096 × 256 (one row sweep per bank, one GB chunk); q_proj 4096 × 4096; M = 8, one channel; useful 14.1–19.1 %, non-MAC 23.4–43.7 %, idle 42.2–57.4 % ← brk (2x2 §2j; the ≤ 0.015 % stalls stay a guard assert only)
   - Cites: lpspec, p3llm
-  - Links: ← bg-aim-pu, bg-row-sweep, mot-a-summary; → mot-nonmac-classes, mot-idle-beats, mot-utilization, meth-designs-area, eval-vsweep-choice (Fig. 3's one tile)
+  - Links: ← bg-aim-pu, bg-row-sweep, mot-a-summary; → mot-nonmac-classes, mot-idle-beats, mot-utilization, meth-designs (precision), eval-vsweep-choice (Fig. 3's one tile)
 - **[mot-nonmac-classes]** "Non-MAC commands" (run-in head over mot-nonmac-classes … mot-sweep-factor)
   - Message: Every row sweep pays a fixed set of non-MAC commands, and stock AiM pays the set for every token: plain opener (non-MAC commands stall every PU: no PU starts a MAC while they run) → Fig. 3's four non-MAC segments form three classes of II-B's commands (row-switch commands cost t_row once per row sweep; token load/drain commands cost t_tok once per token; refresh blocks commands for t_RFCab every t_REFI) → with one token per stock row sweep (A = 1, II-B), a GEMM pays a row's row-switch commands M times, a GEMV once.
   - Floats: Fig. 3, Fig. 1 (c), Table III
@@ -183,7 +183,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: —
   - Numbers: 10× less dense, 3 vs 10+ metal layers (UPMEM's report, devaux); 0.19 mm² per PU; 50 % capacity ← hbmpim (halved sub-arrays, p. 8); 16.92 % for compute units and buffers (lpspec p. 7) vs 20–25 % ← cited; LP-Spec-style 314 / 697 vs stock AiM 216 / 492 GOPS/mm² ← roof
   - Cites: devaux, aimjssc, hbmpim, lpspec
-  - Links: ← intro-prior-families, mot-wider-pu; → eval-gemm-per-mm2, eval-e2e-per-mm2
+  - Links: ← intro-prior-families, mot-wider-pu; → eval-gemm-per-mm2, eval-e2e-per-mm2, eval-area-budget (AiM's 20–25 % printed here only; VI-D points back)
 - **[mot-faster-pu]** "Faster-PU family"
   - Message: Faster-PU designs speed up the PU but still start every MAC with a command, so DRAM command timing, not the PU clock, caps them at two beats per column read (opener; the user's top point in this paragraph): commands issue every t_CCD_S, half of t_CCD_L, so P3-LLM-style, the edge-server rival, stops at U_MAC = 1/2 however fast its PU runs, yet keeps a higher ceiling per logic mm² than LP-Spec-style.
   - Floats: Fig. 4 (P3-LLM row), Fig. 2, Table III
@@ -210,11 +210,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: hbmpim, devaux, prim, aimjssc, flashbolt, pfpu, tiroadmap, tid1a16, tid1a24
   - Links: ← intro-timing-insight; → mot-two-levers, des-pu-clock
 - **[mot-two-levers]**
-  - Message: A PU at CK fits in a DRAM die, and the wider-PU family shows how much logic area a PIM die already gives to filling idle beats, so we keep the stock multipliers, run them at CK within that area, and answer each root cause of III-B with one lever (opener): row reuse (IV-B) answers the non-MAC commands by cutting their time per token (no claim that row reuse raises f_MAC; the rival contrast lives in des-row-reuse); beat filling (IV-C) uses all D beats of a column period without adding multipliers and answers the idle beats (III-B's order, since 2026-10-29). "Within that area" checked against Table III: CoDe's logic 1.406 vs LP-Spec-style 2.610 mm² per die (0.539×), 0.821 vs 1.469 mm² per pCH (0.56×).
+  - Message: A PU at CK fits in a DRAM die, and the wider-PU family shows how much logic area a PIM die already gives to filling idle beats, so we keep the stock multipliers, run them at CK within that area, and answer each root cause of III-B with one lever (opener): row reuse (IV-B) answers the non-MAC commands by cutting their time per token (no claim that row reuse raises f_MAC; the rival contrast lives in des-row-reuse); beat filling (IV-C) uses all D beats of a column period without adding multipliers and answers the idle beats (III-B's order, since 2026-10-29). "Within that area" checked against Table III: CoDe's logic 1.406 vs LP-Spec-style 2.610 mm² per die (0.539×), 0.821 vs 1.469 mm² per pCH (0.56×); proved in eval-area-split.
   - Floats: Fig. 1
   - Numbers: D = 4 beats per column read, one used ← structural; no CoDe number
   - Cites: —
-  - Links: ← mot-idle-beats, mot-nonmac-classes, mot-rowswitch-cost, mot-depth, mot-pu-clock-precedent, mot-logic-cost; → des-tile-mac-overview, des-row-reuse, des-beat-decouple, meth-designs-area
+  - Links: ← mot-idle-beats, mot-nonmac-classes, mot-rowswitch-cost, mot-depth, mot-pu-clock-precedent, mot-logic-cost; → des-tile-mac-overview, des-row-reuse, des-beat-decouple, eval-area-split
 
 ## IV. CoDe Design  (sections/04_design.tex)  — mirrors III: IV-A one mechanism, IV-B ↔ III-B non-MAC commands, IV-C ↔ III-B idle beats (III-B's order; row reuse first since 2026-10-29); each component paragraph: cause recalled → mechanism → contrast with the III-C family → effect in Fig. 6
 ### A. Overview: One Command, Many MAC Beats
@@ -274,7 +274,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: —
   - Numbers: — (precedent and its citations live only in mot-pu-clock-precedent)
   - Cites: —
-  - Links: ← mot-pu-clock-precedent; → meth-designs-area, eval-power
+  - Links: ← mot-pu-clock-precedent; → meth-designs (PU clock in Table III), eval-power-headroom, eval-power
 ### E. Mapping Skinny GEMMs and Attention
 - **[des-mapping]**
   - Message: CoDe maps a skinny GEMM as stock AiM does but cuts the M token rows into tiles of V, and speculative-decoding attention maps the same way while batched attention stays one GEMV per request.
@@ -291,23 +291,35 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Numbers: platform block (NPU 12 / 131 TOPS, 42 / 256 GB/s; LPDDR5-6400 / HBM2 2.0 Gb/s; 4 dies × 16 / 16 pCH × 16 banks; 409.6 / 1,024 GB/s; t_CK 1.25 / 1 ns; t_CCD_S, t_CCD_L 2.5, 5 / 2, 4 ns; PU per bank / per two banks; t_REFI, t_RFCab 3.906 µs, 280 ns / simulator preset; INT8 / W4A8) ← tables [platform_block] (dac_sd8g3 ev57_host, ev57_ceilings, ev56_mech_inputs, context.md; dac_2x2 ev57_host, ev57_ceilings, dacp_inputs, dac2x2_setup, utrace_run_core8_gbfill; EV-58 dac_table4) and cited spec values; prose: 12 TOPS for INT8 [assumption], 131 TOPS peak [assumption]; 30 µs [assumption] ← npufaster; 2.285 W [assumption] ← derived from cites, no script; 55 W [assumption] ← tpuv4i
   - Cites: sd8g3, lpspec, hao2025, npufaster, heterollm, tman, p3llm, tpuv4i
   - Links: ← bg-aim-pu, mot-roofline-setup
-### B. PIM Designs and Area
-- **[meth-designs-area]** (label sec:method:designs)
-  - Message: Every design computes at its platform's precision (back-reference to mot-breakdown-setup) on one controller, and CoDe reaches LP-Spec-style's peak on 0.539× its logic area by spending area on storage instead of arithmetic.
+### B. PIM Designs
+- **[meth-designs]** (label sec:method:designs; was meth-designs-area until 2026-11-06: the area comparison moved to eval-area-split)
+  - Message: Each platform carries four designs on one controller at the platform's precision (back-reference to mot-breakdown-setup), and Table III lists each design's lanes, PU clock, D, V, accumulator slots and GB size; design facts only.
   - Floats: Table III
-  - Numbers: V = 8 / V = D = 4; 0.539×; arithmetic 0.73 / 0.34, storage 0.32 / 0.10; HBM2 0.56× and 1.33× ← tables [table4, area_split]
+  - Numbers: V = 8 / V = D = 4 ← tables [table4]
   - Cites: aimjssc
-  - Links: ← des-tile-size, des-pu-clock, mot-breakdown-setup (precision); → eval-gemm-per-mm2 (0.539× / 0.56×), eval-vsweep-area
+  - Links: ← des-tile-size, des-pu-clock, mot-breakdown-setup (precision); → eval-vsweep-gain (V sized in VI-E)
 ### C. Simulator and Models
-- **[meth-simulator]**
-  - Message: A cycle-level AiM simulator on Ramulator 2.0 times every design's commands, including JEDEC refresh, and synthesis-based models give area, peak power and energy per token.
+- **[meth-simulator]** (label sec:method:models on V-C)
+  - Message: A cycle-level AiM simulator on Ramulator 2.0 times every design's commands, including JEDEC refresh, and reproduces P3-LLM's own depth-2 step gain.
   - Floats: — (Fig. 7 fig:gemm float defined at V-C's start)
-  - Numbers: 1.78× vs 1.6× ← tables [phone_levels]; U 0.355 → 0.351 ← tables [umac_table]; t_REFI / t_RFCab → Table III [assumption]; ρ 0.070 ← tables [umac_table]; 45 nm → 1z by AttAcc's estimated GEMV-unit area, Nangate45, 1.05 V; 87.6 / 54.8 mW fetch ← tables [table_power]
-  - Cites: ramulator2, cent, p3llm, attacc, abc, openroad, horowitz
-  - Links: ← mot-rowswitch-cost (refresh), mot-sweep-factor (ρ); → eval-power
+  - Numbers: 1.78× vs 1.6× ← tables [phone_levels]; U 0.355 → 0.351 ← tables [umac_table]; t_REFI / t_RFCab → Table III [assumption]; ρ 0.070 ← tables [umac_table]
+  - Cites: ramulator2, cent, p3llm
+  - Links: ← mot-rowswitch-cost (refresh), mot-sweep-factor (ρ)
+- **[meth-area-model]** (split from meth-simulator, 2026-11-06)
+  - Message: Logic area comes from 45 nm synthesis scaled to 1z by AttAcc's estimated GEMV unit (an estimate carrying UPMEM's tenfold density penalty), with fixed control per PU and the GB as DRAM-process SRAM; AiM's fabricated 0.19 mm² PU is 2.24× our model of it, so VI-D also scales logic and registers by 2.24 as an upper bound; die shares divide by a 60.92 mm² 16 Gb LPDDR5 die (as LP-Spec reports) and by a stack of eight 84.4 mm² HBM-PIM dies standing in for plain HBM2 dies [assumption].
+  - Floats: —
+  - Numbers: 0.19 mm² (aimjssc p. 297); 2.24 ← budget.silicon_factor.aim; 60.92 mm² ← budget.cite.lpddr5_die_mm2_1z (LP-Spec p. 7; its ISSCC'21 origin unread, so never cited directly); 8 × 84.4 mm² ← budget.cite.hbmpim_die_mm2, budget.hbm2.stack_mm2 ([A-XC4]) ← tables [budget_checks] (sd8g3 §2g, 2x2 §2q)
+  - Cites: attacc, devaux, aimjssc, lpspec, hbmpim
+  - Links: → eval-area-budget, eval-area-split, eval-gemm-per-mm2, eval-vsweep-area
+- **[meth-power-model]** (split from meth-simulator, 2026-11-06)
+  - Message: PU power and energy come from whole-PU synthesis calibrated to CENT's AiM MAC energy at 1.05 V; energy per token charges MACs, leakage, GB reads and DRAM commands; peak power runs every PU at its full MAC rate with leakage, GB reads and the column fetch but without activation, refresh, background or I/O power; CoDe adds clock gates (accumulator slots, staging words, weight latch), the rivals are ungated; yardsticks: a full-rate x16 LPDDR5X read 447 mW, an HBM2 stack read 8.0 W.
+  - Floats: —
+  - Numbers: Nangate45, 1.05 V; 87.6 / 54.8 mW fetch ← tables [table_power]; 447 mW ← budget.cite.lpddr5x_read_mW_per_x16_ch (Micron Y52Q Rev. G Table 16); 8.0 W at 3.92 pJ/bit ← budget.cite.hbm2_stack_read_W, budget.cite.hbm2_access_pJ_per_bit (O'Connor p. 43) ← tables [budget_checks]
+  - Cites: abc, openroad, cent, horowitz, micronlp5x, oconnor
+  - Links: ← des-pu-clock; → eval-energy, eval-power
 ### D. Algorithms and Workloads
 - **[meth-workloads]** (label sec:method:work)
-  - Message: The mobile platform runs speculative decoding of Llama-2-7B with a 1.1B draft (EAGLE head only in VI-D) and the edge server batched decoding of five LLMs at a 4K context; end to end every system runs M = 4 (mobile) and batch 8 (edge server); NPU only runs everything on the NPU, NPU + X runs every weight GEMM and attention layer on PIM design X and the element-wise work on the NPU; GEMMs use six FC shapes (mobile) and 25 (edge server).
+  - Message: The mobile platform runs speculative decoding of Llama-2-7B with a 1.1B draft (EAGLE head only in VI-E) and the edge server batched decoding of five LLMs at a 4K context; end to end every system runs M = 4 (mobile) and batch 8 (edge server); NPU only runs everything on the NPU, NPU + X runs every weight GEMM and attention layer on PIM design X and the element-wise work on the NPU; GEMMs use six FC shapes (mobile) and 25 (edge server).
   - Floats: —
   - Numbers: acceptance 0.7; L = 1024; M = 4, batch 8; six / 25 FC shapes ← configuration (sd8g3 §2f, 2x2 §2p)
   - Cites: eagle
@@ -320,7 +332,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: → eval-gemm-summary, eval-e2e-phone
 
-## VI. Evaluation  (sections/06_evaluation.tex)  — restructured 2026-10-30 (user): A GEMM level (Fig. 7), B end to end (Fig. 8), C energy and peak power, D ablation; LP-Spec-style's comparison headline is throughput per logic mm² wherever it appears
+## VI. Evaluation  (sections/06_evaluation.tex)  — restructured 2026-10-30 (user): A GEMM level (Fig. 7), B end to end (Fig. 8), C energy and peak power (with the power headroom of all-bank PIM, 2026-11-06), D area against silicon budgets (2026-11-06), E ablation; LP-Spec-style's comparison headline is throughput per logic mm² wherever it appears
 - **[eval-modelled]**
   - Message: All results are modelled, and ratios above 1 favour CoDe.
   - Floats: —
@@ -345,7 +357,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Fig. 7b
   - Numbers: 0.539× / 0.56× logic ← tables [table4], gemm; vs LP-Spec-style 1.86× (M ≤ 4), 2.07× (M ≥ 8) mobile, 1.79× every M (edge); vs P3-LLM-style 1.43× (M = 4), 1.59× (M ≥ 8) mobile, 1.46–1.47× (M ≥ 4) edge; 0.75× at M ≤ 2 ← gemm (M = 1, 2, 4, …, 64)
   - Cites: —
-  - Links: ← mot-logic-cost, meth-designs-area
+  - Links: ← mot-logic-cost, meth-area-model; → eval-area-split (0.539× / 0.56× proved there; ref Table III; Section VI-D)
 ### B. End-to-End Speedup and Area Efficiency
 - **[eval-e2e-phone]** "Mobile platform"
   - Message: Fig. 8 runs whole decoding on the five systems (mobile M = 4, edge batch 8), with the setting's reason (user, 2026-10-30): at acceptance 0.7 a round yields fewer than 1/(1 − 0.7) ≈ 3.3 tokens, so the verify pass stays short, and M = 4 is NPU only's best M and within 2 % of NPU + LP-Spec-style's and NPU + CoDe's best; batch 8 is a light edge-server load, the largest power of two before NPU only overtakes CoDe; on the mobile platform CoDe and LP-Spec-style decode fastest, P3-LLM-style's two-token read needs two passes at M = 4, the order holds at each system's own best M, and CoDe pulls ahead of LP-Spec-style past M = 4.
@@ -372,14 +384,33 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Numbers: 70.5 mJ/token; NPU only 7.9×, stock 1.80×, P3-LLM-style 1.28×, LP-Spec-style 1.04× (mobile); NPU only 1.48×, P3-LLM-style 1.64×, LP-Spec-style ties (edge, 55 W); gated 1.46× ← e2e
   - Cites: —
   - Links: ← intro-code-proposal, abs-summary, meth-platforms (55 W)
-- **[eval-power]** "Peak power" (merges the former eval-power-peak, -clock-cost, -edge-charge, -gating)
-  - Message: CoDe's faster PU clock keeps its peak power within a few percent of LP-Spec-style's, each clock edge draws several times less charge, and clock gating is an option (every other number ungated).
-  - Floats: Table III
-  - Numbers: 1.04× per die, 1.03× per pCH; 522 pJ per 1.25 ns vs 1,776 pJ per 5 ns, 3.4× / 3.1×; gated 0.92× / 0.87× ← tables [table_power] (2.4 % clock cost, 2.9× / 2.8× leakage, −11.6 / −15.1 % no longer printed)
+- **[eval-power-headroom]** "Power headroom of all-bank PIM" (new 2026-11-06; setting before the peak-power finding)
+  - Message: A DRAM die limits the current its banks draw at once (t_FAW: four activations, set by the charge pumps and their power-delivery network), while all-bank PIM activates and reads every bank at once, so PIM vendors size power delivery for that load (AiM ≈ 3× gapless read current with reservoir capacitors and split power nets, no t_FAW; AttAcc's IDD7 budget; Newton ≈ 4× a peak-bandwidth read, 2.8× on average; SK hynix's bank-count throttling): a PIM die's power budget is a design parameter, not a fixed limit of a stock die.
+  - Floats: —
+  - Numbers: four activations (shevgoor p. 2 / p. 6, PDF); AiM 3× ← budget.cite.aim_mac_current_x_read (JSSC p. 297; reservoir capacitors and tFAW-free ACT16 on p. 295, split power networks p. 297); Newton 4× (p. 380), 2.8× (p. 382) ← budget.cite.newton_* ; AttAcc IDD7 (author PDF p. 6); SK hynix HC36 slide 21 (PDF p. 21, printed 20; "Design Choices for Future AiM/AiMX": Power Throttling, #Banks to MAC) ← tables [budget_checks]
+  - Cites: shevgoor, aimjssc, attacc, newton, aimxhc36
+  - Links: ← meth-power-model; → eval-power
+- **[eval-power]** "Peak power" (rewritten 2026-11-06: headroom first, then the LP-Spec-style ratios; rivals never gated)
+  - Message: CoDe's peak power falls inside this headroom on both platforms and stays close to LP-Spec-style's: gated CoDe draws 1.20× a full-rate x16 read per die (below AiM's 3×) and 0.75× a full-rate HBM2 stack read (HBM-PIM likewise stays within the original HBM's TDP); gated 0.92× / 0.87×, ungated 1.04× / 1.03× LP-Spec-style; each CoDe clock edge draws 3.4× / 3.1× less charge.
+  - Floats: Table III (CoDe's gated mW in parentheses)
+  - Numbers: 0.54 W per die, 1.20× ← budget.phone.core8_gated.*; 5.98 W per stack, 0.75× ← budget.hbm2.core4_gated.*; 0.92× / 0.87× ← budget.*.gated.over_h2_ungated (= pupow gate ids); 1.04× / 1.03×, 3.4× / 3.1× ← tables [table_power, budget_checks] (522 / 1,776 pJ no longer printed, asserted as guards; 2.4 % clock cost, 2.9× / 2.8× leakage, −11.6 / −15.1 % no longer printed)
+  - Cites: hbmpim
+  - Links: ← meth-power-model, eval-power-headroom, des-pu-clock
+### D. Area Against Silicon Budgets  (label sec:eval:area; new 2026-11-06)
+- **[eval-area-budget]** (subsection opener: frame first)
+  - Message: Fabricated PIM dies set the scale for a PIM design's logic area (HBM-PIM 27 % of its die by our division with halved sub-arrays; AiM 20–25 %, pointed back to III-C), and CoDe's logic takes 2.31 % of the LPDDR5 die and 1.95 % of the HBM2 stack, 4.96 % / 4.02 % at AiM's silicon scale, at most a quarter of AiM's share, while keeping every cell array; LP-Spec-style 4.28 % / 3.48 %, 9.47 % / 7.50 %.
+  - Floats: Table III (% column)
+  - Numbers: 32 × 0.712 mm² on 84.4 mm², 27 % (derived, never stated by Samsung) ← budget.hbmpim.area_share_pct; % of die / stack ← budget.phone.<d>.pct_of_die_1z, budget.hbm2.<d>.pct_of_stack_model (Table III, tables [budget_cells]); ×2.24 shares ← budget.*.pct_of_*_anch_aim ← tables [budget_checks]. LP-Spec's own 16.92 % is printed in I and III-C only.
+  - Cites: hbmpim
+  - Links: ← meth-area-model, mot-logic-cost
+- **[eval-area-split]** "Logic against LP-Spec-style" (moved from V-B, 2026-11-06)
+  - Message: CoDe reaches LP-Spec-style's peak with 0.539× its logic per die because it spends its logic on storage rather than arithmetic; on HBM2 its logic is 0.56× LP-Spec-style's and 1.33× P3-LLM-style's for twice P3-LLM-style's beats per column period; at AiM's silicon scale the ratio stays 0.524 / 0.536.
+  - Floats: —
+  - Numbers: 0.539×; arithmetic 0.73 / 0.34, storage 0.32 / 0.10; 0.56×, 1.33× ← tables [table4, area_split]; 0.524 / 0.536 ← budget.*.anch_aim.*_over_h2 ← tables [budget_checks]
   - Cites: —
-  - Links: ← meth-simulator, des-pu-clock
-### D. Ablation Study
-- **[eval-gain-sources]** "Sources of CoDe's gain" (moved from VI-B to VI-D, 2026-10-30; the both-sources-from-one-mechanism sentence cut)
+  - Links: ← meth-area-model, mot-two-levers, eval-gemm-per-mm2
+### E. Ablation Study
+- **[eval-gain-sources]** "Sources of CoDe's gain" (moved from VI-B to VI-D, 2026-10-30, VI-E since 2026-11-06; the both-sources-from-one-mechanism sentence cut)
   - Message: CoDe's gain over stock AiM comes from beat filling, which raises the slot factor, and row reuse, which keeps the sweep factor near stock AiM's level once beat filling shortens the MAC slots; beat filling earns its full step only after row reuse has removed most of the row-switch overhead (relative form; never claims CoDe raises f_MAC on the edge server).
   - Floats: Table IV (first cite), Table I
   - Numbers: steps 1.24× / 1.15× after row reuse (Table IV); U 0.223 / 0.222 after row reuse; beat-filling step 3.49× / 3.33×; CoDe f_MAC 0.779 / 0.739 vs stock 0.717 / 0.771 (Table IV); other order (beat filling alone, defined here as a per-sweep rule: a quarter of stock AiM's MAC slots plus its non-MAC time; moved from des-beat-slot-factor) f_MAC = U 0.425 / 0.506, steps 2.37× then 1.83× and 2.62× then 1.46× (only home of the both-order gain) ← tables [umac_src_table] (2x2 §2i)
@@ -396,7 +427,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Fig. 9a
   - Numbers: V 4 → 8 logic +16 % (mobile) / +40 % (edge server) against speed 1.117× / 1.089×; peaks 3.01× / 2.34× stock AiM ← vsw (2x2 §2k). Cut 2026-10-30 (guards kept): 1.212 → 1.406 / 0.821 → 1.153 mm², break-even 1.160× / 1.405×, 96.3 % / 77.5 % of peak
   - Cites: —
-  - Links: ← des-tile-size, meth-designs-area
+  - Links: ← des-tile-size, meth-area-model
 - **[eval-vsweep-partial]** "Tile size across $M$"
   - Message: Setting (V = 8 against V = 4, decode-step throughput per logic mm², M = 1–16); V = 8 wins only where it saves V = 4 a partly filled row sweep, and loses where both tiles run the same sweeps (M ≤ 4); the edge server never reaches break-even. ("Only where" is a necessary condition: V = 8 also saves a sweep at M = 8, 11, 12, 16 and still loses there, 0.97–0.99×.)
   - Floats: Fig. 9b
@@ -429,25 +460,25 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 | Fig. 5 | fig:tile | figs/fig_tile.pdf ← figs/src/fig_tile.html, html2pdf.py (04_design.tex, top of IV) | des-tile-mac-overview (p6 L) | p6 L |
 | Fig. 6 | fig:mapping | figs/fig_mapping.pdf ← map, html2pdf.py (04_design.tex, after IV-A) | des-row-reuse (p6 L) | p6 R |
 | Table II | tab:cmds | tables/tab_cmds.tex ← map (04_design.tex) | des-command-set (p7 L) | p7 R |
-| Table III | tab:params | tables/tab_params.tex ← tables [platform_block, table4] (05_methodology.tex, V-A) | bg-dram-channel (p2) | p8 L (configuration table: F12 exception; first cite in V on p8) |
+| Table III | tab:params | tables/tab_params.tex ← tables [platform_block, table4, budget_cells] (05_methodology.tex, V-A; design block adds % of die / stack and CoDe's gated mW, 2026-11-06) | bg-dram-channel (p2) | p8 L (configuration table: F12 exception; first cite in V on p8) |
 | Fig. 7 | fig:gemm | figs/fig_gemm.pdf ← gemm, html2pdf.py (05_methodology.tex, figure* at V-C's start) | eval-gemm-summary (p9 L) | p9 top, both columns |
 | Fig. 8 | fig:e2e | figs/fig_e2e.pdf ← e2e, html2pdf.py (06_evaluation.tex, figure* after eval-gemm-per-mm2) | eval-e2e-phone (p9 R) | p10 top, both columns |
-| Fig. 9 | fig:vsweep | figs/fig_vsweep.pdf ← vsw (06_evaluation.tex) | eval-vsweep-gain (p10 R) | p11 L |
-| Table IV | tab:umac_src | tables/tab_umac_src.tex ← tables (07_conclusion.tex, right after the Conclusion heading, so that it misses Fig. 9's column; since 2026-10-30) | eval-gain-sources (p10 L) | p11 R top (next page; p10's top holds Fig. 8) |
+| Fig. 9 | fig:vsweep | figs/fig_vsweep.pdf ← vsw (06_evaluation.tex) | eval-vsweep-gain (p11 L) | p11 R top |
+| Table IV | tab:umac_src | tables/tab_umac_src.tex ← tables (07_conclusion.tex, right after the Conclusion heading; since 2026-10-30) | eval-gain-sources (p11 L) | p12 L top (next page; the Conclusion heading now sits at p11 R's foot) |
 | Eq. 1 | eq:fmac | 03_motivation.tex | mot-sweep-factor | p4 L |
 
 ## Observations
 | # | kind | where | observation |
 |---|---|---|---|
 | 1 | resolved | mot-nonmac-classes … mot-utilization | Resolved again (user, 2026-10-28): III-B now runs setup (mot-breakdown-setup) → Non-MAC commands (classes, non-MAC cost with row switch first, sweep factor; mot-load-refresh-cost merged into mot-rowswitch-cost, user 2026-10-29) → Idle beats (idle beats, cause) → mot-utilization (U, Table I, transition to III-C). Before (user plan, 2026-10-27): split into Non-MAC commands (what each command costs per row sweep; row switches outlast the useful MAC work) and Sweep factor (Eq. 1, Table I, f_MAC 0.717, U 0.179). Was: one paragraph (≈ 30 source lines, ≈ 25 numbers) carries the f_MAC formula and fit, the per-command row-switch split, token load against GB fills, refresh, the edge-server totals and stock U = 0.179; class names are used before this paragraph defines them. |
-| 2 | two messages | meth-simulator | One paragraph carries five topics: the simulator and PU model, P3-LLM validation and C/A re-timing, refresh, area scaling, and the power/energy flow. |
+| 2 | resolved | meth-simulator | Resolved (2026-11-06): V-C is three paragraphs, meth-simulator (simulator, P3-LLM validation, C/A re-timing, refresh), meth-area-model and meth-power-model. Was: one paragraph with five topics. |
 | 3 | two messages | mot-logic-cost, eval-e2e-phone | mot-logic-cost (logic-die designs) still adds a second claim (eval-vsweep-robust's two claims split into eval-vsweep-partial / -choice, 2026-10-30); eval-e2e-phone carries the figure setup and its reason (M = 4, batch 8), the M = 4 result, the best-M check and the M ≥ 5 lead. The former eval-phone-per-mm2 / -energy / eval-server-beats cases left with the VI restructure (2026-10-30). |
-| 4 | placement | eval-gain-sources | Since 2026-10-30 eval-gain-sources opens VI-D (Ablation Study), which fits its stock-to-CoDe, both-platform scope; Table IV still lands on the page after its citation (cite p10 L, table p11 R; p10's top holds Fig. 8); its source now sits after the Conclusion heading so that it does not share p11 L with Fig. 9. It remains the only home of the both-order gain. |
+| 4 | placement | eval-gain-sources | eval-gain-sources opens VI-E (Ablation Study, VI-D until 2026-11-06); Table IV lands on the page after its citation (cite p11 L, table p12 L top) from its source after the Conclusion heading; with the body past 11 pages it now sits in the overflow. It remains the only home of the both-order gain. |
 | 5 | resolved | eval-gain-sources | Resolved (user plan, 2026-10-27): des-gain-order deleted; the both-order gain lives only in VI-B (2.37× / 1.83×, Table IV values); the 2.3 % reconciling sentence left IV-B. Was: the two-order gain printed 2.39× then 1.84× (Fig. 5 window) in IV-A and 2.37× then 1.83× (one layer, Table IV) in VI-B; only des-beat-slot-factor's 2.3 % sentence reconciles them. |
 | 6 | restatement | intro-prior-families / mot-prior-families; intro-timing-insight / mot-depth; mot-idle-beats / mot-depth | The two families are named in I and III-C; mot-depth now points to Table III for the column period and CK instead of reprinting the intro's 5 ns / 4 ns / 0.8–1 GHz, and mot-idle-cause's column-access argument is now one sentence (each column command reads one column; t_CCD spacing), leaving the latched-column argument to mot-depth. D is now defined once, in bg-aim-pu (its first point of need), and III and IV point back to it (resolves "D derived late"); intro-timing-insight still derives D = t_col × f_PU itself (introduction untouched). |
-| 7 | restatement | des-tile-size / meth-designs-area; intro-prior-families / mot-logic-cost | The reason for V = 4 on HBM2 (twice the slice, one PU per two banks) is given in IV-D and again in V-B; LP-Spec's 16.92 % is printed in I and III-C; 0.539× appears in I, V-B and VI-A. |
+| 7 | restatement | des-tile-size / meth-designs; intro-prior-families / mot-logic-cost; eval-area-budget | The reason for V = 4 on HBM2 (twice the slice, one PU per two banks) is given in IV-D and again in V-B; LP-Spec's 16.92 % is printed in I and III-C (not in VI-D); 0.539× appears in I, VI-A and VI-D (eval-area-split); HBM-PIM's halved sub-arrays in III-C and VI-D. |
 | 8 | config table | Table III (tab:params) | One configuration table in V-A (platform block above design block); III–VI refer to it. Kept in prose where the sentence computes or derives: intro's 5 / 4 ns, 0.8 / 1 GHz and 42 GB/s (D and the ridge), III-A's 42 GB/s derivation, IV-D's GB / slice sizes, VI-C's 1.25 / 5 ns per-edge charge (the 800 / 200 MHz clock-cost sentence left on 2026-10-30). Row size has no collected source and stays out (for evaluation-owner). |
-| 10 | promise | intro-code-proposal, intro-contributions | No intro paragraph announces the ablation (VI-D: sources of gain, tile size) or the peak-power study (VI-C); these results answer only des-tile-size, des-pu-clock and meth-simulator. |
+| 10 | promise | intro-code-proposal, intro-contributions | No intro paragraph announces the peak-power and power-headroom study (VI-C), the area-budget study (VI-D) or the ablation (VI-E); these results answer des-tile-size, des-pu-clock, meth-area-model and meth-power-model only. |
 | 11 | untraced number | meth-platforms, Table III | 2.285 W host power (derived from cites, no script); Table III's t_REFI 3.906 µs is asserted from evaluation/dac_sd8g3/context.md text ([A-REF1]) and t_RFCab 280 ns from the collected trace (utrace_run_core8_gbfill REFab gap), neither has a JEDEC cite; 131 TOPS (assumption with cite only); 56 / 68 / 51.2 GB/s (cites; only the 42 GB/s result is asserted). |
 | 12 | resolved | eval-power | Resolved (2026-10-30): the 2.4 % clock cost (microarch pu_peak_power.csv, never collected) is no longer printed; make_tables.py keeps its assert as a guard. |
 | 13 | structure | mot-other-pim | Stays last in III-C (user, 2026-10-27); no related-work section remains (options kept for later: (a) a short Related Work section before the Conclusion, from the ≈ 1 free column; (b) a landscape paragraph at the end of II-B; (c) keep it as the last paragraph of III-C, as now). mot-other-pim now closes III-C with the C → D transition (a column read feeds several tokens only through added multipliers or commands; a row sweep serves one MAC slot's tokens). Labels `sec:bg:*` point into Section III (cosmetic). |
@@ -459,3 +490,5 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 | 19 | resolved | eval-gemm-per-mm2 | Resolved (2026-10-30): the per-mm² ceilings of CoDe (583 / 1,247 GOPS) are no longer printed beside measured ratios; VI-A prints measured GEMM ratios against M only. |
 | 20 | dropped number | des-row-reuse | The whole-GEMM 4.32× (CoDe vs stock AiM, q_proj, M = 8) left IV with des-gain-order; no other section printed it, and the 4.40× window carries IV-C's claim. Still asserted in make_fig_mapping.py; it could return to VI-B if a whole-kernel number is wanted. |
 | 21 | resolved | mot-rowswitch-cost vs des-row-reuse | Resolved (user, 2026-10-29): III-B prints q_proj shares only, so the edge non-MAC time appears once, as 146.17 ns per token (IV-C, Table I). Was: 146.2 ns per row sweep in III-B and 146.17 ns in IV-C. |
+| 22 | wording trap | meth-area-model, eval-area-budget, eval-power | Area / power budget (2026-11-06): 60.92 mm² is printed "as LP-Spec reports" (its ISSCC'21 origin is closed access, never cited); the HBM2 stack is 8 × the 84.4 mm² HBM-PIM die ([A-XC4], no plain HBM2 die area published); 27 % is our division; peak excludes activation, refresh, background and I/O power, so the read yardsticks (447 mW at LPDDR5X-7500 for a 6400 part; 8.0 W from O'Connor's 4-die figure on an 8-die stack) are scales, not budget shares; AiM's 3× is a GDDR6 current ratio (framing); the plan's "the stack in PIM mode draws less than in normal reads" became "CoDe's PUs fit within the read power an HBM2 stack already delivers" plus HBM-PIM's TDP sentence, because the peak omits activation power and HBM-PIM measured +5.4 %, within the original TDP. SK hynix's bank-count throttling is a "future AiM design" knob on its HC36 slide, not a shipped feature. |
+| 23 | citation | shevgoor | The Shevgoor MICRO'13 entry has no pages or DOI (not verifiable offline); the quote is on PDF pp. 2 and 6 of the authors' copy. |

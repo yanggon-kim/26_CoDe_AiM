@@ -23,7 +23,7 @@ Run:  python3 scripts/make_tables.py
 """
 import os
 
-from dac_data import EVAL, REPO, WS, f, r2, r3, read
+from dac_data import EVAL, REPO, WS, f, ids, r2, r3, read
 
 PHONE = [("stock", "Stock AiM"), ("h3", "P3-LLM-style"), ("h2", "LP-Spec-style"), ("core8", "CoDe")]
 HBM2 = [("stock", "Stock AiM"), ("p3_500", "P3-LLM-style"), ("h2", "LP-Spec-style"), ("core4", "CoDe")]
@@ -84,7 +84,76 @@ def platform_block():
     return "\n".join(out)
 
 
+def budget_cells():
+    """Table III's "%" column and CoDe's gated peak (mW in parentheses), from the case 019 budget ids (evaluation a0cf52c:
+    dac_sd8g3 Sec. 2g, dac_2x2 Sec. 2q). Mobile: logic per die as % of a 60.92 mm2 16 Gb LPDDR5 die (as LP-Spec reports);
+    edge server: logic of the 16 pCH as % of a stack of 8 x 84.4 mm2 HBM-PIM dies ([A-XC4]). Gated = clock gates on the
+    weight latch (a1), accumulator slots and staging words (b); the rivals get no gated value (user decision).
+    Returns ({(substrate, design): % string}, {substrate: gated mW})."""
+    ps, hs = ids("dac_sd8g3"), ids("dac_2x2")
+    t4 = {(r["substrate"][:5], r["design"]): r for r in read("dac_table4.csv")}
+    die, stack = ps["budget.cite.lpddr5_die_mm2_1z"], hs["budget.hbm2.stack_mm2"]
+    assert die == 60.92 and stack == 675.2 == 8 * 84.4 == hs["budget.cite.hbmpim_dies_per_stack"] * hs["budget.cite.hbmpim_die_mm2"]
+    pct = {}
+    for d, _ in PHONE:
+        v = ps[f"budget.phone.{d}.pct_of_die_1z"]
+        assert abs(v - 100 * f(t4[("phone", d)]["logic_mm2"]) / die) < 1e-9
+        pct[("phone", d)] = f"{r2(v):.2f}"
+    for d, _ in HBM2:
+        v = hs[f"budget.hbm2.{d}.pct_of_stack_model"]
+        assert abs(v - 100 * f(t4[("serve", d)]["logic_mm2_total"]) / stack) < 1e-9
+        assert abs(f(t4[("serve", d)]["logic_mm2_total"]) - 16 * f(t4[("serve", d)]["logic_mm2"])) < 1e-6
+        pct[("serve", d)] = f"{r2(v):.2f}"
+    assert [pct[("phone", d)] for d, _ in PHONE] == ["1.55", "1.72", "4.28", "2.31"], pct
+    assert [pct[("serve", d)] for d, _ in HBM2] == ["1.23", "1.46", "3.48", "1.95"], pct
+    cuts = {"phone": {r["row_id"]: r for r in read("pupow_cuts_phone.csv", os.path.join(EVAL, "dac_sd8g3", "raw"))},
+            "hbm2": {r["row_id"]: r for r in read("pupow_cuts_hbm2.csv", os.path.join(EVAL, "dac_2x2", "raw"))}}
+    gated = {sub: f(cuts[sub]["a1b"]["total_mW"]) for sub in cuts}
+    assert abs(gated["phone"] - 1e3 * ps["budget.phone.core8_gated.peak_W_per_die"]) < 1e-6
+    assert abs(gated["hbm2"] * 16 - 1e3 * hs["budget.hbm2.core4_gated.peak_W_per_stack"]) < 1e-6
+    assert (round(gated["phone"], 1), round(gated["hbm2"], 1)) == (537.6, 373.8), gated
+    return pct, gated
+
+
+def budget_checks():
+    """Every Sec. V-C / VI-C / VI-D number of the area and power budget argument, from the budget.* ids (evaluation
+    a0cf52c; dac_sd8g3 Sec. 2g, dac_2x2 Sec. 2q). Wording traps (context Sec. 8): the die area is "as LP-Spec reports";
+    27 % is our division of HBM-PIM's areas; 8 x 84.4 mm2 is [A-XC4]; peak excludes activation, refresh, background and
+    I/O power; AiM's 3x is a GDDR6 current ratio (framing); only CoDe has a gated value."""
+    ps, hs = ids("dac_sd8g3"), ids("dac_2x2")
+    # V-C area model: silicon factor (AiM PU 0.19 mm2 / our model of it), die and stack denominators
+    assert r2(ps["budget.silicon_factor.aim"]) == 2.24 == r2(hs["budget.silicon_factor.aim"])
+    assert ps["budget.cite.lpddr5_die_mm2_1z"] == 60.92 and hs["budget.cite.hbmpim_die_mm2"] == 84.4
+    assert hs["budget.cite.hbmpim_dies_per_stack"] == 8
+    # V-C power yardsticks: one x16 LPDDR5X channel's full-rate read (Micron Y52Q) and an HBM2 stack at 3.92 pJ/bit
+    assert round(ps["budget.cite.lpddr5x_read_mW_per_x16_ch"]) == 447
+    assert hs["budget.cite.hbm2_access_pJ_per_bit"] == 3.92 and round(hs["budget.cite.hbm2_stack_read_W"], 1) == 8.0
+    # VI-C headroom framings (cited)
+    assert ps["budget.cite.aim_mac_current_x_read"] == 3.0 == hs["budget.cite.aim_mac_current_x_read"]
+    assert hs["budget.cite.newton_power_x_dram"] == 2.8 and hs["budget.cite.newton_comp_x_peak_read"] == 4.0
+    # VI-C peak power: gated CoDe against the read yardsticks and against ungated LP-Spec-style
+    assert r2(ps["budget.phone.core8_gated.peak_W_per_die"]) == 0.54
+    assert r2(ps["budget.phone.core8_gated.peak_over_read_ch"]) == 1.20
+    assert r2(hs["budget.hbm2.core4_gated.peak_W_per_stack"]) == 5.98
+    assert r2(hs["budget.hbm2.core4_gated.peak_over_stack_read"]) == 0.75
+    assert r2(ps["budget.phone.core8_gated.over_h2_ungated"]) == 0.92 and r2(hs["budget.hbm2.core4_gated.over_h2_ungated"]) == 0.87
+    # VI-D paragraph 1: HBM-PIM's units (our division, never stated by Samsung), AiM 20-25 % (printed in III-C only)
+    assert hs["budget.cite.hbmpim_units_per_die"] == 32 and hs["budget.cite.hbmpim_unit_mm2"] == 0.712
+    assert round(hs["budget.hbmpim.area_share_pct"]) == 27
+    assert (hs["budget.cite.aim_area_overhead_pct_lo"], hs["budget.cite.aim_area_overhead_pct_hi"]) == (20.0, 25.0)
+    # CoDe / LP-Spec-style share of the die / stack at AiM's silicon scale (x2.24 on logic and registers, GB unscaled)
+    assert (r2(ps["budget.phone.core8.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.core4.pct_of_stack_anch_aim"])) == (4.96, 4.02)
+    assert (r2(ps["budget.phone.h2.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.h2.pct_of_stack_anch_aim"])) == (9.47, 7.50)
+    # "at most a quarter of AiM's share": CoDe at silicon scale <= 1/4 of AiM's lower end (20 %)
+    assert max(ps["budget.phone.core8.pct_of_die_anch_aim"], hs["budget.hbm2.core4.pct_of_stack_anch_aim"]) <= 0.25 * 20.0
+    # VI-D paragraph 2: the CoDe / LP-Spec-style logic ratio at silicon scale
+    assert (r3(ps["budget.phone.anch_aim.core8_over_h2"]), r3(hs["budget.hbm2.anch_aim.core4_over_h2"])) == (0.524, 0.536)
+    print("budget: die 60.92 mm2, stack 8 x 84.4 mm2, x2.24; CoDe 2.31 / 1.95 % (4.96 / 4.02 % at silicon scale); "
+          "gated 0.54 W per die = 1.20x read, 5.98 W per stack = 0.75x read; 0.92 / 0.87x LP-Spec-style")
+
+
 def table4(peak):
+    pct, gated = budget_cells()
     t = read("dac_table4.csv")
     by = {(r["substrate"][:5], r["design"]): r for r in t}
     exp = {  # frozen: lanes x ALUs, MHz, D, V, accumulator slots, staging bits, GB KB, logic mm2 (V prose)
@@ -94,8 +163,8 @@ def table4(peak):
         ("serve", "h2"): (64, 4, 250, 4, 4, 8, 2048, 16, 1.469), ("serve", "core4"): (64, 1, 1000, 4, 4, 16, 2048, 16, 0.821),
     }
     lines = []
-    for sub, designs, head in (("phone", PHONE, r"\multicolumn{9}{@{}l}{\emph{Mobile platform,} per die} \\"),
-                               ("serve", HBM2, r"\multicolumn{9}{@{}l}{\emph{Edge server,} per pseudo-channel} \\")):
+    for sub, designs, head in (("phone", PHONE, r"\multicolumn{10}{@{}l}{\emph{Mobile platform,} per die; \% of the die} \\"),
+                               ("serve", HBM2, r"\multicolumn{10}{@{}l}{\emph{Edge server,} per pseudo-channel; \% of the stack} \\")):
         lines.append(r"\midrule")
         lines.append(head)
         for d, name in designs:
@@ -110,8 +179,10 @@ def table4(peak):
             nm = r"\textbf{CoDe}" if name == "CoDe" else name
             mm = f"\\textbf{{{got[8]:.3f}}}" if name == "CoDe" else f"{got[8]:.3f}"
             mw = f"{pw[1]:.1f}"
-            mw = f"\\textbf{{{mw}}}" if name == "CoDe" else mw
-            lines.append(f"{nm} & {lanes} & {got[2]} & {got[3]} & {got[4]} & {got[5]} & {got[7]} & {mm} & {mw} \\\\")
+            if name == "CoDe":                                        # gated value in parentheses (CoDe only)
+                mw = f"\\textbf{{{mw}}} ({gated['phone' if sub == 'phone' else 'hbm2']:.1f})"
+            pc = f"\\textbf{{{pct[(sub, d)]}}}" if name == "CoDe" else pct[(sub, d)]
+            lines.append(f"{nm} & {lanes} & {got[2]} & {got[3]} & {got[4]} & {got[5]} & {got[7]} & {mm} & {pc} & {mw} \\\\")
     # ratios the prose prints
     p = {d: f(by[("phone", d)]["logic_mm2"]) for d, _ in PHONE}
     s = {d: f(by[("serve", d)]["logic_mm2"]) for d, _ in HBM2}
@@ -124,10 +195,10 @@ def table4(peak):
     with open(out, "w") as fh:
         fh.write("% generated by scripts/make_tables.py: platform block (platform_block(): evaluation dac_sd8g3 / dac_2x2 raw "
                  "inputs, cited spec values, simulator presets) above the design block (EV-58 pack dac_table4.csv, pupow "
-                 "pupow_peak_*.csv); do not edit\n")
+                 "pupow_peak_*.csv; % and gated mW: budget ids, pupow_cuts_*.csv a1b); do not edit\n")
         fh.write(platform_block() + "\n\\par\\smallskip\n")
-        fh.write("\\begin{tabular}{@{}lcccccccc@{}}\n\\toprule\n"
-                 "Design & Lanes & MHz & $D$ & $V$ & Acc. & GB KB & mm$^2$ & mW \\\\\n")
+        fh.write("\\begin{tabular}{@{}lccccccccc@{}}\n\\toprule\n"
+                 "Design & Lanes & MHz & $D$ & $V$ & Acc. & GB KB & mm$^2$ & \\% & mW \\\\\n")
         fh.write("\n".join(lines) + "\n\\bottomrule\n\\end{tabular}\n")
     print("wrote", out)
 
@@ -468,6 +539,7 @@ def table_power():
 if __name__ == "__main__":
     os.makedirs(os.path.join(REPO, "tables"), exist_ok=True)
     table4(table_power())
+    budget_checks()
     area_split()
     mech_checks()
     umac_table()
