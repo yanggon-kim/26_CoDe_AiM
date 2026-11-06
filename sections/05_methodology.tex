@@ -37,15 +37,6 @@ there; Section~\ref{sec:eval:ablation} sizes $V$ on both platforms.
 
 \subsection{Simulator and Models}
 \label{sec:method:models}
-% figure* (Section VI-A): placement checked on the float map after each build
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\textwidth]{figs/fig_gemm.pdf}
-  \caption{GEMMs against $M$, mobile platform (top) and edge server (bottom): (a)~speed-up over stock AiM;
-  (b)~GOPS per logic mm$^2$.}
-  \label{fig:gemm}
-\end{figure*}
-
 % P:meth-simulator
 We extend the open-source trace-driven AiM simulator, built on Ramulator~2.0~\cite{ramulator2} and used by
 CENT~\cite{cent}, with each design's commands and a PU model that holds a MAC command until the PU has finished the
@@ -82,6 +73,16 @@ background and I/O power. CoDe adds clock gates to its accumulator slots, stagin
 designs are modelled ungated. As yardsticks, one x16 LPDDR5X channel reading at its full rate draws 447\,mW by its
 datasheet currents~\cite{micronlp5x}, and an HBM2 stack reading at its full pin rate draws 8.0\,W at
 3.92\,pJ/bit~\cite{oconnor}.
+
+% Fig. 7 (Section VI-A), one column: defined after the power-model paragraph so that it lands at the top of VI-A's
+% page (p. 9 L), the column after Table III's page; placement checked on the float map after each build (F12)
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figs/fig_gemm.pdf}
+  \caption{GEMMs against $M$, mobile platform (top) and edge server (bottom): (a)~speed-up over stock AiM;
+  (b)~GOPS per logic mm$^2$.}
+  \label{fig:gemm}
+\end{figure}
 
 \subsection{Algorithms and Workloads}
 \label{sec:method:work}

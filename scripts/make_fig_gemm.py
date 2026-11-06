@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Figure 7 (Sec. VI-A, fig:gemm): GEMM speed and area efficiency against M, both platforms, four PIM designs + the NPU.
+"""Figure 7 (Sec. VI-A, fig:gemm, one column): GEMM speed and area efficiency against M, both platforms, four PIM
+designs + the NPU.
 
 Rows: mobile platform (LPDDR5-6400, INT8, gmean of six Llama FC shapes) and edge server (HBM2, W4A8, gmean of the 25 FC
 shapes of five LLMs). Columns: (a) GEMM speed-up over stock AiM, with the NPU's GEMM as a line; (b) GEMM throughput
@@ -13,7 +14,7 @@ mechanism claims ("beyond M = 2", "CoDe = LP-Spec-style up to M = D") are assert
   python3 scripts/html2pdf.py fig_gemm  ->  figs/fig_gemm.pdf (+ .png preview).
 """
 from dac_data import KEY, ids, r2
-from svgchart import FL, TEXTWIDTH, I, Fig, Panel, lin_ticks, row
+from svgchart import COLUMNWIDTH, FL, I, Fig, Panel, lin_ticks, row
 
 MS = [1, 2, 4, 8, 16, 32, 64]                                 # plotted, and the M every printed range spans
 MS_ALL = [1, 2, 3, 4, 5, 6, 8, 12, 16, 24, 32, 48, 64]        # collected grid
@@ -104,22 +105,26 @@ def clip(pts, top):
 def main():
     data = load()
     check_prose_numbers(data)
-    W, H = TEXTWIDTH, 195.0
+    # one column, styled like Fig. 2 (user, 2026-11-06): 2 x 2 half-column panels, two legend rows on top,
+    # x ticks 1, 4, 16, 64 over all seven plotted M, the x label once per column on the bottom row
+    W, H = COLUMNWIDTH, 187.0
     fig = Fig(W, H)
-    fig.legend(["stock", "p3", "lpspec", "code", "host"], 8.5, labels={"host": "NPU"})
-    box_h, rows_y = 58.0, (24.0, 115.0)
+    lg = dict(sample=13.0, gap=2.0, space=6.0, labels={"host": "NPU"})
+    fig.legend(["stock", "p3", "lpspec"], 7.0, **lg)
+    fig.legend(["code", "host"], 17.0, **lg)
+    box_h, rows_y = 58.0, (31.0, 110.0)
     sp_ticks = [0, 1, 2, 3, 4, 5]
-    for (p, rlab, xlab), y0 in zip((("phone", "Mobile platform", "token rows " + I("M")),
-                                    ("hbm2", "Edge server", "batch " + I("M"))), rows_y):
+    for (p, rlab), y0 in zip((("phone", "Mobile platform"), ("hbm2", "Edge server")), rows_y):
         d = data[p]
         pm_lim, pm_t = lin_ticks(max(v for s in d["pm"].values() for m, v in s if m in MS))
         axes = [dict(ylim=(0, 5.0), ylog=False, yticks=sp_ticks), dict(ylim=pm_lim, ylog=False, yticks=pm_t)]
-        lay = row(fig, axes, y0, y0 + box_h, left=12.0, gap=10.0)
-        fig.text(4.0 + FL * 0.75, y0 + box_h / 2, rlab, FL, "middle",
-                 f' transform="rotate(-90 {4.0 + FL * 0.75:.2f} {y0 + box_h / 2:.2f})"')
+        lay = row(fig, axes, y0, y0 + box_h, left=9.0, right=0.5, gap=5.0)
+        fig.text(1.0 + FL * 0.75, y0 + box_h / 2, rlab, FL, "middle",
+                 f' transform="rotate(-90 {1.0 + FL * 0.75:.2f} {y0 + box_h / 2:.2f})"')
         for k, ((x0, w, ylx), ax) in enumerate(zip(lay, axes)):
-            title = ("(a) GEMM speed-up over stock AiM", "(b) GEMM throughput per logic mm²")[k] if p == "phone" else ""
-            pn = Panel(fig, x0, y0, w, box_h, (1, 64), MS, ax["ylim"], False, ax["yticks"])
+            title = ("(a) Speed-up over stock AiM", "(b) GOPS per logic mm²")[k] if p == "phone" else ""
+            xlab = "token rows / batch " + I("M") if p == "hbm2" else ""
+            pn = Panel(fig, x0, y0, w, box_h, (1, 64), [1, 4, 16, 64], ax["ylim"], False, ax["yticks"])
             pn.frame(title, xlab, ("speed-up", "GOPS / mm²")[k], ylx)
             key = ("sp", "pm")[k]
             if k == 0:
