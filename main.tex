@@ -24,8 +24,9 @@
 % ---- macros -----------------------------------------------------------------
 % a value still being computed by another owner; must be 0 at submission
 \newcommand{\PENDING}[1]{\textcolor{red}{\textbf{[PENDING: #1]}}}
-% an unavoidable modelling assumption (project rule: every assumption is tagged)
-\newcommand{\ASSUMPTION}{\textsuperscript{\textsc{[assumption]}}}
+% internal marker for an unavoidable modelling assumption (project rule: every assumption is tagged);
+% kept in the source so the tags stay searchable, expands to nothing and does not render
+\newcommand{\ASSUMPTION}{}
 \newcommand{\tccds}{$t_\mathrm{CCD\_S}$\xspace}
 \newcommand{\tccdl}{$t_\mathrm{CCD\_L}$\xspace}
 \newcommand{\tfaw}{$t_\mathrm{FAW}$\xspace}
