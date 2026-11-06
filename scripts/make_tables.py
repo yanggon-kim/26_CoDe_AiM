@@ -85,7 +85,7 @@ def platform_block():
 
 
 def budget_cells():
-    """Table IV's (tab:designs) "%" column and CoDe's gated peak (mW in parentheses), from the case 019 budget ids (evaluation a0cf52c:
+    """Table IV's (tab:designs) "%" column and CoDe's gated peak (mW, the main value; ungated in parentheses), from the case 019 budget ids (evaluation a0cf52c:
     dac_sd8g3 Sec. 2g, dac_2x2 Sec. 2q). Mobile: logic per die as % of a 60.92 mm2 16 Gb LPDDR5 die (as LP-Spec reports);
     edge server: logic of the 16 pCH as % of a stack of 8 x 84.4 mm2 HBM-PIM dies ([A-XC4]). Gated = clock gates on the
     weight latch (a1), accumulator slots and staging words (b); the rivals get no gated value (user decision).
@@ -179,8 +179,10 @@ def table4(peak):
             nm = r"\textbf{CoDe}" if name == "CoDe" else name
             mm = f"\\textbf{{{got[8]:.3f}}}" if name == "CoDe" else f"{got[8]:.3f}"
             mw = f"{pw[1]:.1f}"
-            if name == "CoDe":                                        # gated value in parentheses (CoDe only)
-                mw = f"\\textbf{{{mw}}} ({gated['phone' if sub == 'phone' else 'hbm2']:.1f})"
+            if name == "CoDe":                                        # gated value leads, ungated in parentheses (CoDe only)
+                g = gated["phone" if sub == "phone" else "hbm2"]
+                assert g < pw[1]                                      # the clock gates only remove power
+                mw = f"\\textbf{{{g:.1f}}} ({mw})"
             pc = f"\\textbf{{{pct[(sub, d)]}}}" if name == "CoDe" else pct[(sub, d)]
             lines.append(f"{nm} & {lanes} & {got[2]} & {got[3]} & {got[4]} & {got[5]} & {got[7]} & {mm} & {pc} & {mw} \\\\")
     # ratios the prose prints
