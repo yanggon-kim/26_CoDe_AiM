@@ -74,7 +74,7 @@ def platform_block():
         (r"Row (page) size", r"2\,KB~\cite{jedeclpddr5}", r"1\,KB~\cite{jedechbm2}"),
         (r"PU placement", r"one per bank", r"one per two banks"),
         (r"$t_\mathrm{REFI}$, $t_\mathrm{RFCab}$", r"3.906\,\textmu s, 280\,ns", r"simulator preset"),
-        (r"Precision", r"INT8", r"W4A8"),
+        (r"Precision", r"INT8~\cite{lpspec}", r"W4A8~\cite{p3llm}"),
     ]
     assert 1.25 * 4 == 5.0 and 1.0 * 4 == 4.0 and 2 * 2.5 == 5.0                     # column period = 4 t_CK = 2 t_CCD_S
     out = [r"\begin{tabular}{@{}lll@{}}", r"\toprule", r"Platform & Mobile platform & Edge server \\", r"\midrule"]

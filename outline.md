@@ -1,5 +1,5 @@
 # Commands Are the Bottleneck: CoDe, a Command-Decoupled PIM for Skinny GEMMs on Mobile and Server DRAM: outline
-Synced with: 20c5ef4; body ends p. 12 col L (three Conclusion lines past 11 pages); refs p. 12 L to p. 13.
+Synced with: PENDING; body ends p. 12 col L (three Conclusion lines past 11 pages); refs p. 12 L to p. 13.
 Legend: one entry per source paragraph, in source order, tied to the `.tex` by `% P:<id>`; Message = the one claim a reader takes away; Floats = figures/tables/equations cited (first cite marked); Numbers = key printed numbers ← the script that asserts them (evaluation topic in brackets); Cites = bib keys; Links = → promise fulfilled by <id>, ← relies on <id>. Check: `python3 scripts/check_outline.py`.
 
 Number sources, short names: `tables` = scripts/make_tables.py (functions in brackets); `roof` = make_fig_roofline.py; `brk` = make_fig_breakdown.py; `map` = make_fig_mapping.py; `vsw` = make_fig_vsweep.py; `gemm` / `e2e` = make_fig_gemm.py / make_fig_e2e.py (ISCA ids `isca.gemm.*`, `isca.e2e.*`). Evaluation topics: `2x2` = evaluation/dac_2x2, `sd8g3` = evaluation/dac_sd8g3 (EV-58 pack via scripts/dac_data.py).
@@ -286,10 +286,10 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 ## V. Methodology  (sections/05_methodology.tex)
 ### A. Hardware Platforms
 - **[meth-platforms]**
-  - Message: The mobile platform pairs a Snapdragon 8 Gen 3 NPU with PIM on x64 LPDDR5-6400, and the edge server pairs P3-LLM's NPU with one HBM2 stack (Table III).
+  - Message: Each platform follows the published setup of the rival that targets it, so each rival runs on its own memory and precision: the mobile platform takes x64 LPDDR5-6400 and INT8 from LP-Spec (its Snapdragon 8 Gen 3 host and NPU replace LP-Spec's modelled NPU), and the edge server takes its NPU, HBM2 and W4A8 from P3-LLM (P3-LLM's W4A8KV4P8 scheme), with one HBM2 stack (Table III). Verified 2026-11-06: LP-Spec Sec. III / VI-A (x64 LPDDR5, 4 x16 dies, 51.2 GB/s, INT8; its NPU is a 41 TFLOPS model of commercial products); P3-LLM Sec. VI (4-core NPU after [27], 16 pseudo HBM channels, HBM2 t_CCD_S, W4A8KV4P8).
   - Floats: Table III (configuration table: platform block above design block; float defined at V-A's start)
   - Numbers: platform block (NPU 12 / 131 TOPS, 42 / 256 GB/s; LPDDR5-6400 / HBM2 2.0 Gb/s; 4 dies × 16 / 16 pCH × 16 banks; 409.6 / 1,024 GB/s; t_CK 1.25 / 1 ns; t_CCD_S, t_CCD_L 2.5, 5 / 2, 4 ns; PU per bank / per two banks; t_REFI, t_RFCab 3.906 µs, 280 ns / simulator preset; INT8 / W4A8) ← tables [platform_block] (dac_sd8g3 ev57_host, ev57_ceilings, ev56_mech_inputs, context.md; dac_2x2 ev57_host, ev57_ceilings, dacp_inputs, dac2x2_setup, utrace_run_core8_gbfill; EV-58 dac_table4) and cited spec values; prose: 12 TOPS for INT8 [assumption], 131 TOPS peak [assumption]; 30 µs [assumption] ← npufaster; 2.285 W [assumption] ← derived from cites, no script; 55 W [assumption] ← tpuv4i
-  - Cites: sd8g3, lpspec, hao2025, npufaster, heterollm, tman, p3llm, tpuv4i
+  - Cites: lpspec, p3llm, sd8g3, hao2025, npufaster, heterollm, tman, tpuv4i; Table III's Precision row cites lpspec / p3llm
   - Links: ← bg-aim-pu, mot-roofline-setup
 ### B. PIM Designs
 - **[meth-designs]** (label sec:method:designs; was meth-designs-area until 2026-11-06: the area comparison moved to eval-area-split)
@@ -319,11 +319,17 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← des-pu-clock; → eval-energy, eval-power
 ### D. Algorithms and Workloads
 - **[meth-workloads]** (label sec:method:work)
-  - Message: The mobile platform runs speculative decoding of Llama-2-7B with a 1.1B draft (EAGLE head only in VI-E) and the edge server batched decoding of five LLMs at a 4K context; end to end every system runs M = 4 (mobile) and batch 8 (edge server); NPU only runs everything on the NPU, NPU + X runs every weight GEMM and attention layer on PIM design X and the element-wise work on the NPU; GEMMs use six FC shapes (mobile) and 25 (edge server).
+  - Message: The mobile platform runs speculative decoding of Llama-2-7B with a 1.1B draft (EAGLE head only in VI-E) and the edge server batched decoding of five LLMs at a 4K context; GEMMs use six FC shapes (mobile) and 25 (edge server); end to end every system runs M = 4 (mobile) and batch 8 (edge server).
   - Floats: —
   - Numbers: acceptance 0.7; L = 1024; M = 4, batch 8; six / 25 FC shapes ← configuration (sd8g3 §2f, 2x2 §2p)
   - Cites: eagle
   - Links: → eval-gemm-summary, eval-e2e-phone, eval-e2e-server, eval-vsweep-choice (EAGLE)
+- **[meth-systems]** (split from meth-workloads, user 2026-11-06)
+  - Message: The five systems: NPU only runs the whole model on the NPU; in NPU + X, PIM design X runs every weight GEMM and attention layer and the NPU runs the element-wise work.
+  - Floats: —
+  - Numbers: —
+  - Cites: —
+  - Links: ← meth-designs (the four designs X); → eval-e2e-phone, eval-e2e-server, eval-energy
 ### E. Metrics
 - **[meth-metrics]**
   - Message: GEMM speed is operations over time including the output drain, relative to stock AiM; end-to-end speed is tokens per second, relative to NPU only; area efficiency divides either throughput by the PIM logic area (Table III); energy is system energy per token; edge-server values are geometric means over the five models (the C-bus counting rule and the M / L range rule left with eval-server-beats and VI-A's old ranges).
@@ -364,7 +370,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: Fig. 8 (fig:e2e, first cite), Fig. 8a
   - Numbers: 4.37× / 4.34× NPU only at 46.4 / 46.1 tok/s; P3-LLM-style 2.96×, stock 1.81×; best M: 47.1 / 46.8 (M = 3), 43.8 / 26.5 (M = 2), NPU only 10.6 (M = 4); 1.07× at M = 8 and 16; 3.3 (tokens per round = (1 − α^M)/(1 − α), from ev56_chain T_round × tok/s); within 2 % (CoDe 1.5 %, LP-Spec-style 1.7 %) ← e2e (sd8g3 §2f; ev56_best / ev56_chain L 1024)
   - Cites: —
-  - Links: ← intro-code-proposal, abs-summary, meth-workloads, des-mapping
+  - Links: ← intro-code-proposal, abs-summary, meth-workloads, meth-systems, des-mapping
 - **[eval-e2e-server]** "Edge server"
   - Message: At batch 8 only CoDe and LP-Spec-style decode faster than NPU only; at the batch where P3-LLM offloads its linear layers, CoDe decodes 1.68× faster than P3-LLM-style; NPU only overtakes CoDe from batch 16 on the gmean.
   - Floats: Fig. 8a
