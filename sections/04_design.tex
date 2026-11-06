@@ -61,7 +61,7 @@ from stock AiM's 123.39\,ns to CoDe's 22.15\,ns at $V = 8$ on the mobile platfor
 % P:des-beat-decouple
 Beat filling answers the idle beats of Section~\ref{sec:bg:cmd}, three of a stock MAC slot's four beats, by decoupling
 the PU's MAC beats from the command stream. The PU runs its beats at its own clock, $f_\mathrm{PU} = D /
-t_\mathrm{col}$, which equals CK on both platforms (Table~\ref{tab:params}), so the PU fits $D$ beats into each column
+t_\mathrm{col}$, which equals CK on both platforms (Tables~\ref{tab:params} and~\ref{tab:designs}), so the PU fits $D$ beats into each column
 period whatever the command spacing. A \emph{tile MAC} holds its column in the PU for $V/D$ column periods, and the next \emph{tile
 MAC} issues $V/D$ periods later. The enlarged \emph{tile MAC} of Fig.~\ref{fig:mapping}b shows one tile of $V = 8$ tokens at
 $D = 4$: one column read feeds eight beats, one per token and four per column period, and each beat adds into its
@@ -100,11 +100,11 @@ $V$ sums out through the drain port (\ding{176}).
 % P:des-storage
 \paragraph{Storage}
 The global buffer holds the tile's $V$ tokens for one chunk of $K$. On the mobile platform a $K$ chunk holds 2,048 INT8
-inputs, 2\,KB per token, so the GB of an eight-token tile holds 16\,KB (Table~\ref{tab:params}); one WRGB burst of 512
+inputs, 2\,KB per token, so the GB of an eight-token tile holds 16\,KB (Table~\ref{tab:designs}); one WRGB burst of 512
 writes of 32\,B fills it. The staging buffer next to the lanes is a three-entry queue of 512-bit GB words, each word
 packing two tokens' slices, and a register of $V$ slices on HBM2. The accumulator file holds two sets of $V$ slots per bank, so
 one tile's sums drain from one set while the next tile accumulates into the other; an HBM2 PU, which serves two banks,
-holds four sets (Table~\ref{tab:params}).
+holds four sets (Table~\ref{tab:designs}).
 
 % P:des-tile-size
 \paragraph{Tile size}

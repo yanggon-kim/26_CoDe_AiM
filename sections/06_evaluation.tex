@@ -29,7 +29,7 @@ LP-Spec-style's row sweeps from $M = 8$, and CoDe runs 1.11$\times$ LP-Spec-styl
 Per logic mm$^2$, CoDe nearly doubles LP-Spec-style's GEMM throughput on both platforms. CoDe fills the same beats as
 LP-Spec-style but spends its logic on storage rather than multipliers, so it reaches LP-Spec-style's speed with
 0.539$\times$ its logic area on the mobile platform and 0.56$\times$ on the edge server
-(Table~\ref{tab:params}; Section~\ref{sec:eval:area}). CoDe therefore returns 1.86$\times$ LP-Spec-style's GEMM throughput per logic
+(Table~\ref{tab:designs}; Section~\ref{sec:eval:area}). CoDe therefore returns 1.86$\times$ LP-Spec-style's GEMM throughput per logic
 mm$^2$ on the mobile platform up to $M = 4$ and 2.07$\times$ from $M = 8$; on the edge server the ratio is
 1.79$\times$ at every $M$ (Fig.~\ref{fig:gemm}b). Against P3-LLM-style, CoDe's speed outgrows its larger logic
 beyond $M = 2$: CoDe returns 1.43$\times$ P3-LLM-style's throughput per logic mm$^2$ at $M = 4$ and 1.59$\times$ from
@@ -92,28 +92,27 @@ CoDe's energy.
 
 % P:eval-power-headroom
 \paragraph{Power headroom of all-bank PIM}
-A DRAM die limits the current its banks may draw at once. The \tfaw{} window admits only four row activations because
-a die's charge pumps, and the power-delivery network that feeds them, supply only that current~\cite{shevgoor}, while
-all-bank PIM activates and reads every bank at once. PIM vendors therefore size the power delivery for this load.
+A stock DRAM die holds its banks to a tight current limit. Its \tfaw{} window admits only four row activations because
+the die's charge pumps, and the power-delivery network that feeds them, supply only that current~\cite{shevgoor}. PIM
+dies lift this limit so that all their banks can work at once, and their vendors size the power delivery for that load.
 GDDR6-AiM's~\cite{aimjssc} all-bank MACs draw about three times the gapless read current, and many reservoir
 capacitors and separate power networks for the I/O and bank areas let its 16 banks activate together without
 \tfaw. AttAcc~\cite{attacc} sizes how many GEMV units run at once by an HBM power budget taken from the all-bank
 interleaved read current (IDD7). Newton's~\cite{newton} authors estimate from internal models that its all-bank
 computation draws about 4$\times$ the power of a read at peak bandwidth, and 2.8$\times$ a conventional DRAM's power on
 average. SK hynix~\cite{aimxhc36} lists the number of banks that run MACs among the power-throttling knobs of its future AiM
-designs. A PIM die's power budget is thus a parameter its vendor sizes for the workload, not a fixed
-limit of a stock die.
+designs. CoDe's design operates within this headroom.
 
 % P:eval-power
 \paragraph{Peak power}
-CoDe's peak power falls inside this headroom on both platforms and stays close to LP-Spec-style's. With its clock
-gates, CoDe draws 0.54\,W per die at its full MAC rate, 1.20$\times$ the power of one x16 channel reading at its full
-rate (Section~\ref{sec:method:models}), well below the threefold read current of AiM's MACs. On HBM2, gated CoDe draws
+CoDe's peak power falls inside this headroom on both platforms and stays close to LP-Spec-style's. CoDe draws
+0.54\,W per die at its full MAC rate, 1.20$\times$ the power of one x16 channel reading at its full
+rate (Section~\ref{sec:method:models}), well below the threefold read current of AiM's MACs. On HBM2, CoDe draws
 5.98\,W per stack, 0.75$\times$ the stack's full-rate read power, so CoDe's PUs fit within the read power an HBM2 stack
 already delivers; HBM-PIM~\cite{hbmpim} likewise keeps its PIM mode within the thermal design power of the original
-HBM system. Gated CoDe draws 0.92$\times$ LP-Spec-style's peak power on the mobile platform and 0.87$\times$ on HBM2,
-and ungated CoDe 1.04$\times$ and 1.03$\times$ (Table~\ref{tab:params}); stock AiM and P3-LLM-style draw less because
-they run fewer MACs per column period. CoDe spreads its MAC rate over four times as many clock edges as LP-Spec-style,
+HBM system. CoDe draws 0.92$\times$ LP-Spec-style's peak power on the mobile platform and 0.87$\times$ on HBM2, and
+even without its clock gates CoDe draws only 1.04$\times$ and 1.03$\times$ LP-Spec-style's peak
+(Table~\ref{tab:designs}). Stock AiM and P3-LLM-style draw less because they run fewer MACs per column period. CoDe spreads its MAC rate over four times as many clock edges as LP-Spec-style,
 so each CoDe edge draws 3.4$\times$ less charge on the mobile platform and 3.1$\times$ less on HBM2.
 
 \subsection{Area Against Silicon Budgets}
@@ -123,7 +122,7 @@ so each CoDe edge draws 3.4$\times$ less charge on the mobile platform and 3.1$\
 Fabricated PIM dies set the scale for a PIM design's logic area. Samsung's HBM-PIM~\cite{hbmpim} places 32 PIM units
 of 0.712\,mm$^2$ each on an 84.4\,mm$^2$ die, 27\,\% of the die by our division, and halves the die's sub-arrays to make
 room; GDDR6-AiM's compute circuits take 20--25\,\% of its chip (Section~\ref{sec:bg:walls}). CoDe's logic takes
-2.31\,\% of the LPDDR5 die and 1.95\,\% of the HBM2 stack (Table~\ref{tab:params}), and 4.96\,\% and 4.02\,\% at AiM's
+2.31\,\% of the LPDDR5 die and 1.95\,\% of the HBM2 stack (Table~\ref{tab:designs}), and 4.96\,\% and 4.02\,\% at AiM's
 silicon scale, at most a quarter of AiM's share. Like AiM, CoDe keeps every cell array and places its PUs in the bank
 periphery. LP-Spec-style's logic takes 4.28\,\% of the die and 3.48\,\% of the stack, and 9.47\,\% and 7.50\,\% at
 silicon scale.
@@ -133,8 +132,7 @@ silicon scale.
 CoDe reaches LP-Spec-style's peak on the mobile platform with 0.539$\times$ its logic area per die: arithmetic takes
 0.73 of LP-Spec-style's logic and 0.34 of CoDe's, while storage, the staging queue, accumulator file and weight latch,
 takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. On HBM2, CoDe's logic is 0.56$\times$ LP-Spec-style's and
-1.33$\times$ P3-LLM-style's, an area that buys twice P3-LLM-style's beats per column period. At AiM's silicon scale the
-ratio to LP-Spec-style stays at 0.524 on the mobile platform and 0.536 on HBM2.
+1.33$\times$ P3-LLM-style's, an area that buys twice P3-LLM-style's beats per column period.
 
 % sources-of-gain table (D-35; generated by scripts/make_tables.py, simulated rows, evaluation/dac_2x2 Sec. 2i):
 % defined before VI-E's heading so that it lands at the top of p. 11 L, its citing page, and Fig. 9 alone takes

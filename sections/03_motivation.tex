@@ -149,7 +149,7 @@ next paragraphs take the two families in turn.
 \paragraph{Wider-PU family}
 Wider-PU designs trade area for MAC throughput: they fill the idle beats with more multipliers per PU.
 LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8 ALUs, clocks the ALUs at one MAC step per column
-period, and shares one unit between two banks; we model one such unit per bank (Table~\ref{tab:params}). One column
+period, and shares one unit between two banks; we model one such unit per bank (Table~\ref{tab:designs}). One column
 command feeds the four ALUs with four tokens, one MAC step each. Fig.~\ref{fig:timeline} counts one bank's time in
 column periods $T$ of $D = 4$ beats: where stock AiM spends 8 column periods, 8 commands and 8 reads on the 8 tokens,
 the four ALUs need 2 of each, on four times the stock multipliers. The 4$\times$ ceiling moves the crossover of this
@@ -187,7 +187,7 @@ only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 
 \paragraph{Faster-PU family}
 Faster-PU designs speed up the PU but still start every MAC with a command, so DRAM command timing, not the PU clock,
 caps them at two beats per column read. P3-LLM~\cite{p3llm} keeps the weight of a column read latched in its PU,
-issues one further command per token and clocks its PU at one beat per HBM2 \tccds{} (Table~\ref{tab:params}). Each
+issues one further command per token and clocks its PU at one beat per HBM2 \tccds{} (Table~\ref{tab:designs}). Each
 MAC thus still waits for its own command, as in stock AiM and LP-Spec-style (Fig.~\ref{fig:timeline}). Commands issue
 only every \tccds, ``typically a half of \tccdl{}''~\cite{p3llm}, while the all-bank column runs at
 \tccdl~\cite{hbmpim}, so at most two tokens share a read: the 8 tokens take 4 column periods, 8 commands and 4 reads.
