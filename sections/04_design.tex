@@ -17,9 +17,8 @@ CoDe (Command-Decoupled PIM) issues one MAC command per weight column for a tile
 GEMM, and this single \emph{tile MAC} command carries CoDe's two levers: row reuse (Section~\ref{sec:design:reuse})
 and beat filling (Section~\ref{sec:design:beat}). Every command still obeys every DRAM timing parameter: activations,
 column reads and refreshes issue exactly as in stock AiM, and only the MAC beats leave the command stream. Both levers
-come from the tile, and the tile comes from the global buffer, which CoDe extends from stock AiM's one input vector to
-the input vectors of $V$ tokens (Fig.~\ref{fig:tile}, Section~\ref{sec:design:pu}): sharing a row sweep needs $V$
-tokens' inputs beside the PU, and filling $D$ beats needs at least $D$ tokens per command. Fig.~\ref{fig:tile} groups
+come from the tile, whose inputs the global buffer holds: CoDe extends the GB from stock AiM's one input vector to the
+input vectors of $V$ tokens (Fig.~\ref{fig:tile}, Section~\ref{sec:design:pu}). Fig.~\ref{fig:tile} groups
 the PU's structures by lever: the staging buffer, the accumulator file and the \emph{burst drain} carry row reuse, and the
 weight latch and the beat sequencer carry beat filling. With both levers, CoDe's useful-MAC utilization $U$ reaches
 0.779 on the mobile platform, against stock AiM's 0.179 (Table~\ref{tab:umac}).
@@ -48,8 +47,7 @@ CoDe pays one row switch for the tile; the row opens fall from eight to one and 
 because the tile reads each weight from the array once. With $A$ tokens per row sweep, a token pays
 $\trow / A + \ttok$ of non-MAC commands per row sweep, plus its share of refresh. The token load/drain commands stay
 per token: WRGB writes each token's input chunk into the GB, and the \emph{burst drain} reads each token's sums once per row
-sweep. Row reuse needs the $V$ tokens' inputs next to the PU for the whole row sweep and $V$ partial sums per tile; the
-global buffer, the staging buffer and the accumulator file hold them (Section~\ref{sec:design:pu}). The two families
+sweep. The two families
 of Section~\ref{sec:bg:walls} tie the tokens of a row sweep to one MAC slot ($A = 2$ and 4 in Table~\ref{tab:umac}),
 whereas CoDe sets them by $V$ and leaves the PU's lanes unchanged. The simulated non-MAC time per token thus falls
 from stock AiM's 123.39\,ns to CoDe's 22.15\,ns at $V = 8$ on the mobile platform (Table~\ref{tab:umac}) and from
@@ -65,8 +63,7 @@ t_\mathrm{col}$, which equals CK on both platforms (Tables~\ref{tab:params} and~
 period whatever the command spacing. A \emph{tile MAC} holds its column in the PU for $V/D$ column periods, and the next \emph{tile
 MAC} issues $V/D$ periods later. The enlarged \emph{tile MAC} of Fig.~\ref{fig:mapping}b shows one tile of $V = 8$ tokens at
 $D = 4$: one column read feeds eight beats, one per token and four per column period, and each beat adds into its
-token's accumulator slot. The bank holds the column for $V/D = 2$ periods, the next \emph{tile MAC} issues two periods later,
-and the tile's partial sums leave in one \emph{burst drain} after its last column.
+token's accumulator slot. The tile's partial sums leave in one \emph{burst drain} after its last column.
 
 % P:des-beat-slot-factor
 Beat filling raises the slot factor from stock AiM's 1/4 to 1, because every beat of a MAC slot computes for one token
@@ -108,11 +105,9 @@ holds four sets (Table~\ref{tab:designs}).
 
 % P:des-tile-size
 \paragraph{Tile size}
-The tile size $V$ sizes CoDe's storage: the GB holds $V$ tokens' $K$ chunks, the HBM2 staging register holds $V$
-slices, and the accumulator file holds two sets of $V$ slots per bank for double buffering. The lanes, the weight latch, the beat sequencer and the
-mobile staging queue keep their size at any $V$. Below $V = D$ the column period paces the PU and beats idle; from
-$V = D$ every beat computes, and a larger $V$ cuts only the row-switch term of a token's non-MAC time per row sweep,
-about $\trow / V + \ttok$. A weight row takes $\lceil M/V \rceil$ row sweeps, so a last sweep with fewer than $V$
+The tile size $V$ sizes CoDe's GB, HBM2 staging register and accumulator file, while the lanes, the weight latch, the
+beat sequencer and the mobile staging queue keep their size at any $V$. Below $V = D$ the column period paces the PU and beats idle; from
+$V = D$ every beat computes, and a larger $V$ cuts only the row-switch term $\trow / V$ of a token's non-MAC time. A weight row takes $\lceil M/V \rceil$ row sweeps, so a last sweep with fewer than $V$
 tokens, or any $V > M$, leaves slots idle, and $V$ is sized for the range of $M$ a platform serves. CoDe sets
 $V = 2D = 8$ on the mobile platform and $V = D = 4$ on HBM2, where each token needs twice the storage, a 4\,KB $K$
 chunk and a 512-bit slice, and one PU serves two banks, so an added slot costs a larger share of the logic
@@ -135,8 +130,7 @@ CoDe needs a PU clock above the column rate, not one equal to CK, and the tile k
 the DRAM silicon of Section~\ref{sec:bg:depth}. Beat $k$ writes
 accumulator slot $k$, so each slot takes one update per tile of $V \ge D$ beats, and the add loop of each slot spans a
 column period or more. CoDe's lanes multiply integers, INT8 on the mobile platform and INT4\,$\times$\,INT8 on HBM2,
-narrower operands than the BF16 of that section's 1\,GHz multipliers. Each added structure grows with $V$, not with
-$D$: CoDe spends its area on storage and keeps the stock multiplier count (Section~\ref{sec:method}).
+narrower operands than the BF16 of that section's 1\,GHz multipliers.
 
 \subsection{Mapping Skinny GEMMs and Attention}
 \label{sec:design:map}

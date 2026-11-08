@@ -31,10 +31,9 @@ the published values of $M$ (Section~\ref{sec:bg:skinny}).
 % P:mot-gemv-only
 \paragraph{GEMV-only use of PIM}
 Stock PIM is a GEMV engine, and published systems keep PIM for GEMVs and send the GEMMs to the host, even though the
-host runs every skinny GEMM on its memory roof. AttAcc~\cite{attacc} runs batched FC layers on the xPU and attention on
-PIM. NeuPIMs~\cite{neupims} maps the GEMMs to the NPU because PIM ``lacks the computational power to handle GEMM
-effectively.'' IANUS~\cite{ianus} chooses NPU or PIM per FC layer. P3-LLM~\cite{p3llm} offloads its linear layers to
-the NPU from batch 8, where its PIM becomes compute-bound.
+host runs every skinny GEMM on its memory roof. AttAcc~\cite{attacc} runs batched FC layers on the xPU,
+NeuPIMs~\cite{neupims} maps the GEMMs to the NPU, IANUS~\cite{ianus} chooses NPU or PIM per FC layer, and
+P3-LLM~\cite{p3llm} offloads its linear layers to the NPU from batch 8, where its PIM becomes compute-bound.
 
 % P:mot-a-summary
 Skinny GEMMs are memory-bound on the host and thus belong on PIM, which reads the weights inside the DRAM, yet stock
@@ -47,13 +46,11 @@ cause.
 % P:mot-breakdown-setup
 Fig.~\ref{fig:breakdown} splits stock AiM's GEMM time into six components for one tile and for the query projection
 layer (q\_proj) of Llama-2-7B on the mobile platform and of Llama-3.1-8B on the edge server; each bar is normalised to
-its GEMM time, which is printed at the bar's end. The one tile's weights fill one row sweep in each bank and its inputs
+its GEMM time. The one tile's weights fill one row sweep in each bank and its inputs
 fill one GB chunk ($K \times N$ of $2048 \times 64$ on the mobile platform and $4096 \times 256$ on the edge server),
 so the one tile shows the costs of one row sweep. The q\_proj kernel, attention's $4096 \times 4096$ query projection,
 shows a whole layer. Both kernels run at $M = 8$ on one channel. The mobile platform places an INT8 PU beside each
-LPDDR5-6400 bank, and the edge server places a W4A8 PU beside each pair of HBM2 banks (Table~\ref{tab:params}). Each
-platform computes at the precision of the prior PIM design that targets it, LP-Spec~\cite{lpspec} on the mobile platform
-and P3-LLM~\cite{p3llm} on the edge server. The six
+LPDDR5-6400 bank, and the edge server places a W4A8 PU beside each pair of HBM2 banks (Table~\ref{tab:params}). The six
 components form two groups: the time in non-MAC commands (row switch, token load, token drain and refresh) and the
 time in MAC slots, which hold useful and idle beats. A MAC slot is the time \tslot that one all-bank MAC command
 occupies; on the mobile platform a MAC slot spans one column period (Fig.~\ref{fig:dram_pim}b). Useful MAC work fills
@@ -149,7 +146,8 @@ next paragraphs take the two families in turn.
 \paragraph{Wider-PU family}
 Wider-PU designs trade area for MAC throughput: they fill the idle beats with more multipliers per PU.
 LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8 ALUs, clocks the ALUs at one MAC step per column
-period, and shares one unit between two banks; we model one such unit per bank (Table~\ref{tab:designs}). One column
+period, and shares one unit between two banks; we model one such unit per bank (Table~\ref{tab:designs}), the faster
+rival, and evaluate the published sharing in Section~\ref{sec:eval:e2e}. One column
 command feeds the four ALUs with four tokens, one MAC step each. Fig.~\ref{fig:timeline} counts one bank's time in
 column periods $T$ of $D = 4$ beats: where stock AiM spends 8 column periods, 8 commands and 8 reads on the 8 tokens,
 the four ALUs need 2 of each, on four times the stock multipliers. The 4$\times$ ceiling moves the crossover of this
@@ -179,6 +177,9 @@ than an ASIC process and routes the logic in three metal layers instead of ten o
 0.19\,mm$^2$. Samsung's HBM-PIM~\cite{hbmpim} halves its DRAM sub-arrays to make room for its PUs and so gives up 50\,\% of
 the die's memory capacity. By LP-Spec's~\cite{lpspec} own estimate its compute units and buffers take
 16.92\,\% of a 16\,Gb LPDDR5 die, against 20--25\,\% of the chip for all of AiM's~\cite{aimjssc} compute circuits.
+LP-Spec's estimate includes register files of 50,688 bits per matrix unit, whereas our LP-Spec-style model keeps only
+the accumulators its dataflow needs and takes 4.28\,\% of the die (Table~\ref{tab:designs}), a reading that favours
+LP-Spec-style.
 Four times the multipliers per bank therefore cost capacity, and per unit of logic area the wider-PU family keeps
 only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 314\,GOPS on the mobile platform and
 697 on the edge server, against stock AiM's 216 and 492.
@@ -206,7 +207,7 @@ PU~\cite{pimba,paise,splitsync,dots,pimphony}. Three designs, the closest prior 
 read, yet each design holds one input vector ($M = 1$): SAL-PIM~\cite{salpim} clocks its MAC units at twice the column
 rate, the Precision-Flexible PU~\cite{pfpu} runs four phases per column interval on packed low-bit operands, and
 CD-PIM~\cite{cdpim} runs two compute units per bank at twice the internal clock. CD-PIM~\cite{cdpim} leaves the GEMM to
-the host processor, and the extra beats of all three designs work on the same vector. Across the two families and
+the host processor. Across the two families and
 these three designs, a column read feeds several tokens only through added multipliers or added commands, and a row
 sweep serves only the tokens of one MAC slot.
 
@@ -235,7 +236,7 @@ features: Samsung, SK hynix and Micron build periphery transistors with high-k m
 
 % P:mot-two-levers
 A PU at CK thus fits in a DRAM die, and the wider-PU family shows how much logic area a PIM die already gives to
-filling idle beats. We therefore keep the stock multipliers, run them at CK within that area, and answer each root
+filling idle beats. We therefore keep the stock multiplier count, run it at CK within that area, and answer each root
 cause of Section~\ref{sec:bg:cmd} with one lever. \emph{Row reuse} (Section~\ref{sec:design:reuse}) lets the $V$
 tokens of a tile share one row sweep and pay its row-switch commands once, and answers the non-MAC commands by cutting
 their time per token. \emph{Beat filling} (Section~\ref{sec:design:beat}) uses all $D$ beats of a column period

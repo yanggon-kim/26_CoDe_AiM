@@ -11,9 +11,7 @@ with $K$ and $N$ in the thousands, inside the bound $M \ll 64$ that FlashDecodin
 decode GEMMs. A speculative decoder~\cite{leviathan2023} drafts tokens cheaply and verifies the $M$ drafted tokens in one
 pass of the target model, as a chain or as a token tree~\cite{eagle2}; a batched decoder serves $M$ requests per step.
 Published mobile decoders verify 2--8 drafted tokens padded to at most 32~\cite{sdnpu}, 1--32 on LPDDR-PIM~\cite{lpspec}
-and token trees of 4--64~\cite{lever}, and edge-server batches hold 1--8 requests~\cite{p3llm}. Token trees for
-datacenter GPUs (48--60~\cite{eagle2}, 64~\cite{medusa}, 64--128~\cite{sequoia}) and latency-capped datacenter batches
-(16--27~\cite{attacc}) reach past that range, and there the GEMM moves to the host (Section~\ref{sec:bg:roofline}). This
+and token trees of 4--64~\cite{lever}, and edge-server batches hold 1--8 requests~\cite{p3llm}. This
 paper targets verification on the mobile platform ($M = 2$--32~\cite{sdnpu,lpspec}) and batches on the edge server
 ($M = 2$--8~\cite{p3llm}).
 

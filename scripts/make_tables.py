@@ -542,10 +542,37 @@ def table_power():
     return peak
 
 
+def lpsv_checks():
+    """Sec. I / III-C / VI-B numbers of the two LP-Spec-style variants on the mobile platform (lpsv @ microarch 1a8bb77,
+    collected at workspace a355e66: evaluation/dac_sd8g3 context Sec. 2h, Sec. 5 rows 38-41). Shared = LP-Spec's
+    published one unit per two banks (h2sh); A8 = LP-Spec-style with an eight-token tile (h2a8). Wording traps: against
+    the shared variant quote 1.42-1.45x per mm2, never 1.87x; the 1.49x holds on the common 5 ns all-bank column
+    (LP-Spec's Table II implies 10 ns, not run); 9.80 / 12.08 mm2 are never printed (16 vs 8 register-file sets
+    unresolved, row 40); LP-Spec's register files are "included" in its 16.92 %, never "mostly"."""
+    ps = ids("dac_sd8g3")
+    # shared variant: area and loop speed / per mm2 against CoDe (V = 8)
+    assert r2(ps["lpsv.phone.h2sh_over_core8.logic"]) == 0.96 and r2(ps["lpsv.phone.h2sh.pct_of_die"]) == 2.21
+    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M4"]) == 1.49
+    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M8"]) == 1.60 == r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M16"])
+    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M4"]) == 1.42 and r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_best"]) == 1.45
+    # A8: loop ties at every M run (2-4, 8, 16), GEMM ties from M = 8 except M = 12; area and per mm2
+    assert ps["lpsv.phone.loop.core8_over_h2a8.speed.min"] == 1.0 == ps["lpsv.phone.loop.core8_over_h2a8.speed.max"]
+    assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M8plus_no12.min"], 3) == 1.0 == round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M8plus_no12.max"], 3)
+    assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M12"], 3) == 1.007
+    assert r2(ps["lpsv.phone.h2a8.pct_of_die"]) == 4.72
+    assert r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.min"]) == 2.05 == r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.max"])
+    # III-C: LP-Spec's own 16.92 % and its register files per matrix unit, against our 4.28 % (Table IV)
+    assert r2(ps["budget.lpspec_own.pct_of_die_1z"]) == 16.92 and ps["budget.lpspec_own.rf_bits_per_mpu"] == 50688
+    assert r2(ps["budget.phone.h2.pct_of_die_1z"]) == 4.28
+    print("lpsv: shared 0.96x CoDe's logic (2.21 %), CoDe 1.49x / 1.60x faster, 1.42-1.45x per mm2; "
+          "A8 ties (1.007 at M = 12), 4.72 %, CoDe 2.05x per mm2; LP-Spec RF 50,688 b per unit")
+
+
 if __name__ == "__main__":
     os.makedirs(os.path.join(REPO, "tables"), exist_ok=True)
     table4(table_power())
     budget_checks()
+    lpsv_checks()
     area_split()
     mech_checks()
     umac_table()

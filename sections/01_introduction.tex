@@ -36,8 +36,8 @@ latches a weight and issues one command per token, so P3-LLM's MACs inherit the 
 column period: at most two tokens share a read.
 
 % P:intro-timing-insight
-Critically, DRAM timing parameters exist to meet DRAM access requirements by spacing the column commands that move data
-out of the cell array~\cite{hbmpim}, not the MACs on a column already latched beside the bank. The column period
+Critically, DRAM timing parameters space the column commands that move data out of the cell array~\cite{hbmpim}, not
+the MACs on a column already latched beside the bank. The column period
 $t_\mathrm{col}$, the time one all-bank column command occupies the bank, sets how often a column arrives, and the PU
 clock $f_\mathrm{PU}$ sets how often the PU computes, so one column can feed $D = t_\mathrm{col} \times f_\mathrm{PU}$
 beats. An all-bank column lasts 5\,ns on LPDDR5-6400~\cite{lpspec} and 4\,ns on HBM2~\cite{hbmpim}, and a PU built in a
@@ -48,10 +48,12 @@ fits $D = 4$ beats into each column period, of which a stock PU uses one.
 To this end, this paper proposes CoDe (Command-Decoupled PIM). One column command reads a weight column once; the PU holds the
 column and runs $D$ beats per column period over a tile of $V$ token vectors, at its own clock and the stock
 multiplier count. We evaluate CoDe against each rival on that rival's own memory, workload and precision. On a mobile
-platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe matches LP-Spec-style's
-end-to-end decoding speed on 0.539$\times$ its logic area, so CoDe returns 1.87$\times$ LP-Spec-style's tokens per
-second per logic mm$^2$. On an edge server with HBM2 at W4A8, CoDe decodes a batch of 8 1.68$\times$ faster than
-P3-LLM-style, with 1.26$\times$ the throughput per logic mm$^2$ and 1.64$\times$ the system energy efficiency.
+platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe reaches LP-Spec-style's
+end-to-end decoding speed with the stock multiplier count clocked at 0.8\,GHz, on 0.539$\times$ LP-Spec-style's logic
+area, and so returns 1.87$\times$ its tokens per second per logic mm$^2$. Built as LP-Spec publishes it, with one unit
+shared between two banks, LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes 1.49$\times$ faster. On an
+edge server with HBM2 at W4A8, CoDe decodes a batch of 8 1.68$\times$ faster than P3-LLM-style and 1.28$\times$ faster
+than NPU only, which P3-LLM falls back to at that batch, with 1.64$\times$ P3-LLM-style's system energy efficiency.
 
 % P:intro-contributions
 In summary, this paper makes the following contributions:
@@ -61,7 +63,8 @@ In summary, this paper makes the following contributions:
   \item We propose CoDe, a PU and command extension that runs $D$ MAC beats per column command over a tile of tokens
         at the stock multiplier count (Section~\ref{sec:design}).
   \item We evaluate CoDe in two pairings on each rival's own ground: against LP-Spec-style on LPDDR5-6400 (INT8,
-        speculative decoding) and against P3-LLM-style on HBM2 (W4A8, batched decoding) (Section~\ref{sec:eval}).
+        speculative decoding), also as LP-Spec publishes it and with an eight-token tile, and against P3-LLM-style
+        on HBM2 (W4A8, batched decoding) (Section~\ref{sec:eval}).
 \end{itemize}
 
 % float defined after page 1's right column has closed, so it renders at the top of page 2 (one float per column)
