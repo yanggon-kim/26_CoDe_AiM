@@ -24,7 +24,7 @@ command: at $M = D = 4$ CoDe runs 3.74$\times$ stock AiM's speed on the mobile p
 server, against P3-LLM-style's 1.95$\times$, and at $M = 64$ CoDe runs 4.16$\times$ and 3.80$\times$. LP-Spec-style also fills four beats per column period, with four times
 the multipliers, so its curve coincides with CoDe's up to $M = 4$, and at every $M$ on the edge server, where CoDe's
 tile of $V = D = 4$ issues LP-Spec-style's command stream. On the mobile platform CoDe's eight-token tile halves
-LP-Spec-style's row sweeps from $M = 8$, a lead of the tile size, not of decoupling (Section~\ref{sec:eval:e2e}).
+LP-Spec-style's row sweeps from $M = 8$.
 
 % P:eval-gemm-per-mm2
 \paragraph{GEMM throughput per logic mm$^2$}
@@ -54,9 +54,9 @@ third and fourth beats sit idle, does P3-LLM-style's smaller PU lead, with CoDe 
 \paragraph{Mobile platform}
 Fig.~\ref{fig:e2e} runs whole decoding on the five systems of Section~\ref{sec:method:work}: the speculative loop at
 $M = 4$ on the mobile platform and a batch of 8 on the edge server. At acceptance rate 0.7 a round of the loop yields
-fewer than $1/(1 - 0.7) \approx 3.3$ tokens on average, so the verify pass stays short, and $M = 4$ is NPU only's
+fewer than $1/(1 - 0.7) \approx 3.3$ tokens on average, and $M = 4$ is NPU only's
 best $M$ and within 2\,\% of NPU + LP-Spec-style's and NPU + CoDe's best throughput; a batch of 8 is a light edge-server
-load and the largest power of two before NPU only overtakes CoDe. On the mobile platform CoDe and LP-Spec-style
+load. On the mobile platform CoDe and LP-Spec-style
 decode fastest, 4.37$\times$ and 4.34$\times$ faster than NPU only, at 46.4 and 46.1 tokens/s
 (Fig.~\ref{fig:e2e}a). P3-LLM-style reaches 2.96$\times$, because its two-token read needs two passes over the four
 token rows, and stock AiM reaches 1.81$\times$. At each system's own best $M$ the order holds: CoDe reaches
@@ -73,7 +73,7 @@ P3-LLM-style. On the five-model geometric mean, NPU only overtakes CoDe from bat
 % P:eval-e2e-per-mm2
 \paragraph{Throughput per logic mm$^2$}
 At LP-Spec-style's decoding speed, CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the
-mobile platform and 1.79$\times$ on the edge server (Fig.~\ref{fig:e2e}b), because CoDe needs about half its logic. Against P3-LLM-style, whose PU takes less logic than CoDe's, CoDe's speed lead more than repays the area:
+mobile platform and 1.79$\times$ on the edge server (Fig.~\ref{fig:e2e}b). Against P3-LLM-style, CoDe's speed lead more than repays its larger logic:
 CoDe returns 1.10$\times$ P3-LLM-style's decoding throughput per logic mm$^2$ on the mobile platform and 1.26$\times$ on the
 edge server.
 
@@ -117,11 +117,10 @@ future AiM designs. CoDe's design operates within this headroom.
 \paragraph{Peak power}
 CoDe's peak power falls inside this headroom on both platforms and stays close to LP-Spec-style's. CoDe draws
 0.54\,W per die at its full MAC rate, 1.20$\times$ the power of one x16 channel reading at its full
-rate (Section~\ref{sec:method:models}), well below the threefold read current of AiM's MACs. On HBM2, CoDe draws
-5.98\,W per stack, 0.75$\times$ the stack's full-rate read power, so CoDe's PUs fit within the read power an HBM2 stack
-already delivers; HBM-PIM~\cite{hbmpim} likewise keeps its PIM mode within the thermal design power of the original
+rate (Section~\ref{sec:method:models}), below the threefold read current of AiM's MACs. On HBM2, CoDe draws
+5.98\,W per stack, 0.75$\times$ the stack's full-rate read power; HBM-PIM~\cite{hbmpim} likewise keeps its PIM mode within the thermal design power of the original
 HBM system. CoDe draws 0.92$\times$ LP-Spec-style's peak power on the mobile platform and 0.87$\times$ on HBM2, and
-even without its clock gates CoDe draws only 1.04$\times$ and 1.03$\times$ LP-Spec-style's peak
+without its clock gates 1.04$\times$ and 1.03$\times$ LP-Spec-style's peak
 (Table~\ref{tab:designs}). CoDe spreads its MAC rate over four times as many clock edges as LP-Spec-style,
 so each CoDe edge draws 3.4$\times$ less charge on the mobile platform and 3.1$\times$ less on HBM2.
 
@@ -129,7 +128,8 @@ so each CoDe edge draws 3.4$\times$ less charge on the mobile platform and 3.1$\
 \label{sec:eval:area}
 
 % P:eval-area-budget
-Fabricated PIM dies set the scale for a PIM design's logic area. Samsung's HBM-PIM~\cite{hbmpim} places 32 PIM units
+Fabricated PIM dies set the scale for a PIM design's logic area, which a DRAM die pays for in memory capacity
+(Section~\ref{sec:bg:walls}). Samsung's HBM-PIM~\cite{hbmpim} places 32 PIM units
 of 0.712\,mm$^2$ each on an 84.4\,mm$^2$ die, 27\,\% of the die by our division; GDDR6-AiM's compute circuits take 20--25\,\% of its chip (Section~\ref{sec:bg:walls}). CoDe's logic takes
 2.31\,\% of the LPDDR5 die and 1.95\,\% of the HBM2 stack (Table~\ref{tab:designs}), and 4.96\,\% and 4.02\,\% at AiM's
 silicon scale, at most a quarter of AiM's share. Like AiM, CoDe keeps every cell array and places its PUs in the bank
@@ -160,17 +160,16 @@ takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. On HBM2, CoDe's logic is
 
 % P:eval-gain-sources
 \paragraph{Sources of CoDe's gain}
-CoDe's gain over stock AiM has two sources, row reuse and beat filling. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
-of Llama-3.1-8B on the edge server. The row-reuse-only design keeps the stock PU's pace of one beat per column
+CoDe's gain over stock AiM has two sources, row reuse and beat filling. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$. The row-reuse-only design keeps the stock PU's pace of one beat per column
 period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$. Row reuse alone speeds
-the layer up 1.24$\times$ on the mobile platform and 1.15$\times$ on the edge server, yet $U$ reaches only 0.223 and
+the layer up 1.24$\times$ on the mobile platform and 1.15$\times$ on the edge server, yet $U$ reaches 0.223 and
 0.222, because \UMAC stays at 1/4.
 Beat filling then supplies the large step,
 3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
 near stock AiM's 0.717 and 0.771. In the other order, modelled as a quarter of stock AiM's MAC slots plus its non-MAC time per row sweep, beat filling
 alone would cut \fMAC, and with \UMAC at 1 also $U$, to 0.425 and 0.506, in steps of 2.37$\times$ then 1.83$\times$ on
 the mobile platform and 2.62$\times$ then 1.46$\times$ on the edge server, because the unchanged non-MAC commands would
-take about half of the shortened time or more. Beat filling thus earns its full step only
+take about half of the shortened time or more. Beat filling earns its full step only
 once row reuse has removed most of the row-switch overhead per token.
 
 % P:eval-vsweep-gain
@@ -184,7 +183,7 @@ row-switch commands 91.6\,\% of that from $V = 4$ to 8.
 
 % P:eval-vsweep-area
 Past $V = D$ CoDe's storage grows faster than its speed. From $V = 4$ to 8 CoDe's logic grows by 16\,\% on the
-mobile platform and by 40\,\% on the edge server, while its speed grows only 1.117$\times$ and 1.089$\times$, so
+mobile platform and by 40\,\% on the edge server, while its speed grows 1.117$\times$ and 1.089$\times$, so
 throughput per logic mm$^2$ peaks at $V = D$ on both platforms, at 3.01$\times$ and 2.34$\times$ stock AiM's, and falls to 1.66$\times$ and 0.38$\times$ at $V = 64$
 (Fig.~\ref{fig:vsweep}a). A full tile thus favours $V = D$, but a decode step runs at small $M$, where the last row
 sweep of a tile is often only partly filled.

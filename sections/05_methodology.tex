@@ -29,11 +29,12 @@ while the PIM works\ASSUMPTION.
 \label{sec:method:designs}
 % P:meth-designs
 Each substrate carries four designs, stock AiM~\cite{aimjssc}, P3-LLM-style, LP-Spec-style and CoDe, with one
-controller and the platform's PU placement. Table~\ref{tab:designs} lists each design's lanes, PU clock, beats per
+controller and the platform's PU placement. Stock AiM also stands for Samsung's per-bank
+LPDDR5X-PIM~\cite{lp5xpim}. Table~\ref{tab:designs} lists each design's lanes, PU clock, beats per
 column period $D$, tile size $V$, accumulator slots and GB size. Every design computes at its
 platform's precision (Table~\ref{tab:params}), with a 4-bit KV cache on HBM2, and every design's arithmetic is
 priced as INT4\,$\times$\,INT8 integers\ASSUMPTION. Sections~\ref{sec:design:pu} and~\ref{sec:eval:ablation}
-size $V$ on both platforms.
+size $V$.
 
 \subsection{Simulator and Models}
 \label{sec:method:models}

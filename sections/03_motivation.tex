@@ -209,7 +209,8 @@ rate, the Precision-Flexible PU~\cite{pfpu} runs four phases per column interval
 CD-PIM~\cite{cdpim} runs two compute units per bank at twice the internal clock. CD-PIM~\cite{cdpim} leaves the GEMM to
 the host processor. Across the two families and
 these three designs, a column read feeds several tokens only through added multipliers or added commands, and a row
-sweep serves only the tokens of one MAC slot.
+sweep serves only the tokens of one MAC slot: none, P3-LLM's two-token latch included, lets a larger tile share one
+row sweep and pay its row-switch commands once, or fills the idle beats with its tokens without added multipliers or commands.
 
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
