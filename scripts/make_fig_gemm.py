@@ -64,6 +64,8 @@ def check_prose_numbers(data):
     assert (r2(min(v2)), r2(max(v2))) == (1.96, 1.97), v2
     assert r2(sp["phone"]["code"][4]) == 3.74 and r2(sp["hbm2"]["code"][4]) == 3.82
     assert r2(sp["phone"]["p3"][4]) == 1.95 == r2(sp["hbm2"]["p3"][4])
+    # Fig. 7a right endpoint (AI-review item 3, 2026-11-08): "at M = 64 CoDe runs 4.16x and 3.80x"
+    assert r2(sp["phone"]["code"][64]) == 4.16 and r2(sp["hbm2"]["code"][64]) == 3.80
     # mobile: CoDe's eight-token tile halves LP-Spec-style's row sweeps from M = 8: 1.11x its speed (guard only, not
     # printed since 2026-11-08: VI-A credits the tile, not decoupling, and VI-B gives LP-Spec-style the same tile)
     s8 = [sp["phone"]["code"][M] / sp["phone"]["lpspec"][M] for M in MS if M >= 8]

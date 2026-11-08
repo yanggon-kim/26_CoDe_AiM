@@ -94,6 +94,8 @@ def gain_by_v():
     # VI-C prints the peak (V = D) of each per-mm^2 curve
     assert max(out["pa_m"], key=lambda t: t[1])[0] == D and max(out["pa_h"], key=lambda t: t[1])[0] == D
     assert (round(out["pa_m"][2][1], 2), round(out["pa_h"][2][1], 2)) == (3.01, 2.34)
+    # Fig. 9a right endpoint of each per-mm^2 curve (AI-review item 3, 2026-11-08): 1.66x and 0.38x at V = 64
+    assert (round(out["pa_m"][6][1], 2), round(out["pa_h"][6][1], 2)) == (1.66, 0.38)
     return out
 
 
@@ -116,6 +118,8 @@ def robustness():
     # at M <= 4 both tiles run one pass: the ratio is the area ratio (1 / 1.160, 1 / 1.405)
     assert all(abs(x - rp[0][1]) < 1e-5 for _, x in rp[:4]) and round(1 / rp[0][1], 3) == 1.160 and round(rp[0][1], 3) == 0.862
     assert all(abs(x - rh[0][1]) < 1e-5 for _, x in rh[:4]) and round(1 / rh[0][1], 3) == 1.405
+    # Fig. 9b edge-server range (AI-review item 3, 2026-11-08): "returns 0.712-0.944x" (low end at M <= 4)
+    assert (round(min(x for _, x in rh), 3), round(max(x for _, x in rh), 3)) == (0.712, 0.944)
     # worst per-mm^2 loss over M 3-16 against the best of V = 2, 4, 8, 16 at each M (the minimax table, current)
     reg = {}
     for r in rows("hvm_regret.csv") + rows("hvm_st_regret.csv"):

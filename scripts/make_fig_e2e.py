@@ -132,6 +132,10 @@ def check_prose_numbers(d):
     assert r2(ht["isca.e2e.hbm2.h2_over_core4.mJ_55W"]) == 1.00
     assert r2(ht["isca.e2e.hbm2.p3_500_over_core4.mJ_0W"]) == 1.46 and r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_0W"]) == 2.46
     assert abs(hb["en"]["npu"] / hb["en"]["code"] - ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) < 1e-9
+    # Fig. 8c edge bars in the text (AI-review item 3, 2026-11-08): CoDe 145 mJ per token, stock AiM 2.73x CoDe's
+    assert round(hb["en"]["code"]) == 145
+    assert r2(ht["isca.e2e.hbm2.stock_over_core4.mJ_55W"]) == 2.73
+    assert abs(hb["en"]["stock"] / hb["en"]["code"] - ht["isca.e2e.hbm2.stock_over_core4.mJ_55W"]) < 1e-9
     assert min(hb["en"], key=hb["en"].get) == "code"
     # abstract / intro / conclusion: 1.87x per mm2 at matched speed (mobile); 1.68x, 1.26x, 1.64x (edge server)
     print("Secs. VI-B/C numbers hold: mobile 4.37 / 4.34 / 2.96 / 1.81x, best M 47.1 / 46.8 / 43.8 / 26.5 / 10.6, M = 8 / 16 1.07x; "

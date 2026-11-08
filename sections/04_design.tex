@@ -43,8 +43,7 @@ all $V$ tokens, so the row-switch commands are paid once per $V$ tokens. Fig.~\r
 GEMM terms at $M = V = 8$: the GB holds the eight tokens' inputs for one chunk of $K$, one bank's open 2\,KB row holds
 one output's weights over that chunk, and the tile produces that output's eight sums. In Fig.~\ref{fig:mapping}b,
 stock AiM sweeps the weight row once per token and pays a row switch and a drain in each of its eight sweeps, whereas
-CoDe pays one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64,
-because the tile reads each weight from the array once. With $A$ tokens per row sweep, a token pays
+CoDe pays one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64. With $A$ tokens per row sweep, a token pays
 $\trow / A + \ttok$ of non-MAC commands per row sweep, plus its share of refresh. The token load/drain commands stay
 per token: WRGB writes each token's input chunk into the GB, and the \emph{burst drain} reads each token's sums once per row
 sweep. The two families
@@ -82,8 +81,7 @@ against stock AiM's 3,250\,ns, 4.40$\times$ shorter, the speedup gap of Fig.~\re
 CoDe adds two commands to the all-bank interface of AiM-style PIM~\cite{aimjssc} and keeps every other command
 (Table~\ref{tab:cmds}). The \emph{tile MAC} (col, $V$) reads one column from every open bank with the stock MAC command's
 timing and tells each PU to run $V$ beats on that column. The \emph{burst drain} moves a tile's $V$ sums out of every PU in
-one burst after the tile's last column. WRGB, TMOD, PREA, ACT16 and WRMAC16 keep their stock definitions, and of these
-only the row-switch commands change their count per token.
+one burst after the tile's last column.
 
 
 % P:des-tile-mac-pu
@@ -138,7 +136,7 @@ narrower operands than the BF16 of that section's 1\,GHz multipliers.
 % P:des-mapping
 A $K \times N$ weight matrix maps as in stock AiM: the matrix's $N$ output rows spread over the banks, and each row's $K$ weights run along DRAM columns. CoDe cuts the $M$ token rows into tiles of $V$. For each tile the GB holds the tile's
 activations for a chunk of $K$; every weight column of the chunk takes one \emph{tile MAC} command, and the next tile repeats
-the row sweep. A tile with fewer than $V$ tokens runs fewer beats on the same commands. Attention runs on the same path
+the row sweep. Attention runs on the same path
 with the KV cache as the weight matrix: $QK^\top$ streams the cached keys against the $M$ query rows, and $PV$ the
 cached values against the $M$ rows of probabilities. Speculative decoding verifies $M$ drafted tokens against one
 shared KV cache, so speculative-decoding attention is a skinny GEMM as well; a batch reads one cache per request, so batched attention

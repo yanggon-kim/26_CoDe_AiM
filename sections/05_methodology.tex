@@ -32,9 +32,8 @@ Each substrate carries four designs, stock AiM~\cite{aimjssc}, P3-LLM-style, LP-
 controller and the platform's PU placement. Table~\ref{tab:designs} lists each design's lanes, PU clock, beats per
 column period $D$, tile size $V$, accumulator slots and GB size. Every design computes at its
 platform's precision (Table~\ref{tab:params}), with a 4-bit KV cache on HBM2, and every design's arithmetic is
-priced as INT4\,$\times$\,INT8 integers\ASSUMPTION. On the
-mobile platform CoDe's tile of $V = 8$ spans two column periods, so one MAC command serves eight tokens; on HBM2 CoDe
-uses $V = D = 4$ (Section~\ref{sec:design:pu}), and Section~\ref{sec:eval:ablation} sizes $V$ on both platforms.
+priced as INT4\,$\times$\,INT8 integers\ASSUMPTION. Sections~\ref{sec:design:pu} and~\ref{sec:eval:ablation}
+size $V$ on both platforms.
 
 \subsection{Simulator and Models}
 \label{sec:method:models}
