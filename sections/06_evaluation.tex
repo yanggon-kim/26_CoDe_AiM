@@ -160,13 +160,12 @@ takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. On HBM2, CoDe's logic is
 
 % P:eval-gain-sources
 \paragraph{Sources of CoDe's gain}
-CoDe's gain over stock AiM has two sources, row reuse and beat filling, and each source is worth more once the other
-is present. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
+CoDe's gain over stock AiM has two sources, row reuse and beat filling. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform and
 of Llama-3.1-8B on the edge server. The row-reuse-only design keeps the stock PU's pace of one beat per column
 period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$. Row reuse alone speeds
 the layer up 1.24$\times$ on the mobile platform and 1.15$\times$ on the edge server, yet $U$ reaches only 0.223 and
 0.222, because \UMAC stays at 1/4.
-Beat filling, the command decoupling of Section~\ref{sec:design:beat}, then fills the idle beats and supplies the large step,
+Beat filling then fills the idle beats and supplies the large step,
 3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
 near stock AiM's 0.717 and 0.771. In the other order, modelled as a quarter of stock AiM's MAC slots plus its non-MAC time per row sweep, beat filling
 alone would cut \fMAC, and with \UMAC at 1 also $U$, to 0.425 and 0.506, in steps of 2.37$\times$ then 1.83$\times$ on
@@ -192,8 +191,8 @@ sweep of a tile is often only partly filled.
 
 % P:eval-vsweep-partial
 \paragraph{Tile size across $M$}
-Fig.~\ref{fig:vsweep}b sets $V = 8$ against $V = 4$ in a decode step's throughput per logic mm$^2$ for $M = 1$--16:
-the speculative verify step on the mobile platform and the batched step on the edge server. $V = 8$ wins only where
+Fig.~\ref{fig:vsweep}b sets $V = 8$ against $V = 4$ in a decode step's throughput per logic mm$^2$ for $M = 1$--16.
+$V = 8$ wins only where
 it saves $V = 4$ a partly filled row sweep, and loses where both tiles run the same row sweeps. At $M = 5$, $V = 4$
 runs two row sweeps of three and two tokens where $V = 8$ runs one, and $V = 8$ returns 1.324$\times$ $V = 4$'s
 throughput per mm$^2$; on the mobile platform $V = 8$ wins at $M = 5$--7, 9--10 and 13--15. Up to $M = 4$ both

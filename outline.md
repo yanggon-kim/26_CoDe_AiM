@@ -6,11 +6,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 
 ## Abstract  (sections/00_abstract.tex)
 - **[abs-summary]**
-  - Message: CoDe lets one DRAM column command feed a tile of tokens at the PU's own clock, so PIM serves skinny decode GEMMs that command-paced PIM designs serve only with more multipliers or more commands.
+  - Message: Speculative decoding and small batches turn decoding's GEMVs into memory-bound skinny GEMMs that suit PIM, but stock PIM, built for GEMVs, fills under a fifth of its GEMM time with useful MACs because a DRAM command paces every MAC; CoDe decouples MACs from commands (row reuse, beat filling) and buys LP-Spec-style's speed with about half its logic. Order (user-approved text, 2026-11-08): context → skinny GEMM, host memory-bound → PIM fits, stock PIM falls short → characterization (useful share, two root causes) → common cause → CoDe's two techniques → results.
   - Floats: —
-  - Numbers: M 2–32; 4× multipliers; two tokens per read; 5 / 4 ns column; four beats at 0.8–1 GHz; mobile headline (area-efficiency framing, 2026-11-08): reaches LP-Spec-style's decoding speed with the stock multiplier count clocked at 0.8 GHz on 0.539× its logic area ← tables [table4], e2e; LP-Spec-style as published (one unit per two banks) 0.96× CoDe's logic, CoDe 1.49× faster ← tables [lpsv_checks] (sd8g3 §2h); HBM2 batch of 8: 1.68× P3-LLM-style and 1.28× NPU only (P3-LLM's fallback at that batch; never "P3-LLM with fallback" as a measured system) ← e2e (sd8g3 §2f, 2x2 §2p), roof. 1.87× per mm², 1.26× per mm², 1.64× energy left the abstract (body only).
+  - Numbers: M 2 to 32 ← cited ranges (bg-skinny-range); useful 14.1–19.1 %, non-MAC 23.4–43.7 %, idle 42.2–57.4 % ← brk (2x2 §2j); mobile: LP-Spec-style's decoding speed on 0.539× its logic area ← tables [table4], e2e; 1.49× faster at about the same logic area (LP-Spec-style as published, 0.96× CoDe's logic, printed in I and VI-B) ← tables [lpsv_checks] (sd8g3 §2h); HBM2 batch of 8: 1.68× P3-LLM-style and 1.28× NPU only ← e2e (sd8g3 §2f, 2x2 §2p), roof. 1.87× / 1.26× per mm², 1.64× energy, 5 / 4 ns column, four beats, 4× multipliers left the abstract (body only).
   - Cites: —
-  - Links: → intro-code-proposal, eval-e2e-phone, eval-e2e-server, eval-e2e-per-mm2, eval-lpspec-variants, eval-area-split
+  - Links: → intro-code-proposal, mot-breakdown-setup, des-row-reuse, des-beat-decouple, eval-e2e-phone, eval-e2e-server, eval-e2e-per-mm2, eval-lpspec-variants, eval-area-split
 
 ## I. Introduction  (sections/01_introduction.tex)
 - **[intro-skinny-gemm]**

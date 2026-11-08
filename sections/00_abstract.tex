@@ -1,16 +1,17 @@
-% Abstract: seven moves, <= 200 words; every number also printed in Sec. I, II or III.
+% Abstract: every number also printed in Sec. I, II or III.
 \begin{abstract}
 % P:abs-summary
-Large language model decoding on mobile platforms and edge servers runs skinny GEMMs: with speculative decoding or small
-batches, each weight matrix meets 2 to 32 tokens, and the host stays memory-bound. DRAM processing-in-memory (PIM) offers the bandwidth, but
-its processing units (PUs) run one multiply--accumulate (MAC) beat per column command, so their compute serves one
-token. Prior designs keep every MAC paced by a DRAM command: LP-Spec widens each command's
-MAC step with 4$\times$ the multipliers, and P3-LLM's command per token caps a read at two tokens. We observe that
-DRAM timing bounds column accesses, not MACs on a latched column: a 5\,ns LPDDR5-6400 or 4\,ns HBM2 column fits four
-PU beats at 0.8--1\,GHz. We propose CoDe (Command-Decoupled PIM): one
-command delivers a weight column, which the PU applies to a tile of tokens at its own clock. On each rival's memory, workload and precision, CoDe reaches LP-Spec-style's
-decoding speed on a mobile platform with the stock multiplier count clocked at 0.8\,GHz, on 0.539$\times$ its logic area; built as published, with
-one unit per two banks, LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes 1.49$\times$ faster. On HBM2, CoDe
-decodes a batch of 8 1.68$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only, which P3-LLM falls back
-to at that batch.
+Speculative decoding and small-batch serving are widely used for large language model decoding on mobile platforms and
+edge servers, and both turn decoding's GEMVs into skinny GEMMs. Although each weight matrix now meets 2 to 32 tokens,
+these GEMMs remain memory-bound on the host. Such GEMMs suit DRAM processing-in-memory (PIM), which offers the bandwidth
+they need. However, stock PIM was designed for GEMVs, so its MAC throughput falls short on skinny GEMMs. In this work, we
+first conduct a detailed characterization of stock PIM's GEMM time, which shows that useful MACs fill only
+14.1--19.1\,\% of that time. Two root causes take the rest: non-MAC DRAM commands that stall every MAC
+(23.4--43.7\,\%) and idle MAC beats (42.2--57.4\,\%). Both causes arise because a DRAM command paces every MAC, a choice
+that suits GEMVs but not GEMMs. Based on this characterization, we propose CoDe (Command-Decoupled PIM), which decouples
+MACs from DRAM commands with two techniques: row reuse lets a tile of tokens share one row sweep and pay its row-switch
+commands once, and beat filling computes the tile's tokens in the PU beats that DRAM timing leaves idle, without adding
+multipliers. On a mobile platform, CoDe matches LP-Spec-style's decoding speed with 0.539$\times$ its logic area and
+decodes 1.49$\times$ faster at about the same logic area. On an HBM2 edge server, CoDe decodes a batch of 8
+1.68$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only.
 \end{abstract}
