@@ -68,7 +68,7 @@ at $M = 4$.
 On the edge server only CoDe and LP-Spec-style decode a batch of 8 faster than NPU only, both 1.28$\times$ at
 456 tokens/s (Fig.~\ref{fig:e2e}a). Stock AiM runs at 0.45$\times$ and P3-LLM-style at 0.76$\times$ NPU only's speed,
 so at the batch where P3-LLM~\cite{p3llm} moves its linear layers to the NPU, CoDe decodes 1.68$\times$ faster than
-P3-LLM-style. On the geometric mean, NPU only overtakes CoDe from batch 16.
+P3-LLM-style. On the five-model geometric mean, NPU only overtakes CoDe from batch 16.
 
 % P:eval-e2e-per-mm2
 \paragraph{Throughput per logic mm$^2$}
@@ -96,11 +96,10 @@ design's tokens per second per logic mm$^2$.
 
 % P:eval-energy
 \paragraph{Energy per token}
-CoDe spends the least energy per token of the five systems on both platforms. On the mobile platform the speculative
-loop on CoDe spends 70.5\,mJ per token at $M = 4$, while NPU only spends 7.9$\times$, stock AiM 1.80$\times$,
+CoDe spends the least energy per token of the five systems on both platforms. On the mobile platform CoDe spends 70.5\,mJ per token at $M = 4$, while NPU only spends 7.9$\times$, stock AiM 1.80$\times$,
 P3-LLM-style 1.28$\times$ and LP-Spec-style 1.04$\times$ CoDe's energy (Fig.~\ref{fig:e2e}c). On the edge server,
 with the NPU idling at 55\,W while the PIM works, CoDe spends 145\,mJ per token. NPU only spends
-1.48$\times$, stock AiM 2.73$\times$ and P3-LLM-style 1.64$\times$ CoDe's energy, and LP-Spec-style ties CoDe; with the idle NPU power-gated, P3-LLM-style still spends 1.46$\times$
+1.48$\times$, stock AiM 2.73$\times$ and P3-LLM-style 1.64$\times$ CoDe's energy, and LP-Spec-style ties CoDe; with the idle NPU power-gated, P3-LLM-style spends 1.46$\times$
 CoDe's energy.
 
 % P:eval-power-headroom
@@ -112,7 +111,7 @@ gapless read current, and reservoir capacitors and separate I/O and bank power n
 together without \tfaw. AttAcc~\cite{attacc} budgets its GEMV units by the all-bank interleaved read current (IDD7),
 Newton's~\cite{newton} authors estimate that its all-bank computation draws about 4$\times$ the power of a peak-bandwidth
 read, and SK hynix~\cite{aimxhc36} lists the number of banks that run MACs among the power-throttling knobs of its
-future AiM designs.
+future AiM designs. CoDe's design operates within this headroom.
 
 % P:eval-power
 \paragraph{Peak power}

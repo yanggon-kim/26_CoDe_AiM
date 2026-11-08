@@ -150,7 +150,7 @@ period, and shares one unit between two banks; we model one such unit per bank (
 rival, and evaluate the published sharing in Section~\ref{sec:eval:e2e}. One column
 command feeds the four ALUs with four tokens, one MAC step each. Fig.~\ref{fig:timeline} counts one bank's time in
 column periods $T$ of $D = 4$ beats: where stock AiM spends 8 column periods, 8 commands and 8 reads on the 8 tokens,
-the four ALUs need 2 of each, on four times the stock multipliers. The 4$\times$ ceiling moves the crossover of this
+the four ALUs need 2 of each. The 4$\times$ ceiling moves the crossover of this
 per-bank design with the host to $M = 20$--24 on the mobile platform (Fig.~\ref{fig:roofline}a).
 PAPI~\cite{papi} places four processing units in each bank, and StepStone~\cite{stepstone} places SIMD units at the
 bank groups or beside the devices of a memory module. Duplex~\cite{duplex} and H$^2$-LLM~\cite{h2llm} build their
