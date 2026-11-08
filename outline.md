@@ -165,7 +165,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Numbers: U = 1/4 × 0.717 = 0.179 (mobile); edge U 0.193 (also Table V) ← tables [umac_table]
   - Cites: —
   - Links: ← mot-breakdown-setup, mot-sweep-factor, mot-idle-beats; → mot-prior-families, mot-wider-pu, mot-two-levers, des-tile-mac-overview
-### C. Related Work: Prior PIM for GEMMs
+### C. Related Work: GEMM Support in PIM
 - **[mot-prior-families]**
   - Message: Prior PIM designs fill the idle beats in two families, with more multipliers or with more commands; Fig. 4 follows one weight column through eight tokens in stock AiM and one design of each family (LP-Spec, P3-LLM), and the next paragraphs take the families in turn (pure framing opener; the figure's setup and counts moved into mot-wider-pu and mot-faster-pu; the row-sweep claim lives in mot-other-pim's closing; Fig. 4's CoDe row is explained in des-beat-decouple).
   - Floats: Fig. 4 (first cite; fig:timeline, float defined after mot-wider-pu)
