@@ -5,6 +5,7 @@
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_tile.pdf}
+  \Description{Block diagram of the CoDe processing unit inside a DRAM bank, with its weight latch, multiplier lanes, adder tree, beat sequencer, staging buffer, accumulators and drain port between the cell array and the global buffer.}
   \caption{The CoDe PU inside its bank; tint marks the structures CoDe adds or sizes by $V$.}
   \label{fig:tile}
 \end{figure}
@@ -28,6 +29,7 @@ weight latch and the beat sequencer carry beat filling. With both levers, CoDe's
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_mapping.pdf}
+  \Description{Diagram of a skinny GEMM with eight token rows mapped onto one bank, and two command sequences for one weight row: eight row sweeps in stock AiM against one row sweep of tile MACs in CoDe.}
   \caption{A skinny GEMM at $M = 8$: (a)~one bank's work per row sweep; (b)~one weight row, stock AiM and CoDe, one
   \emph{tile MAC} enlarged. RS = row switch; D = drain.}
   \label{fig:mapping}

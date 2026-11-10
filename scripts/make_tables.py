@@ -585,6 +585,9 @@ def lpsv_checks():
     assert r2(ps["lpsv.phone.h2sh_over_core8.logic"]) == 0.96
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M4"]) == 1.49
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M4"]) == 1.42
+    # VI-B eval-lpspec-variants: CoDe decodes 1.07x faster than the per-bank LP-Spec-style at M = 8 and 16 (loop, L 1024,
+    # alpha 0.7, 1B draft, 42 GB/s; sd8g3 Sec. 2g); make_fig_e2e recomputes the same ratio from ev56_chain rows
+    assert r2(ps["isca.e2e.phone.core8_over_h2.speed_M8"]) == 1.07 == r2(ps["isca.e2e.phone.core8_over_h2.speed_M16"])
     # VI-E: a bank's column period = 32 B over the internal bandwidth per bank (Table III): 8 ns on HBM2 (1,024 GB/s,
     # 16 pCH x 16 banks), 5 ns on the mobile platform (409.6 GB/s, 4 dies x 16 banks); a PU takes one every t_CCD_L = 4 ns
     assert abs(32 / (1024.0 / 256) - 8.0) < 1e-12 and abs(32 / (409.6 / 64) - 5.0) < 1e-12

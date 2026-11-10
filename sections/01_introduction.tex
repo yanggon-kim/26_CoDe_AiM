@@ -23,6 +23,7 @@ Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_dram_pim.pdf}
+  \Description{Block diagram of one DRAM channel with its bank groups and one bank holding a processing unit, a command timeline of column reads and MAC beats, and a strip of one row sweep.}
   \caption{AiM-style PIM: (a)~one channel and one bank with its PU; (b)~commands and MAC beats on the mobile platform; (c)~one row sweep.}
   \label{fig:dram_pim}
 \end{figure}
@@ -79,6 +80,7 @@ In summary, this paper makes the following contributions:
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_roofline.pdf}
+  \Description{Two log-log line charts of GEMM throughput against the number of token rows for the host NPU, stock AiM, CoDe and the two rival PIM designs, one for the mobile platform and one for the edge server.}
   \caption{Skinny-GEMM throughput against the number of token rows $M$: (a)~mobile platform; (b)~edge server.}
   \label{fig:roofline}
 \end{figure}

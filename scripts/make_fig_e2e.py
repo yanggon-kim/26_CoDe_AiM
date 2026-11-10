@@ -93,7 +93,7 @@ def check_prose_numbers(d):
     with open(os.path.join(PHONE_RAW, "ev56_best.csv")) as fh:
         assert next(int(r["best_M"]) for r in csv.DictReader(fh) if r["row_id"] == "npu42/1024/eagle/all_core/0.7") == 4
     assert best["all_core"][1] > best["all_h2"][1] > best["all_h3"][1] > best["all_stock"][1] > best["all_npu"][1]
-    # guard only, no longer printed (2026-11-08: the M >= 8 lead is the eight-token tile, VI-B LP-Spec-style variants):
+    # printed again in VI-B eval-lpspec-variants (2026-11-10; the M >= 8 lead is the eight-token tile):
     # past M = 4 CoDe's loop leads LP-Spec-style: 1.07x at M = 8 and at M = 16 (powers of two, as Fig. 7; no claim at
     # LP-Spec-style's partial-tile dip M = 5). Read from the collected ev56_chain rows (L 1024, 1.1B draft, alpha 0.7);
     # the M >= 5 band agrees with the collected ids isca.e2e.phone.core8_over_h2.speed_Mge5.*

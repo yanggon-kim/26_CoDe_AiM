@@ -117,7 +117,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: attacc, neupims, ianus, p3llm
   - Links: ← intro-pim-gemv-ceiling, mot-host-roof; → mot-a-summary, eval-e2e-server
 - **[mot-a-summary]**
-  - Message: Closing A → B transition only: III-B splits a stock GEMM's time to locate the cause (one sentence, no heading; the restated A summary cut 2026-11-10, mot-host-roof / mot-stock-crossover carry it).
+  - Message: Closing A summary and A → B transition (no heading): skinny GEMMs are memory-bound on the host and so belong on PIM, which reads the weights inside the DRAM, yet stock PIM's GEMM throughput stays flat at its GEMV ceiling; III-B splits a stock GEMM's time to locate the cause (summary sentence cut 2026-11-10 in e92f99e, restored by the user the same day).
   - Floats: —
   - Numbers: —
   - Cites: —
@@ -387,9 +387,9 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: ← intro-code-proposal, abs-summary, mot-logic-cost
 - **[eval-lpspec-variants]** "Eight-token LP-Spec-style" (new 2026-11-08 as "LP-Spec-style variants"; the shared design moved to eval-placement, 2026-11-10; lpsv, microarch 1a8bb77, collected a355e66)
-  - Message: An eight-token tile does not close CoDe's per-mm² lead on the mobile platform: CoDe matches the eight-token LP-Spec-style's speed (CoDe the subject; 1.007× at M = 12 is CoDe's), so CoDe's M ≥ 8 lead over the per-bank rival is the tile's, not decoupling's, but costs 4.72 % of the die and CoDe returns 2.05× its tokens/s per mm².
+  - Message: An eight-token tile does not close CoDe's per-mm² lead on the mobile platform: CoDe matches the eight-token LP-Spec-style's speed (CoDe the subject; 1.007× at M = 12 is CoDe's), so CoDe's M ≥ 8 lead over the per-bank rival (CoDe decodes 1.07× faster at M = 8 and 16, restored 2026-11-10) is the tile's, not decoupling's, but costs 4.72 % of the die and CoDe returns 2.05× its tokens/s per mm².
   - Floats: —
-  - Numbers: A8 loop 1.000 at M = 2–4, 8, 16; GEMM 1.000 from M = 8, 1.007 at M = 12; 4.72 %; 2.05× ← tables [lpsv_checks] (sd8g3 §2h, §5 rows 38–41; lpsv.phone.*)
+  - Numbers: A8 loop 1.000 at M = 2–4, 8, 16; GEMM 1.000 from M = 8, 1.007 at M = 12; 4.72 %; 2.05× ← tables [lpsv_checks] (sd8g3 §2h, §5 rows 38–41; lpsv.phone.*); CoDe / per-bank LP-Spec-style loop 1.07× at M = 8 and 16 ← tables [lpsv_checks], e2e (sd8g3 §2g; isca.e2e.phone.core8_over_h2.speed_M8 / _M16)
   - Cites: —
   - Links: ← mot-wider-pu, eval-gemm-speed
 ### C. Energy and Peak Power

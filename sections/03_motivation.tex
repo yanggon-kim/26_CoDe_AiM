@@ -35,7 +35,8 @@ NeuPIMs~\cite{neupims} maps the GEMMs to the NPU, IANUS~\cite{ianus} chooses NPU
 P3-LLM~\cite{p3llm} offloads its linear layers to the NPU from batch 8, where its PIM becomes compute-bound.
 
 % P:mot-a-summary
-Section~\ref{sec:bg:cmd} splits a stock GEMM's time to locate the
+Skinny GEMMs are memory-bound on the host and thus belong on PIM, which reads the weights inside the DRAM, yet stock
+PIM's GEMM throughput stays flat at its GEMV ceiling. Section~\ref{sec:bg:cmd} splits a stock GEMM's time to locate the
 cause.
 
 \subsection{Two Root Causes of Stock PIM Inefficiency}
@@ -61,6 +62,7 @@ the MAC slots, 42.2--57.4\,\%.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_breakdown.pdf}
+  \Description{Four horizontal stacked bars that split stock AiM's GEMM time into useful MAC, idle MAC, row switch, token load, token drain and refresh shares, for one tile and one q_proj layer on each platform.}
   \caption{Stock AiM's GEMM time by component.}
   \label{fig:breakdown}
 \end{figure}
@@ -163,6 +165,7 @@ is 0.173--0.174 on the mobile platform and 0.185 on the edge server, below stock
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_timeline.pdf}
+  \Description{Four command timelines, for stock AiM, LP-Spec-style, P3-LLM-style and CoDe, each with lanes for DRAM commands, column reads and MAC beats while one weight column serves eight tokens.}
   \caption{One weight column of one bank in four designs; lanes show DRAM commands (cmd), column reads (bank) and MAC
   beats (PU).}
   \label{fig:timeline}

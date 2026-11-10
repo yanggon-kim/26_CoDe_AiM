@@ -70,7 +70,8 @@ edge server.
 \paragraph{Eight-token LP-Spec-style}
 An eight-token tile does not close CoDe's lead per logic mm$^2$ on the mobile platform. CoDe matches the eight-token LP-Spec-style's
 loop speed at every $M$ we run (2--4, 8 and 16) and its GEMM speed from $M = 8$ (1.007$\times$ at $M = 12$),
-so the tile, not decoupling, gives CoDe its mobile speed lead over the per-bank LP-Spec-style beyond $M = 4$. The
+so the tile, not decoupling, gives CoDe its mobile speed lead over the per-bank LP-Spec-style beyond $M = 4$, where
+CoDe decodes 1.07$\times$ faster at $M = 8$ and 16. The
 eight-token tile, however, grows LP-Spec-style's logic to 4.72\,\% of the die, and CoDe returns 2.05$\times$ that
 design's tokens per second per logic mm$^2$.
 
@@ -183,6 +184,7 @@ breaks even (0.712--0.944$\times$), and $V = 4$ loses at most 11.7\,\% against $
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_vsweep.pdf}
+  \Description{Line charts of speed-up and throughput per logic mm2 against the tile size V on both platforms, and line charts of the ratio of eight-token to four-token tile throughput per logic mm2 against the number of token rows.}
   \caption{Tile size: (a)~speed-up and throughput per logic mm$^2$ against $V$; (b)~$(V = 8) / (V = 4)$ per logic mm$^2$ against $M$.}
   \label{fig:vsweep}
 \end{figure}
