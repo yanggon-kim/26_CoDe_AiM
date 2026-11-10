@@ -144,7 +144,7 @@ one design of each family, LP-Spec~\cite{lpspec} for more multipliers and P3-LLM
 Wider-PU designs trade area for MAC throughput: they fill the idle beats with more multipliers per PU.
 LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8 ALUs, clocks the ALUs at one MAC step per column
 period, and shares one unit between two banks; we give LP-Spec-style one unit per bank on the mobile platform (Table~\ref{tab:designs}),
-Samsung's maximum-performance option~\cite{hc35pim}, and evaluate the published sharing in
+SK hynix AiM's layout~\cite{aimjssc} and Samsung's maximum-performance option~\cite{hc35pim}, and evaluate the published sharing in
 Section~\ref{sec:eval:ablation}. One column
 command feeds the four ALUs with four tokens, one MAC step each. Fig.~\ref{fig:timeline} counts one bank's time in
 column periods $T$ of $D = 4$ beats: where stock AiM spends 8 column periods, 8 commands and 8 reads on the 8 tokens,
@@ -176,7 +176,7 @@ than an ASIC process and routes the logic in three metal layers instead of ten o
 the die's memory capacity. By LP-Spec's~\cite{lpspec} own estimate its compute units and buffers take
 16.92\,\% of a 16\,Gb LPDDR5 die, against 20--25\,\% of the chip for all of AiM's~\cite{aimjssc} compute circuits.
 LP-Spec's estimate includes register files of 50,688 bits per matrix unit, whereas our LP-Spec-style model keeps only
-the accumulators its dataflow needs and takes 4.28\,\% of the die (Section~\ref{sec:eval:area}), a reading that favours
+the accumulators its dataflow needs and takes 4.28\,\% of the die (Table~\ref{tab:designs}), a reading that favours
 LP-Spec-style.
 Four times the multipliers per bank therefore cost capacity, and per unit of logic area the wider-PU family keeps
 only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 314\,GOPS on the mobile platform and
@@ -204,7 +204,7 @@ vector per weight read~\cite{newton,cent,pimgpt}, lookup-table designs replace m
 lookups~\cite{localut,pimpal,pimdl}, and scheduling and dataflow designs reorganize the work around the
 PU~\cite{pimba,paise,splitsync,dots,pimphony}. Three designs, the closest prior art, run several MAC beats per column
 read, yet each design holds one input vector ($M = 1$): SAL-PIM~\cite{salpim} clocks its MAC units at twice the column
-rate, the Precision-Flexible PU~\cite{pfpu} runs four phases per column interval on packed low-bit operands, and
+rate, the Precision-Flexible PU~\cite{pfpu} spends the four phases of a column interval on the low-bit weights packed in one column, and
 CD-PIM~\cite{cdpim} runs two compute units per bank at twice the internal clock. Across the two families and
 these three designs, a column read feeds several tokens only through added multipliers or added commands, and a row
 sweep serves only the tokens of one MAC slot: none, P3-LLM's two-token latch included, lets a larger tile share one

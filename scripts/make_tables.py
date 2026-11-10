@@ -104,6 +104,7 @@ def budget_cells():
         assert abs(v - 100 * f(t4[("serve", d)]["logic_mm2_total"]) / stack) < 1e-9
         assert abs(f(t4[("serve", d)]["logic_mm2_total"]) - 16 * f(t4[("serve", d)]["logic_mm2"])) < 1e-6
         pct[("serve", d)] = f"{r2(v):.2f}"
+    # printed: CoDe 2.31 / 1.95 (I, VI-D), LP-Spec-style 4.28 (III-C, from Table IV); 3.48 and the rest guard only
     assert [pct[("phone", d)] for d, _ in PHONE] == ["1.55", "1.72", "4.28", "2.31"], pct
     assert [pct[("serve", d)] for d, _ in HBM2] == ["1.23", "1.46", "3.48", "1.95"], pct
     cuts = {"phone": {r["row_id"]: r for r in read("pupow_cuts_phone.csv", os.path.join(EVAL, "dac_sd8g3", "raw"))},
@@ -143,6 +144,7 @@ def budget_checks():
     assert (hs["budget.cite.aim_area_overhead_pct_lo"], hs["budget.cite.aim_area_overhead_pct_hi"]) == (20.0, 25.0)
     # CoDe / LP-Spec-style share of the die / stack at AiM's silicon scale (x2.24 on logic and registers, GB unscaled)
     assert (r2(ps["budget.phone.core8.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.core4.pct_of_stack_anch_aim"])) == (4.96, 4.02)
+    # LP-Spec-style at silicon scale: no longer printed (VI-D sentence cut 2026-11-10), guard only
     assert (r2(ps["budget.phone.h2.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.h2.pct_of_stack_anch_aim"])) == (9.47, 7.50)
     # "at most a quarter of AiM's share": CoDe at silicon scale <= 1/4 of AiM's lower end (20 %)
     assert max(ps["budget.phone.core8.pct_of_die_anch_aim"], hs["budget.hbm2.core4.pct_of_stack_anch_aim"]) <= 0.25 * 20.0
@@ -382,9 +384,10 @@ def umac_src_table():
         assert r2(f(ds[(p, 1)]["t_slot_ns"]) / f(ds[(p, 3)]["t_slot_ns"])) == 2.91 == r2(tid[f"umac.dsteps.{p}.d3_eff_beats"])
         # U_MAC 0.25 -> 0.50 -> 0.73 -> 1.00 ("one beat per column period at each step")
         assert [want[(p, d)][0] for d in ("rs", "d2", "d3", "core")] == ["0.25", "0.50", "0.73", "1.00"]
-        # per logic mm2 crossover against the per-bank LP-Spec-style (layer basis, M = 8): D* 1.74 / 1.96; CoDe's logic
-        # changes by at most 1.3 % across D
-        assert r2(tid[f"umac.dsteps.{p}.xover_D"]) == {"phone": 1.74, "hbm2": 1.96}[p]
+        # VI-E prose: at D = 2 (half the PU clock) CoDe returns 1.14x / 1.02x the per-bank LP-Spec-style's throughput per
+        # logic mm2 (layer basis, M = 8; the measured rung, replacing the interpolated D* 1.74 / 1.96, 2026-11-10); CoDe's
+        # logic changes by at most 1.3 % across D
+        assert r2(f(ds[(p, 2)]["per_mm2_vs_lp"])) == {"phone": 1.14, "hbm2": 1.02}[p]
         assert f(ds[(p, 1)]["per_mm2_vs_lp"]) < 1 < f(ds[(p, 2)]["per_mm2_vs_lp"])
         a = [f(ds[(p, D)]["core_logic_mm2"]) for D in (1, 2, 3, 4)]
         assert round(100 * (max(a) / min(a) - 1), 1) <= 1.3, (p, a)     # 0.13 % / 1.30 % (printed "at most 1.3 %")
@@ -406,7 +409,8 @@ def umac_src_table():
         fh.write("\n".join(lines) + "\n")
     # the stock and CoDe rows are the rows of tab:umac (mobile) and of the VI-B prose (edge server)
     assert want[("phone", "stock")][2] == "0.179" and want[("phone", "core")][2] == "0.779"
-    # VI-B other-order clause (model-composed): beat fill only U 0.425 / 0.506, steps 2.37 x 1.83 / 2.62 x 1.46
+    # VI-E prose (model-composed beat fill only): f_MAC = U 0.425 / 0.506; the steps 2.37 x 1.83 / 2.62 x 1.46 are no
+    # longer printed (guard only since 2026-11-10)
     assert (r3(g("phone", "bf", "U")), r3(g("hbm2", "bf", "U"))) == (0.425, 0.506)
     assert (r2(g("phone", "bf", "step_speedup")), r2(g("phone", "oo", "step_speedup"))) == (2.37, 1.83)
     assert (r2(g("hbm2", "bf", "step_speedup")), r2(g("hbm2", "oo", "step_speedup"))) == (2.62, 1.46)
@@ -428,7 +432,7 @@ def umac_src_table():
     assert round(f(hm["useful_mac_ns_per_token_per_run"]), 1) == 123.3
     assert f(hm["nonmac_over_useful"]) > 1 > f(hm["framing_full_over_useful"])
     print("umac sources: U phone 0.179 -> 0.223 -> 0.425 -> 0.593 -> 0.779 (1.24 x 3.49 = 4.35), HBM2 0.193 -> 0.222 -> 0.416 -> "
-          "0.572 -> 0.739 (1.15 x 3.33 = 3.83); D* 1.74 / 1.96; "
+          "0.572 -> 0.739 (1.15 x 3.33 = 3.83); D = 2 per mm2 1.14 / 1.02x LP-Spec-style; "
           "other order 2.37 x 1.83 / 2.62 x 1.46; stock framing 91.2 > 78.0 ns (mobile), non-MAC 146.2 > 123.3 ns (HBM2)")
 
 

@@ -48,9 +48,9 @@ fits $D = 4$ beats into each column period, of which a stock PU uses one.
 To this end, this paper proposes CoDe (Command-Decoupled PIM). One column command reads a weight column once; the PU holds the
 column and runs $D$ beats per column period over a tile of $V$ token vectors, at its own clock and the stock
 multiplier count. We evaluate CoDe against each rival on that rival's own memory, workload and precision. On a mobile
-platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe reaches LP-Spec-style's
-end-to-end decoding speed with the stock multiplier count clocked at 0.8\,GHz, on 0.539$\times$ LP-Spec-style's logic
-area, and so returns 1.87$\times$ its tokens per second per logic mm$^2$. Built as LP-Spec publishes it, with one unit
+platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe decodes faster than
+LP-Spec-style, 46.4 against 46.1 tokens/s, with the stock multiplier count clocked at 0.8\,GHz and on 0.539$\times$
+LP-Spec-style's logic area, and so returns 1.87$\times$ its tokens per second per logic mm$^2$. Built as LP-Spec publishes it, with one unit
 shared between two banks, LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes 1.49$\times$ faster. On an
 edge server with HBM2 at W4A8, CoDe decodes a batch of 8 1.68$\times$ faster than P3-LLM-style and 1.28$\times$ faster
 than NPU only, with 1.64$\times$ P3-LLM-style's system energy efficiency.
@@ -62,7 +62,7 @@ In summary, this paper makes the following contributions:
         MAC timing is separated from command timing: 4 beats on LPDDR5-6400 and HBM2 (Section~\ref{sec:bg:depth}).
   \item We propose CoDe, a PU and command extension that runs $D$ MAC beats per column command over a tile of tokens
         at the stock multiplier count (Section~\ref{sec:design}).
-  \item We show, on one DRAM timing per platform, that CoDe reaches LP-Spec-style's decoding speed, decodes
+  \item We show, on one DRAM timing per platform, that CoDe decodes at least as fast as LP-Spec-style, decodes
         1.49$\times$ faster than LP-Spec-style as published (mobile platform only) and decodes a batch of 8
         1.68$\times$ faster than P3-LLM-style on HBM2 (Sections~\ref{sec:eval:e2e} and~\ref{sec:eval:ablation}).
   \item We show, under one area model with one tenfold DRAM-process factor for every design, that CoDe's logic takes

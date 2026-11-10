@@ -168,10 +168,11 @@ def main():
     # (b) V = 8 / V = 4 per logic mm^2 of the decode step against M
     pn = Panel(fig, xb, top, wb, bottom - top, (1, 16), [1, 4, 8, 12, 16], ax[1]["ylim"], False, ax[1]["yticks"],
                xlog=False)
-    pn.frame("(b) Decode step", "token rows " + I("M"), I("V") + " = 8 ÷ " + I("V") + " = 4, per mm²", lb)
+    pn.frame("(b) Decode step", "token rows " + I("M"), "(" + I("V") + " = 8) / (" + I("V") + " = 4), per mm²", lb)
     y1 = pn.py(1.0)
     fig.line(xb, y1, xb + wb, y1, sw=0.5, extra=' stroke-dasharray="1 1.5"')
-    pn.note(7.6, 1.40, ["break-even"], "start", to=(11.5, 1.0), attach=(pn.px(11.0), pn.py(1.40) + 2.0))
+    pn.note(1.5, 1.40, [I("V") + " = 8 better"], "start")      # above the break-even line
+    pn.note(5.3, 0.625, [I("V") + " = 4 better"], "start")      # below it
     for k in ("pa_h", "pa_m"):
         pn.series(k, b[k])
     pn.finish()
