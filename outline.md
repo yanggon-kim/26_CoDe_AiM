@@ -204,7 +204,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: hbmpim, p3llm
   - Links: ← intro-timing-insight, bg-aim-pu, mot-idle-beats, mot-idle-cause, mot-faster-pu, mot-other-pim; → conc-summary
 - **[mot-pu-clock-precedent]** (no run-in head since 2026-10-29; III-D is three unheaded paragraphs)
-  - Message: A PU clocked at CK has precedent in DRAM silicon, from UPMEM's 500 MHz design (350 MHz deployed) to GDDR6-AiM's 1 GHz multipliers and an HBM-PIM-style PU at CK, and DRAM periphery has since gained logic-process features (HKMG at three vendors, 5–6 metal layers on 1a-nm dies); never "a PU at CK is the trend", never the vendors' pin-rate speed claims.
+  - Message: A PU clocked at CK has precedent in DRAM silicon, from UPMEM's 500 MHz design (350 MHz deployed) to GDDR6-AiM's 1 GHz multipliers and an HBM-PIM-style PU at CK (the Precision-Flexible PU, whose four phases serve the low-bit weights packed in one column for one input vector, so its gain is set by packing; user 2026-11-10, AI-review novelty concern), and DRAM periphery has since gained logic-process features (HKMG at three vendors, 5–6 metal layers on 1a-nm dies); never "a PU at CK is the trend", never the vendors' pin-rate speed claims.
   - Floats: —
   - Numbers: 1.0–1.2 GHz bus, 250–300 MHz, 20 nm; 500 MHz design, 2x-nm; 350 MHz deployed ← prim (p. 5); 1 GHz, 1y-nm; eight 1y-nm dies; five to six metal layers, 1a-nm ← tid1a16, tid1a24 ← cited
   - Cites: hbmpim, devaux, prim, aimjssc, flashbolt, pfpu, tiroadmap, tid1a16, tid1a24
