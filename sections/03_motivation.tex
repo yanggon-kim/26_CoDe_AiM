@@ -146,7 +146,7 @@ next paragraphs take the two families in turn.
 \paragraph{Wider-PU family}
 Wider-PU designs trade area for MAC throughput: they fill the idle beats with more multipliers per PU.
 LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8 ALUs, clocks the ALUs at one MAC step per column
-period, and shares one unit between two banks; we give LP-Spec-style one unit per bank (Table~\ref{tab:designs}),
+period, and shares one unit between two banks; we give LP-Spec-style one unit per bank on the mobile platform (Table~\ref{tab:designs}),
 Samsung's maximum-performance option~\cite{hc35pim}, and evaluate the published sharing in
 Section~\ref{sec:eval:ablation}. One column
 command feeds the four ALUs with four tokens, one MAC step each. Fig.~\ref{fig:timeline} counts one bank's time in
@@ -179,7 +179,7 @@ than an ASIC process and routes the logic in three metal layers instead of ten o
 the die's memory capacity. By LP-Spec's~\cite{lpspec} own estimate its compute units and buffers take
 16.92\,\% of a 16\,Gb LPDDR5 die, against 20--25\,\% of the chip for all of AiM's~\cite{aimjssc} compute circuits.
 LP-Spec's estimate includes register files of 50,688 bits per matrix unit, whereas our LP-Spec-style model keeps only
-the accumulators its dataflow needs and takes 4.28\,\% of the die (Table~\ref{tab:designs}), a reading that favours
+the accumulators its dataflow needs and takes 4.28\,\% of the die (Section~\ref{sec:eval:area}), a reading that favours
 LP-Spec-style.
 Four times the multipliers per bank therefore cost capacity, and per unit of logic area the wider-PU family keeps
 only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 314\,GOPS on the mobile platform and
@@ -189,7 +189,8 @@ only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 
 \paragraph{Faster-PU family}
 Faster-PU designs speed up the PU but still start every MAC with a command, so DRAM command timing, not the PU clock,
 caps them at two beats per column read. P3-LLM~\cite{p3llm} keeps the weight of a column read latched in its PU,
-issues one further command per token and clocks its PU at one beat per HBM2 \tccds{} (Table~\ref{tab:designs}). Each
+issues one further command per token, clocks its PU at one beat per HBM2 \tccds{} (Table~\ref{tab:designs}) and shares
+one PU between two banks (Table~\ref{tab:params}). Each
 MAC thus still waits for its own command, as in stock AiM and LP-Spec-style (Fig.~\ref{fig:timeline}). Commands issue
 only every \tccds, ``typically a half of \tccdl{}''~\cite{p3llm}, while the all-bank column runs at
 \tccdl~\cite{hbmpim}, so at most two tokens share a read: the 8 tokens take 4 column periods, 8 commands and 4 reads.

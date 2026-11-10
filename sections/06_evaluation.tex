@@ -3,7 +3,7 @@
 
 % P:eval-modelled
 All results are modelled, and ratios above 1 favour CoDe. Three modelling choices favour the rivals: LP-Spec-style
-keeps only the accumulators its dataflow needs (Section~\ref{sec:bg:walls}) and runs one unit per bank, faster than
+keeps only the accumulators its dataflow needs (Section~\ref{sec:bg:walls}) and runs one unit per bank on the mobile platform, faster than
 LP-Spec's shared unit (Section~\ref{sec:eval:ablation}), and P3-LLM-style gains more from depth 2 than P3-LLM reports
 (Section~\ref{sec:method:models}).
 
@@ -123,8 +123,8 @@ so each CoDe edge draws 3.4$\times$ less charge on the mobile platform and 3.1$\
 % P:eval-area-budget
 Fabricated PIM dies set the scale for a PIM design's logic area, which a DRAM die pays for in memory capacity
 (Section~\ref{sec:bg:walls}). Samsung's HBM-PIM~\cite{hbmpim} places 32 PIM units
-of 0.712\,mm$^2$ each on an 84.4\,mm$^2$ die, 27\,\% of the die by our division; GDDR6-AiM's compute circuits take 20--25\,\% of its chip (Section~\ref{sec:bg:walls}). CoDe's logic takes
-2.31\,\% of the LPDDR5 die and 1.95\,\% of the HBM2 stack (Table~\ref{tab:designs}), and 4.96\,\% and 4.02\,\% at AiM's
+of 0.712\,mm$^2$ each on an 84.4\,mm$^2$ die, 27\,\% of the die by our division; GDDR6-AiM's compute circuits take 20--25\,\% of its chip (Section~\ref{sec:bg:walls}). CoDe's logic (Table~\ref{tab:designs}) takes
+2.31\,\% of the LPDDR5 die and 1.95\,\% of the HBM2 stack, and 4.96\,\% and 4.02\,\% at AiM's
 silicon scale, at most a quarter of AiM's share. Like AiM, CoDe keeps every cell array and places its PUs in the bank
 periphery. LP-Spec-style's logic takes 4.28\,\% of the die and 3.48\,\% of the stack, and 9.47\,\% and 7.50\,\% at
 silicon scale.
@@ -219,4 +219,4 @@ every 5\,ns, the pace of LP-Spec's unit. With one unit per two banks, as LP-Spec
 LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes 1.49$\times$ faster at $M = 4$ and returns
 1.42$\times$ its tokens per second per logic mm$^2$. LP-Spec's own per-die bandwidth implies a 10\,ns bank column, at
 which sharing would lose nothing. On the 5\,ns column that every design shares, CoDe thus returns more decoding
-throughput per logic mm$^2$ than LP-Spec-style under either placement.
+throughput per logic mm$^2$ than LP-Spec-style, whichever placement LP-Spec-style uses.
