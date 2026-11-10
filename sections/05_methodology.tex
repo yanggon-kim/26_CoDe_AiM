@@ -33,7 +33,7 @@ controller and the platform's PU placement. Stock AiM also stands for Samsung's 
 LPDDR5X-PIM~\cite{lp5xpim}. Table~\ref{tab:designs} lists each design's lanes, PU clock, beats per
 column period $D$, tile size $V$, accumulator slots and GB size. Every design computes at its
 platform's precision (Table~\ref{tab:params}), with a 4-bit KV cache on HBM2, and every design's arithmetic is
-priced as INT4\,$\times$\,INT8 integers\ASSUMPTION. Sections~\ref{sec:design:pu} and~\ref{sec:eval:ablation}
+priced at that precision, INT8 on the mobile platform and INT4\,$\times$\,INT8 on HBM2\ASSUMPTION. Sections~\ref{sec:design:pu} and~\ref{sec:eval:ablation}
 size $V$.
 
 \subsection{Simulator and Models}

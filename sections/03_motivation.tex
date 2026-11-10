@@ -146,8 +146,9 @@ next paragraphs take the two families in turn.
 \paragraph{Wider-PU family}
 Wider-PU designs trade area for MAC throughput: they fill the idle beats with more multipliers per PU.
 LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8 ALUs, clocks the ALUs at one MAC step per column
-period, and shares one unit between two banks; we model one such unit per bank (Table~\ref{tab:designs}), the faster
-rival, and evaluate the published sharing in Section~\ref{sec:eval:e2e}. One column
+period, and shares one unit between two banks; we give LP-Spec-style one unit per bank (Table~\ref{tab:designs}),
+Samsung's maximum-performance option~\cite{hc35pim}, and evaluate the published sharing in
+Section~\ref{sec:eval:ablation}. One column
 command feeds the four ALUs with four tokens, one MAC step each. Fig.~\ref{fig:timeline} counts one bank's time in
 column periods $T$ of $D = 4$ beats: where stock AiM spends 8 column periods, 8 commands and 8 reads on the 8 tokens,
 the four ALUs need 2 of each. The 4$\times$ ceiling moves the crossover of this

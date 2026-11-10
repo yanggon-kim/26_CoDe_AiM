@@ -53,7 +53,7 @@ end-to-end decoding speed with the stock multiplier count clocked at 0.8\,GHz, o
 area, and so returns 1.87$\times$ its tokens per second per logic mm$^2$. Built as LP-Spec publishes it, with one unit
 shared between two banks, LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes 1.49$\times$ faster. On an
 edge server with HBM2 at W4A8, CoDe decodes a batch of 8 1.68$\times$ faster than P3-LLM-style and 1.28$\times$ faster
-than NPU only, which P3-LLM falls back to at that batch, with 1.64$\times$ P3-LLM-style's system energy efficiency.
+than NPU only, with 1.64$\times$ P3-LLM-style's system energy efficiency.
 
 % P:intro-contributions
 In summary, this paper makes the following contributions:
@@ -64,14 +64,14 @@ In summary, this paper makes the following contributions:
         at the stock multiplier count (Section~\ref{sec:design}).
   \item We show, on one DRAM timing per platform, that CoDe reaches LP-Spec-style's decoding speed, decodes
         1.49$\times$ faster than LP-Spec-style as published (mobile platform only) and decodes a batch of 8
-        1.68$\times$ faster than P3-LLM-style on HBM2 (Section~\ref{sec:eval:e2e}).
+        1.68$\times$ faster than P3-LLM-style on HBM2 (Sections~\ref{sec:eval:e2e} and~\ref{sec:eval:ablation}).
   \item We show, under one area model with one tenfold DRAM-process factor for every design, that CoDe's logic takes
         0.539$\times$ LP-Spec-style's area and 2.31\,\% of the die on the mobile platform and 1.95\,\% of the HBM2
         stack (Section~\ref{sec:eval:area}).
   \item We show that CoDe spends the least energy per token on the mobile platform, 70.5\,mJ, and ties LP-Spec-style
         for the least on the edge server with a 55\,W idle NPU (Section~\ref{sec:eval:energy}).
   \item We separate CoDe's gain over stock AiM into its two sources: on one decoder layer at $M = 8$ on the mobile
-        platform, row reuse alone speeds the layer up 1.24$\times$, and beat filling then adds a 3.49$\times$ step
+        platform, row reuse alone speeds the layer up 1.24$\times$, and beat filling then adds 3.49$\times$
         (Section~\ref{sec:eval:ablation}).
 \end{itemize}
 

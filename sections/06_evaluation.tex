@@ -4,7 +4,7 @@
 % P:eval-modelled
 All results are modelled, and ratios above 1 favour CoDe. Three modelling choices favour the rivals: LP-Spec-style
 keeps only the accumulators its dataflow needs (Section~\ref{sec:bg:walls}) and runs one unit per bank, faster than
-LP-Spec's shared unit (Section~\ref{sec:eval:e2e}), and P3-LLM-style gains more from depth 2 than P3-LLM reports
+LP-Spec's shared unit (Section~\ref{sec:eval:ablation}), and P3-LLM-style gains more from depth 2 than P3-LLM reports
 (Section~\ref{sec:method:models}).
 
 \subsection{Skinny GEMM Speedup and Area Efficiency}
@@ -67,8 +67,7 @@ at $M = 4$.
 \paragraph{Edge server}
 On the edge server only CoDe and LP-Spec-style decode a batch of 8 faster than NPU only, both 1.28$\times$ at
 456 tokens/s (Fig.~\ref{fig:e2e}a). Stock AiM runs at 0.45$\times$ and P3-LLM-style at 0.76$\times$ NPU only's speed,
-so at the batch where P3-LLM~\cite{p3llm} moves its linear layers to the NPU, CoDe decodes 1.68$\times$ faster than
-P3-LLM-style. On the five-model geometric mean, NPU only overtakes CoDe from batch 16.
+so CoDe decodes 1.68$\times$ faster than P3-LLM-style. On the five-model geometric mean, NPU only overtakes CoDe from batch 16.
 
 % P:eval-e2e-per-mm2
 \paragraph{Throughput per logic mm$^2$}
@@ -78,14 +77,8 @@ CoDe returns 1.10$\times$ P3-LLM-style's decoding throughput per logic mm$^2$ on
 edge server.
 
 % P:eval-lpspec-variants
-\paragraph{LP-Spec-style variants}
-Neither LP-Spec's published sharing nor an eight-token tile closes CoDe's lead per logic mm$^2$ on the mobile
-platform. Built as LP-Spec~\cite{lpspec} publishes it, with one unit shared between two banks, LP-Spec-style takes
-0.96$\times$ CoDe's logic, 2.21\,\% of the die, but each unit reads one of its two banks per column period, half the
-per-bank rate. CoDe thus decodes 1.49$\times$ faster at $M = 4$ and 1.60$\times$ at $M = 8$ and 16, and returns
-1.42--1.45$\times$ the shared design's tokens per second per logic mm$^2$ (at $M = 4$ and at each design's best $M$).
-The 1.49$\times$ holds on the 5\,ns all-bank column that every design shares; LP-Spec's own per-die throughput and
-bandwidth imply a 10\,ns bank column, at which sharing loses nothing. With an eight-token tile, LP-Spec-style ties
+\paragraph{Eight-token LP-Spec-style}
+An eight-token tile does not close CoDe's lead per logic mm$^2$ on the mobile platform. With an eight-token tile, LP-Spec-style ties
 CoDe's loop speed at every $M$ we run (2--4, 8 and 16) and CoDe's GEMM speed from $M = 8$ (1.007$\times$ at $M = 12$),
 so the tile, not decoupling, gives CoDe its mobile speed lead over the per-bank LP-Spec-style beyond $M = 4$. The
 eight-token tile, however, grows LP-Spec-style's logic to 4.72\,\% of the die, and CoDe returns 2.05$\times$ that
@@ -147,7 +140,7 @@ takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. On HBM2, CoDe's logic is
 % defined before VI-E's heading so that it lands at the top of p. 11 L, its citing page, and Fig. 9 alone takes
 % p. 11 R (one float per column); placement checked on the float map after each build
 \begin{table}[t]
-  \caption{Useful-MAC utilization from stock AiM to CoDe, one source at a time.}
+  \caption{Useful-MAC utilization from stock AiM to CoDe, one step at a time.}
   \label{tab:umac_src}
   \centering
   \footnotesize
@@ -163,10 +156,12 @@ takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. On HBM2, CoDe's logic is
 CoDe's gain over stock AiM has two sources, row reuse and beat filling. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$. The row-reuse-only design keeps the stock PU's pace of one beat per column
 period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$. Row reuse alone speeds
 the layer up 1.24$\times$ on the mobile platform and 1.15$\times$ on the edge server, yet $U$ reaches 0.223 and
-0.222, because \UMAC stays at 1/4.
-Beat filling then supplies the large step,
-3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
-near stock AiM's 0.717 and 0.771. In the other order, modelled as a quarter of stock AiM's MAC slots plus its non-MAC time per row sweep, beat filling
+0.222, because \UMAC stays at 1/4. Beat filling then adds one beat per column period at each step, raising \UMAC to
+0.50, 0.73 and 1.00 ($D = 3$ runs 2.91 beats, as the PU's hold rounds to whole simulator cycles), and its three steps
+speed the layer up 3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
+near stock AiM's 0.717 and 0.771. Per logic mm$^2$, CoDe overtakes LP-Spec-style on this layer from $D = 1.74$ on
+the mobile platform and 1.96 on the edge server, with its logic within 1.3\,\% across $D$.
+In the other order, modelled as a quarter of stock AiM's MAC slots plus its non-MAC time per row sweep, beat filling
 alone would cut \fMAC, and with \UMAC at 1 also $U$, to 0.425 and 0.506, in steps of 2.37$\times$ then 1.83$\times$ on
 the mobile platform and 2.62$\times$ then 1.46$\times$ on the edge server, because the unchanged non-MAC commands would
 take about half of the shortened time or more. Beat filling earns its full step only
@@ -213,3 +208,15 @@ loop's best $M$ with an EAGLE head.
   $V = 4$, decode-step throughput per logic mm$^2$ against $M$.}
   \label{fig:vsweep}
 \end{figure}
+
+% P:eval-placement
+\paragraph{PU placement}
+Section~\ref{sec:bg:pim}'s two placements, one unit per bank or one per two banks, trade speed for logic only when a
+bank delivers a column as often as a unit can take one. On the edge server, a bank delivers a column every 8\,ns and a
+PU takes one every 4\,ns (Table~\ref{tab:params}), so all four designs share one PU between two banks at no loss of
+speed, and Section~\ref{sec:eval:e2e}'s leads per logic mm$^2$ hold. On the mobile platform, a bank delivers a column
+every 5\,ns, the pace of LP-Spec's unit. With one unit per two banks, as LP-Spec~\cite{lpspec} publishes it,
+LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes 1.49$\times$ faster at $M = 4$ and returns
+1.42$\times$ its tokens per second per logic mm$^2$. LP-Spec's own per-die bandwidth implies a 10\,ns bank column, at
+which sharing would lose nothing. On the 5\,ns column that every design shares, CoDe thus returns more decoding
+throughput per logic mm$^2$ than LP-Spec-style under either placement.
