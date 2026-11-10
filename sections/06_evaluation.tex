@@ -182,8 +182,7 @@ sweep of a tile is often only partly filled.
 % P:eval-vsweep-choice
 \paragraph{Tile size across $M$}
 CoDe uses $V = 8$ on the mobile platform and $V = 4$ on the edge server, the tile size that loses least in its worst
-case across $M = 3$--16, because a decode step runs at small $M$, where a larger tile often leaves its last row sweep
-partly filled. Fig.~\ref{fig:vsweep}b divides $V = 8$'s decode-step throughput per logic mm$^2$ by $V = 4$'s. On the
+case across $M = 3$--16. Fig.~\ref{fig:vsweep}b divides $V = 8$'s decode-step throughput per logic mm$^2$ by $V = 4$'s. On the
 mobile platform, $V = 8$ wins where it saves $V = 4$ a partly filled row sweep, at $M = 5$--7, 9--10 and 13--15
 (1.324$\times$ at $M = 5$), and loses at $M \le 4$, where both tiles run one row sweep (0.862$\times$); against the
 best $V$ at each $M$, $V = 8$ loses at most 13.8\,\%, while $V = 4$ loses 29.4\,\% on q\_proj. On the edge server, $V = 8$ never
@@ -204,6 +203,6 @@ CoDe keeps its lead under the other placement commercial PIM uses, one unit shar
 edge server, a bank delivers a column every 8\,ns and a PU takes one every 4\,ns (Table~\ref{tab:params}), so every design
 there, CoDe included, already shares one PU between two banks at full speed. On the mobile platform, a bank delivers a
 column every 5\,ns, as fast as a unit takes one, so a shared unit halves each bank's rate. Built with one unit per two
-banks, as LP-Spec~\cite{lpspec} publishes it, LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes
+banks, LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes
 1.49$\times$ faster at $M = 4$ and returns 1.42$\times$ its tokens per second per logic mm$^2$. Whichever placement
 LP-Spec-style uses, CoDe therefore decodes at least as fast and returns more throughput per logic mm$^2$.
