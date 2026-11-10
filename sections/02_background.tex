@@ -34,8 +34,7 @@ one per bank for maximum performance or one per two banks for less area. An all-
 beat in each PU; on the mobile platform, one beat is 32 INT8 multiplies of the column against 32 GB elements,
 accumulated into the PU's output register. The all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the
 MAC commands in Fig.~\ref{fig:dram_pim}b. This column period \tcol spans $D = 4$ cycles \tck of the command clock CK on
-both platforms (Table~\ref{tab:params}). We call $D$, the number of CK cycles in one column period, the \emph{depth};
-\tcol equals $D \times \tck$.
+both platforms (Table~\ref{tab:params}). We call $D$, the number of CK cycles in one column period, the \emph{depth}.
 
 % P:bg-mac-sequence
 MAC commands need non-MAC commands before and after them (Fig.~\ref{fig:dram_pim}c). The all-bank MAC command is the

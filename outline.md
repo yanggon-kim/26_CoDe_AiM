@@ -74,7 +74,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[bg-aim-pu]**
   - Message: AiM-style PIM puts a PU beside each bank and a shared global buffer on the die, and one all-bank MAC command every t_CCD_L starts one MAC beat in every PU; the column period spans D = 4 CK cycles (D defined here as a timing fact; the "D beats per column read" opportunity is mot-depth's, the GEMV-to-bank mapping des-mapping's); commercial PIM places its units at the banks in two ways (2026-11-10, the reference for eval-placement): Samsung's LPDDR5X-PIM one per bank, HBM-PIM one per two banks, and Samsung's LPDDR-PIM design (Hot Chips 35) offers either, one per bank for maximum performance or one per two banks for less area; the HBM2 parenthetical on the PU sentence cut (Table III keeps the platform's placement).
   - Floats: Fig. 1, Table III (first cite; configuration table, F12 exception)
-  - Numbers: 32 INT8 multiplies per beat; D = 4 (Table III); D defined: CK cycles per column period, t_col = D × t_CK, named the depth (the intro and V-C already say "depth") ← structural
+  - Numbers: 32 INT8 multiplies per beat; D = 4 (Table III); D defined: CK cycles per column period, named the depth (t_col spans D cycles of t_CK, bg-dram-channel; the restated equation cut 2026-11-10) (the intro and V-C already say "depth") ← structural
   - Cites: aimjssc, hbmpim, lp5xpim (layout only: one PIM block per bank; no clock or bandwidth), hc35pim (slide 22: unit per 1 bank, maximum performance, or per 2 banks, moderate area overhead; verified by main)
   - Links: → bg-mac-sequence, mot-breakdown-setup, mot-idle-beats, mot-prior-families, mot-depth, des-beat-decouple, des-mapping, eval-placement
 - **[bg-mac-sequence]**
@@ -93,11 +93,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 ## III. Motivation  (sections/03_motivation.tex)
 ### A. PIM–Host Crossover
 - **[mot-roofline-setup]**
-  - Message: Fig. 2 plots skinny-GEMM throughput against M in the roofline form for the host NPU's roof and for simulated PIM GEMMs of stock AiM and each platform's rival; order (figure-paragraph rule): what the figure shows → basic setup (geometric mean over the FC shapes, M = 2^k) → details (mobile NPU bandwidth, edge NPU) → closing pointer to Table III and Section V.
-  - Floats: Fig. 2, Table III
+  - Message: Fig. 2 plots skinny-GEMM throughput against M in the roofline form for the host NPU's roof and for simulated PIM GEMMs of stock AiM and each platform's rival; order (figure-paragraph rule): what the figure shows → basic setup (geometric mean over the FC shapes, M = 2^k) → details (mobile NPU bandwidth, edge NPU); the closing pointer to Table III and Section V cut 2026-11-10 (Table III first cited in bg-aim-pu).
+  - Floats: Fig. 2
   - Numbers: M = 2^k; 56 of 68 GB/s, 51.2 GB/s pins → 42 GB/s [assumption] ← cited; 42 asserted in roof; the edge NPU's 131 TOPS / 256 GB/s in Table III ← tables [platform_block]
   - Cites: roofline, sd8g3, powerinfer2, heterollm, p3llm
-  - Links: ← bg-aim-pu (Table III first cite); → meth-platforms
+  - Links: ← bg-aim-pu (Table III first cite)
 - **[mot-host-roof]** "Host roof in the skinny range"
   - Message: The host stays memory-bound across the whole skinny range because both NPUs' ridge points sit far above M = 32, so the host's roof rises linearly with M across the skinny range.
   - Floats: Fig. 2
@@ -117,7 +117,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: attacc, neupims, ianus, p3llm
   - Links: ← intro-pim-gemv-ceiling, mot-host-roof; → mot-a-summary, eval-e2e-server
 - **[mot-a-summary]**
-  - Message: Skinny GEMMs, memory-bound on the host, belong on PIM, which reads the weights inside the DRAM, yet stock PIM's GEMM throughput stays flat at its GEMV ceiling; closing A → B transition: III-B splits a stock GEMM's time to locate the cause (two sentences, no heading).
+  - Message: Closing A → B transition only: III-B splits a stock GEMM's time to locate the cause (one sentence, no heading; the restated A summary cut 2026-11-10, mot-host-roof / mot-stock-crossover carry it).
   - Floats: —
   - Numbers: —
   - Cites: —
@@ -167,7 +167,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← mot-breakdown-setup, mot-sweep-factor, mot-idle-beats; → mot-prior-families, mot-wider-pu, mot-two-levers, des-tile-mac-overview
 ### C. Related Work: GEMM Support in PIM
 - **[mot-prior-families]**
-  - Message: Prior PIM designs fill the idle beats in two families, with more multipliers or with more commands; Fig. 4 follows one weight column through eight tokens in stock AiM and one design of each family (LP-Spec, P3-LLM), and the next paragraphs take the families in turn (pure framing opener; the figure's setup and counts moved into mot-wider-pu and mot-faster-pu; the row-sweep claim lives in mot-other-pim's closing; Fig. 4's CoDe row is explained in des-beat-decouple).
+  - Message: Prior PIM designs fill the idle beats in two families, with more multipliers or with more commands; Fig. 4 follows one weight column through eight tokens in stock AiM and one design of each family (LP-Spec, P3-LLM) (pure framing opener; the 'next paragraphs' map cut 2026-11-10; the figure's setup and counts moved into mot-wider-pu and mot-faster-pu; the row-sweep claim lives in mot-other-pim's closing; Fig. 4's CoDe row is explained in des-beat-decouple).
   - Floats: Fig. 4 (first cite; fig:timeline, float defined after mot-wider-pu)
   - Numbers: — (eight tokens, structural)
   - Cites: lpspec, p3llm
@@ -191,7 +191,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: p3llm, hbmpim
   - Links: ← bg-dram-channel, intro-prior-families, mot-prior-families, mot-idle-beats, mot-logic-cost; → mot-depth (the per-token command is what a PU at CK must drop), eval-gemm-summary (ref → Section VI since 2026-10-30)
 - **[mot-other-pim]**
-  - Message: The remaining LLM PIM designs either serve one input vector per weight read or reorganize the work around the PU, and the three that run several beats per column read still hold one vector (CD-PIM leaves the GEMM to the host); closing C → D transition: across the two families and these three designs, a column read feeds several tokens only through added multipliers or added commands, and a row sweep serves only one MAC slot's tokens; novelty delta joined to it by a colon (AI-review T2, 2026-11-08): none of these designs, P3-LLM's two-token latch included, lets a larger tile share one row sweep and pay its row-switch commands once, or fills the idle beats with its tokens without added multipliers or commands (levers not named here: mot-two-levers names them).
+  - Message: The remaining LLM PIM designs either serve one input vector per weight read or reorganize the work around the PU, and the three that run several beats per column read still hold one vector (CD-PIM's host-GEMM clause cut 2026-11-10); closing C → D transition: across the two families and these three designs, a column read feeds several tokens only through added multipliers or added commands, and a row sweep serves only one MAC slot's tokens; novelty delta joined to it by a colon (AI-review T2, 2026-11-08): none of these designs, P3-LLM's two-token latch included, lets a larger tile share one row sweep and pay its row-switch commands once, or fills the idle beats with its tokens without added multipliers or commands (levers not named here: mot-two-levers names them).
   - Floats: —
   - Numbers: —
   - Cites: newton, cent, pimgpt, localut, pimpal, pimdl, pimba, paise, splitsync, dots, pimphony, salpim, pfpu, cdpim (paik2022 cut 2026-10-29; bib entry kept, uncited)
@@ -350,14 +350,14 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 
 ### A. Skinny GEMM Speedup and Area Efficiency
 - **[eval-gemm-summary]**
-  - Message: CoDe matches LP-Spec-style's GEMM speed on about half its logic and outruns P3-LLM-style once a GEMM has more than two token rows; Fig. 7 plots speed-up over stock AiM and GOPS per logic mm² against M, each point a gmean over the FC shapes (row and NPU-line description left to the caption, 2026-11-08).
-  - Floats: Fig. 7 (fig:gemm, first cite)
+  - Message: CoDe matches LP-Spec-style's GEMM speed on about half its logic and outruns P3-LLM-style once a GEMM has more than two token rows (the Fig. 7 description sentence cut 2026-11-10; the caption names what is drawn, mot-roofline-setup the gmean over FC shapes).
+  - Floats: —
   - Numbers: — (FC shapes in meth-workloads)
   - Cites: —
   - Links: ← intro-contributions, mot-wider-pu, mot-faster-pu, meth-workloads, meth-metrics
 - **[eval-gemm-speed]** "GEMM speed"
   - Message: Up to M = 2 the column period paces every design; beyond M = 2 P3-LLM-style needs a second pass while CoDe fills up to D = 4 beats per command, and LP-Spec-style fills four with 4× multipliers, so its curve coincides with CoDe's (to M = 4 mobile, every M edge); CoDe's eight-token mobile tile halves LP-Spec-style's row sweeps from M = 8 (the sentence names the tile as the cause; the repeated "a lead of the tile size, not of decoupling" caveat and its pointer cut 2026-11-08, T6: eval-lpspec-variants proves it; the 1.11× no longer printed, guard-only in gemm, 2026-11-08). Fig. 7 plots M = 1, 2, 4, …, 64 only, and every range is taken over those M (no claim at a rival's partial-tile dip, user 2026-10-30).
-  - Floats: Fig. 7a
+  - Floats: Fig. 7a (fig:gemm, first cite since 2026-11-10)
   - Numbers: 1.96–1.97× at M = 2; 3.74× / 3.82× vs P3-LLM-style 1.95× at M = 4; CoDe 4.16× / 3.80× at M = 64 (Fig. 7a right endpoint, AI-review item 3, 2026-11-08) ← gemm (sd8g3 §2f, 2x2 §2p)
   - Cites: —
   - Links: ← des-beat-slot-factor, des-mapping; → eval-lpspec-variants
@@ -400,10 +400,10 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: ← intro-code-proposal, abs-summary, meth-platforms (55 W)
 - **[eval-power-headroom]** "Power headroom of all-bank PIM" (new 2026-11-06; setting before the peak-power finding)
-  - Message: A stock DRAM die holds its banks to a tight current limit (t_FAW: four activations, set by the charge pumps and their power-delivery network), and PIM dies lift this limit so that all banks work at once (AiM ≈ 3× gapless read current with reservoir capacitors and split power nets, no t_FAW; AttAcc's IDD7 budget; Newton ≈ 4× a peak-bandwidth read; SK hynix's bank-count throttling; tightened 2026-11-08: Newton's 2.8× average and the vendors-size-the-delivery clause cut); closing sentence: CoDe's design operates within this headroom (lead into eval-power; the user asked for it, restored 2026-11-08 after a cut). Tone (user, 2026-11-06): PIM relaxed a tight stock limit, never "all-bank PIM breaks t_FAW".
+  - Message: A stock DRAM die holds its banks to a tight current limit (t_FAW: four activations, set by the charge pumps and their power-delivery network), and PIM dies lift this limit so that all banks work at once (AiM ≈ 3× gapless read current with reservoir capacitors and split power nets, no t_FAW; AttAcc's IDD7 budget; Newton ≈ 4× a peak-bandwidth read; SK hynix's bank-count throttling cut 2026-11-10; tightened 2026-11-08: Newton's 2.8× average and the vendors-size-the-delivery clause cut); closing sentence: CoDe's design operates within this headroom (lead into eval-power; the user asked for it, restored 2026-11-08 after a cut). Tone (user, 2026-11-06): PIM relaxed a tight stock limit, never "all-bank PIM breaks t_FAW".
   - Floats: —
-  - Numbers: four activations (shevgoor p. 2 / p. 6, PDF); AiM 3× ← budget.cite.aim_mac_current_x_read (JSSC p. 297; reservoir capacitors and tFAW-free ACT16 on p. 295, split power networks p. 297); Newton 4× (p. 380) ← budget.cite.newton_comp_x_peak_read (2.8× p. 382 no longer printed, still asserted); AttAcc IDD7 (author PDF p. 6); SK hynix HC36 slide 21 (PDF p. 21, printed 20; "Design Choices for Future AiM/AiMX": Power Throttling, #Banks to MAC) ← tables [budget_checks]
-  - Cites: shevgoor, aimjssc, attacc, newton, aimxhc36
+  - Numbers: four activations (shevgoor p. 2 / p. 6, PDF); AiM 3× ← budget.cite.aim_mac_current_x_read (JSSC p. 297; reservoir capacitors and tFAW-free ACT16 on p. 295, split power networks p. 297); Newton 4× (p. 380) ← budget.cite.newton_comp_x_peak_read (2.8× p. 382 no longer printed, still asserted); AttAcc IDD7 (author PDF p. 6) ← tables [budget_checks]
+  - Cites: shevgoor, aimjssc, attacc, newton (aimxhc36 cut 2026-11-10; bib entry kept, uncited)
   - Links: ← meth-power-model; → eval-power
 - **[eval-power]** "Peak power" (rewritten 2026-11-06: headroom first, then the LP-Spec-style ratios; rivals never gated)
   - Message: CoDe's peak power falls inside this headroom on both platforms and stays close to LP-Spec-style's: CoDe (its gated values, no "gated" in the prose, user 2026-11-06) draws 1.20× a full-rate x16 read per die (below AiM's 3×) and 0.75× a full-rate HBM2 stack read (HBM-PIM likewise stays within the original HBM's TDP); 0.92× / 0.87× LP-Spec-style, and without its clock gates 1.04× / 1.03× ("even" / "only" and the HBM2 fits-within-read-power restatement cut 2026-11-08, T6); each CoDe clock edge draws 3.4× / 3.1× less charge (the stock / P3-LLM-style draw-less sentence cut 2026-11-08: Table IV shows it).
@@ -432,7 +432,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: ← des-tile-mac-overview, des-beat-slot-factor, des-row-reuse
 - **[eval-vsweep-gain]** "Tile size on a full GEMM" (run-in head; restructured with eval-vsweep-area / -partial / -choice, user 2026-10-30: two heads of two paragraphs each)
-  - Message: Setting first (V swept 1–64 for q_proj at M = 64, every tile full; mobile staging a V-slice register below V = 8); up to V = D a larger tile fills idle beats, and beyond V = D it removes only row-switch commands.
+  - Message: Setting first (V swept 1–64 for q_proj at M = 64, every tile full; the mobile-staging clause cut 2026-11-10); up to V = D a larger tile fills idle beats, and beyond V = D it removes only row-switch commands.
   - Floats: Fig. 9 (first cite), Fig. 9a
   - Numbers: 3.86× / 3.69× at V = D, 4.90× / 4.39× at V = 64; idle beats 72 % of the V 1 → 2 saving, row switches 91.6 % of the V 4 → 8 saving ← vsw (2x2 §2k). Cut 2026-10-30, asserts kept as guards: row-switch 21 % / refresh 7 % shares, 18.9 → 10.4 %, 20.5 µs token load
   - Cites: —
@@ -483,7 +483,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 | Table II | tab:cmds | tables/tab_cmds.tex ← map (04_design.tex) | des-command-set (p7 L) | p7 R |
 | Table III | tab:params | tables/tab_params.tex ← tables [platform_block] (05_methodology.tex, after meth-platforms; platform rows only since 2026-11-06) | bg-dram-channel (p2) | p8 L top (configuration table: F12 exception; first cite in V on p8) |
 | Table IV | tab:designs | tables/tab_designs.tex ← tables [table4, budget_cells] (05_methodology.tex, after meth-area-model since 2026-11-08; split from tab:params 2026-11-06: lanes, MHz, D, V, slots, GB, mm², mW with CoDe's gated mW in parentheses) | mot-wider-pu (p4) | p8 R top (F12 exception; first cite in V, meth-designs, p8 L) |
-| Fig. 7 | fig:gemm | figs/fig_gemm.pdf ← gemm, html2pdf.py (05_methodology.tex, one-column figure after meth-workloads since 2026-11-08; figure* until 2026-11-06) | eval-gemm-summary (p9 L) | p9 L top |
+| Fig. 7 | fig:gemm | figs/fig_gemm.pdf ← gemm, html2pdf.py (05_methodology.tex, one-column figure after meth-workloads since 2026-11-08; figure* until 2026-11-06) | eval-gemm-speed (p9 L) | p9 L top |
 | Fig. 8 | fig:e2e | figs/fig_e2e.pdf ← e2e, html2pdf.py (06_evaluation.tex, figure* after eval-gemm-per-mm2) | eval-e2e-phone (p9 R) | p10 top, both columns |
 | Fig. 9 | fig:vsweep | figs/fig_vsweep.pdf ← vsw (06_evaluation.tex) | eval-vsweep-gain (p11 L) | p11 R top |
 | Table V | tab:umac_src | tables/tab_umac_src.tex ← tables (06_evaluation.tex, after eval-area-split, before VI-E's heading; since 2026-11-06; D = 2 / 3 rows since 2026-11-10) | eval-gain-sources (p11 L) | p11 L top (citing page; Fig. 9 alone in p11 R) |

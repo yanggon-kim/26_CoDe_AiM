@@ -12,8 +12,7 @@ LP-Spec's shared unit (Section~\ref{sec:eval:ablation}), and P3-LLM-style gains 
 
 % P:eval-gemm-summary
 CoDe matches LP-Spec-style's GEMM speed on about half its logic and outruns P3-LLM-style once a GEMM has more than two
-token rows. Fig.~\ref{fig:gemm} plots GEMM speed-up over stock AiM and throughput per logic mm$^2$ against $M$, each
-point a geometric mean over the FC shapes of Section~\ref{sec:method:work}.
+token rows.
 
 % P:eval-gemm-speed
 \paragraph{GEMM speed}
@@ -103,8 +102,7 @@ limit so that all their banks can work at once. GDDR6-AiM's~\cite{aimjssc} all-b
 gapless read current, and reservoir capacitors and separate I/O and bank power networks let its 16 banks activate
 together without \tfaw. AttAcc~\cite{attacc} budgets its GEMV units by the all-bank interleaved read current (IDD7),
 Newton's~\cite{newton} authors estimate that its all-bank computation draws about 4$\times$ the power of a peak-bandwidth
-read, and SK hynix~\cite{aimxhc36} lists the number of banks that run MACs among the power-throttling knobs of its
-future AiM designs. CoDe's design operates within this headroom.
+read. CoDe's design operates within this headroom.
 
 % P:eval-power
 \paragraph{Peak power}
@@ -169,8 +167,7 @@ once row reuse has removed most of the row-switch overhead per token.
 
 % P:eval-vsweep-gain
 \paragraph{Tile size on a full GEMM}
-Fig.~\ref{fig:vsweep}a sweeps the tile size $V$ from 1 to 64 for q\_proj at $M = 64$, where every tile is full; the
-mobile staging is a register of $V$ slices below $V = 8$. Up to $V = D$ a larger tile fills idle beats, and beyond
+Fig.~\ref{fig:vsweep}a sweeps the tile size $V$ from 1 to 64 for q\_proj at $M = 64$, where every tile is full. Up to $V = D$ a larger tile fills idle beats, and beyond
 $V = D$ it removes only row-switch commands. CoDe's q\_proj speed-up over stock AiM rises from 1 at $V = 1$ to
 3.86$\times$ on the mobile platform and 3.69$\times$ on the edge server at $V = D$, but only to 4.90$\times$ and
 4.39$\times$ at $V = 64$. On the mobile platform idle beats supply 72\,\% of the time saved from $V = 1$ to 2, and
@@ -204,8 +201,7 @@ loop's best $M$ with an EAGLE head.
 \begin{figure}[t]
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_vsweep.pdf}
-  \caption{Tile size: (a)~q\_proj speed-up and throughput per logic mm$^2$ over stock AiM against $V$ at $M = 64$; (b)~$V = 8$ over
-  $V = 4$, decode-step throughput per logic mm$^2$ against $M$.}
+  \caption{Tile size: (a)~speed-up and throughput per logic mm$^2$ against $V$; (b)~$V = 8$ over $V = 4$ against $M$.}
   \label{fig:vsweep}
 \end{figure}
 

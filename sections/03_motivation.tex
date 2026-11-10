@@ -10,8 +10,7 @@ NPU's roof and for simulated PIM GEMMs of stock AiM and each platform's rival. E
 the FC shapes of the platform's models, and Fig.~\ref{fig:roofline} and the later throughput figures plot $M = 2^k$.
 The mobile NPU is the Snapdragon 8 Gen 3's~\cite{sd8g3}, which reaches 56\,GB/s~\cite{powerinfer2} of its own
 68\,GB/s pins~\cite{heterollm}; applied to the 51.2\,GB/s pins of x64 LPDDR5-6400, that fraction gives the NPU
-42\,GB/s\ASSUMPTION. The edge-server NPU is P3-LLM's~\cite{p3llm}. Throughput numbers in this section are modelled on
-the mobile platform and the edge server of Table~\ref{tab:params}, which Section~\ref{sec:method} details.
+42\,GB/s\ASSUMPTION. The edge-server NPU is P3-LLM's~\cite{p3llm}.
 
 % P:mot-host-roof
 \paragraph{Host roof in the skinny range}
@@ -36,8 +35,7 @@ NeuPIMs~\cite{neupims} maps the GEMMs to the NPU, IANUS~\cite{ianus} chooses NPU
 P3-LLM~\cite{p3llm} offloads its linear layers to the NPU from batch 8, where its PIM becomes compute-bound.
 
 % P:mot-a-summary
-Skinny GEMMs are memory-bound on the host and thus belong on PIM, which reads the weights inside the DRAM, yet stock
-PIM's GEMM throughput stays flat at its GEMV ceiling. Section~\ref{sec:bg:cmd} splits a stock GEMM's time to locate the
+Section~\ref{sec:bg:cmd} splits a stock GEMM's time to locate the
 cause.
 
 \subsection{Two Root Causes of Stock PIM Inefficiency}
@@ -139,8 +137,7 @@ server. Section~\ref{sec:bg:walls} examines how prior PIM designs answer each ro
 % P:mot-prior-families
 Prior PIM designs fill the idle beats in two families, with more multipliers or with more commands
 (Fig.~\ref{fig:timeline}). Fig.~\ref{fig:timeline} follows one weight column through eight tokens in stock AiM and in
-one design of each family, LP-Spec~\cite{lpspec} for more multipliers and P3-LLM~\cite{p3llm} for more commands; the
-next paragraphs take the two families in turn.
+one design of each family, LP-Spec~\cite{lpspec} for more multipliers and P3-LLM~\cite{p3llm} for more commands.
 
 % P:mot-wider-pu
 \paragraph{Wider-PU family}
@@ -208,8 +205,7 @@ lookups~\cite{localut,pimpal,pimdl}, and scheduling and dataflow designs reorgan
 PU~\cite{pimba,paise,splitsync,dots,pimphony}. Three designs, the closest prior art, run several MAC beats per column
 read, yet each design holds one input vector ($M = 1$): SAL-PIM~\cite{salpim} clocks its MAC units at twice the column
 rate, the Precision-Flexible PU~\cite{pfpu} runs four phases per column interval on packed low-bit operands, and
-CD-PIM~\cite{cdpim} runs two compute units per bank at twice the internal clock. CD-PIM~\cite{cdpim} leaves the GEMM to
-the host processor. Across the two families and
+CD-PIM~\cite{cdpim} runs two compute units per bank at twice the internal clock. Across the two families and
 these three designs, a column read feeds several tokens only through added multipliers or added commands, and a row
 sweep serves only the tokens of one MAC slot: none, P3-LLM's two-token latch included, lets a larger tile share one
 row sweep and pay its row-switch commands once, or fills the idle beats with its tokens without added multipliers or commands.
