@@ -50,6 +50,12 @@
 \newcommand{\ttok}{\ensuremath{t_\mathrm{tok}}\ifmmode\else\expandafter\xspace\fi}
 \newcommand{\UMAC}{\ensuremath{U_\mathrm{MAC}}\ifmmode\else\expandafter\xspace\fi}
 \newcommand{\fMAC}{\ensuremath{f_\mathrm{MAC}}\ifmmode\else\expandafter\xspace\fi}
+% bold run-in head inside an ordinary indented paragraph (the paper's convention, user 2026-11-10; style of the
+% Pre-gated MoE ISCA paper): "\runin{Head}" prints "Head." in bold, then one word space; a head that already ends
+% with . ? ! gets no second period (amsthm's \@addpunct). acmart's \paragraph is left untouched.
+\makeatletter
+\newcommand{\runin}[1]{\textbf{#1\@addpunct{.}}\ \ignorespaces}
+\makeatother
 
 \begin{document}
 

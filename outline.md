@@ -129,7 +129,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Numbers: one tile 2048 × 64 / 4096 × 256 (one row sweep per bank, one GB chunk); q_proj 4096 × 4096; M = 8, one channel; useful 14.1–19.1 %, non-MAC 23.4–43.7 %, idle 42.2–57.4 % ← brk (2x2 §2j; the ≤ 0.015 % stalls stay a guard assert only)
   - Cites: —
   - Links: ← bg-aim-pu, bg-row-sweep, mot-a-summary; → mot-nonmac-classes, mot-idle-beats, mot-utilization
-- **[mot-nonmac-classes]** "Non-MAC commands" (run-in head over mot-nonmac-classes … mot-sweep-factor)
+- **[mot-nonmac-classes]** "1) Non-MAC commands" (numbered bold run-in head over mot-nonmac-classes … mot-sweep-factor)
   - Message: Every row sweep pays a fixed set of non-MAC commands, and stock AiM pays the set for every token: plain opener (non-MAC commands stall every PU: no PU starts a MAC while they run) → Fig. 3's four non-MAC segments form three classes of II-B's commands (row-switch commands cost t_row once per row sweep; token load/drain commands cost t_tok once per token; refresh blocks commands for t_RFCab every t_REFI) → with one token per stock row sweep (A = 1, II-B), a GEMM pays a row's row-switch commands M times, a GEMV once.
   - Floats: Fig. 3, Fig. 1 (c), Table III
   - Numbers: — (structural)
@@ -142,12 +142,12 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: ← mot-nonmac-classes; → mot-sweep-factor, mot-two-levers, meth-simulator (refresh)
 - **[mot-sweep-factor]**
-  - Message: The paper defines the sweep factor f_MAC as the share of GEMM time the MAC slots get, set by the non-MAC commands through Eq. 1 (c, A from II-B; t_slot from mot-breakdown-setup; t_row, t_tok from mot-nonmac-classes; ρ defined here); one mobile case study gives stock AiM's 0.717 (no own heading; under "Non-MAC commands").
+  - Message: The paper defines the sweep factor f_MAC as the share of GEMM time the MAC slots get, set by the non-MAC commands through Eq. 1 (c, A from II-B; t_slot from mot-breakdown-setup; t_row, t_tok from mot-nonmac-classes; ρ defined here); one mobile case study gives stock AiM's 0.717 (no own heading; under "1) Non-MAC commands").
   - Floats: Eq. 1 (eq:fmac)
   - Numbers: mobile case study only: t_row 87.73 ns, t_tok 4.26 ns, ρ 0.070 (ρ relied on by meth-simulator) → f_MAC 0.717 of a decoder layer's time ← tables [umac_table, umac_src_table]; edge fit values (94.76, 9.64, 0.061) and the 91.2 ns MAC-tail sentence cut (guard-only asserts)
   - Cites: —
   - Links: ← mot-nonmac-classes, mot-rowswitch-cost; → mot-utilization, meth-simulator
-- **[mot-idle-beats]** "Idle beats" (run-in head over mot-idle-beats and mot-idle-cause)
+- **[mot-idle-beats]** "2) Idle beats" (numbered bold run-in head over mot-idle-beats and mot-idle-cause)
   - Message: Even inside the MAC slots three of every four beats are idle: plain opener (an idle beat is a CK cycle in which a PU has nothing to compute) → a column period holds D = 4 such cycles, or beats (II-B); a beat is useful when it computes a token's MAC → stock's slot serves one token, so one beat per column period is useful and three are idle (Fig. 1b) → slot factor U_MAC = A × b × t_CK / t_slot = 1/4 (b defined here) → Fig. 3's idle segment.
   - Floats: Fig. 1 (b), Fig. 3 (MAC-idle segment)
   - Numbers: U_MAC = 1/4 (b = 1 mobile, 2 edge server); D from II-B (not derived here); idle 53.9 % / 57.4 % of q_proj, three times the useful beats ← brk

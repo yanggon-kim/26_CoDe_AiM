@@ -13,14 +13,14 @@ The mobile NPU is the Snapdragon 8 Gen 3's~\cite{sd8g3}, which reaches 56\,GB/s~
 42\,GB/s\ASSUMPTION. The edge-server NPU is P3-LLM's~\cite{p3llm}.
 
 % P:mot-host-roof
-\paragraph{Host roof in the skinny range}
+\runin{Host roof in the skinny range}
 The host stays memory-bound across the whole skinny range. The Snapdragon 8 Gen 3 NPU reaches its compute
 roof only at $M \approx 143$, and P3-LLM's~\cite{p3llm} NPU reaches its roof at $M = 128$ (Fig.~\ref{fig:roofline}a,
 b). Each NPU's ridge lies far above $M = 32$, so the host's roof rises linearly with $M$ across the skinny
 range.
 
 % P:mot-stock-crossover
-\paragraph{Stock-PIM crossover}
+\runin{Stock-PIM crossover}
 Stock PIM beats the host only for the first few token rows. At $M = 1$ every PIM ceiling starts 9.75$\times$ above the
 mobile NPU's roof and 4$\times$ above the edge-server NPU's roof. Stock AiM's ceiling is flat from $M = 1$, however,
 because stock AiM repeats the GEMV once per token row, so its GEMM time grows in proportion to $M$. The rising host roof overtakes that ceiling, and stock
@@ -28,7 +28,7 @@ AiM wins a whole decode step only up to $M = 6$ on the mobile platform and $M = 
 the published values of $M$ (Section~\ref{sec:bg:skinny}).
 
 % P:mot-gemv-only
-\paragraph{GEMV-only use of PIM}
+\runin{GEMV-only use of PIM}
 Stock PIM is a GEMV engine, and published systems keep PIM for GEMVs and send the GEMMs to the host, even though the
 host runs every skinny GEMM on its memory roof. AttAcc~\cite{attacc} runs batched FC layers on the xPU,
 NeuPIMs~\cite{neupims} maps the GEMMs to the NPU, IANUS~\cite{ianus} chooses NPU or PIM per FC layer, and
@@ -68,7 +68,7 @@ the MAC slots, 42.2--57.4\,\%.
 \end{figure}
 
 % P:mot-nonmac-classes
-\paragraph{Non-MAC commands}
+\runin{1) Non-MAC commands}
 Non-MAC commands (Section~\ref{sec:bg:pim}) stall every PU: no PU starts a MAC while they run. The four non-MAC
 segments of Fig.~\ref{fig:breakdown}, row switch, token load, token drain and refresh, form three classes. The
 \emph{row-switch commands}, the two TMODs, the PREA and ACT16 pair of each row opened and the WRMAC16, cost the
@@ -97,7 +97,7 @@ is 87.73\,ns, \ttok is 4.26\,ns and $\rho$ is 0.070, so stock AiM's MAC slots fi
 time.
 
 % P:mot-idle-beats
-\paragraph{Idle beats}
+\runin{2) Idle beats}
 An idle beat is a CK cycle in which a PU has nothing to compute. A column period holds $D = 4$ such cycles, or beats
 (Section~\ref{sec:bg:pim}), and a beat is useful when it computes a token's MAC. Stock AiM's MAC slot serves one token,
 so one beat of each column period is useful and three are idle (Fig.~\ref{fig:dram_pim}b). The \emph{slot factor},
@@ -142,7 +142,7 @@ Prior PIM designs fill the idle beats in two families, with more multipliers or 
 one design of each family, LP-Spec~\cite{lpspec} for more multipliers and P3-LLM~\cite{p3llm} for more commands.
 
 % P:mot-wider-pu
-\paragraph{Wider-PU family}
+\runin{Wider-PU family}
 Wider-PU designs trade area for MAC throughput: they fill the idle beats with more multipliers per PU.
 LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8 ALUs, clocks the ALUs at one MAC step per column
 period, and shares one unit between two banks; we give LP-Spec-style one unit per bank on the mobile platform (Table~\ref{tab:designs}),
@@ -172,7 +172,7 @@ is 0.173--0.174 on the mobile platform and 0.185 on the edge server, below stock
 \end{figure}
 
 % P:mot-logic-cost
-\paragraph{Cost of logic in a DRAM die}
+\runin{Cost of logic in a DRAM die}
 Logic in a DRAM die costs area: UPMEM~\cite{devaux} reports that a DRAM process builds logic 10$\times$ less dense
 than an ASIC process and routes the logic in three metal layers instead of ten or more. In GDDR6-AiM~\cite{aimjssc} silicon, one PU occupies
 0.19\,mm$^2$. Samsung's HBM-PIM~\cite{hbmpim} halves its DRAM sub-arrays to make room for its PUs and so gives up 50\,\% of
@@ -186,7 +186,7 @@ only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 
 697 on the edge server, against stock AiM's 216 and 492.
 
 % P:mot-faster-pu
-\paragraph{Faster-PU family}
+\runin{Faster-PU family}
 Faster-PU designs speed up the PU but still start every MAC with a command, so DRAM command timing, not the PU clock,
 caps them at two beats per column read. P3-LLM~\cite{p3llm} keeps the weight of a column read latched in its PU,
 issues one further command per token, clocks its PU at one beat per HBM2 \tccds{} (Table~\ref{tab:designs}) and shares

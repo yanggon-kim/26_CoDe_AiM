@@ -29,7 +29,7 @@ Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,
 \end{figure}
 
 % P:intro-prior-families
-Prior PIM designs raise the ceiling in two families, and each family keeps every MAC paced by a DRAM command. The wider-PU
+\textbf{Prior PIM designs} raise the ceiling in two families, and each family keeps every MAC paced by a DRAM command. The wider-PU
 family spends multipliers: LP-Spec~\cite{lpspec} keeps one MAC step per column command and widens the step, feeding one
 read to four 32-wide ALUs. The four ALUs carry four times the multipliers, and LP-Spec~\cite{lpspec} estimates that its
 compute units and buffers take 16.92\,\% of an LPDDR5 die. The faster-PU family spends commands: P3-LLM~\cite{p3llm}
@@ -37,7 +37,7 @@ latches a weight and issues one command per token, so P3-LLM's MACs inherit the 
 column period: at most two tokens share a read.
 
 % P:intro-timing-insight
-Critically, DRAM timing parameters space the column commands that move data out of the cell array~\cite{hbmpim}, not
+Critically, \textbf{DRAM timing parameters space the column commands} that move data out of the cell array~\cite{hbmpim}, not
 the MACs on a column already latched beside the bank. The column period
 $t_\mathrm{col}$, the time one all-bank column command occupies the bank, sets how often a column arrives, and the PU
 clock $f_\mathrm{PU}$ sets how often the PU computes, so one column can feed $D = t_\mathrm{col} \times f_\mathrm{PU}$
@@ -46,7 +46,7 @@ DRAM process runs at 1\,GHz in silicon~\cite{aimjssc}. A PU clocked at 0.8\,GHz 
 fits $D = 4$ beats into each column period, of which a stock PU uses one.
 
 % P:intro-code-proposal
-To this end, this paper proposes CoDe (Command-Decoupled PIM). One column command reads a weight column once; the PU holds the
+To this end, this paper proposes \textbf{CoDe (Command-Decoupled PIM)}. One column command reads a weight column once; the PU holds the
 column and runs $D$ beats per column period over a tile of $V$ token vectors, at its own clock and the stock
 multiplier count. We evaluate CoDe against each rival on that rival's own memory, workload and precision. On a mobile
 platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe decodes faster than

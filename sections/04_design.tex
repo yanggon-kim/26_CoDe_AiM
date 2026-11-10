@@ -79,7 +79,7 @@ against stock AiM's 3,250\,ns, 4.40$\times$ shorter, the speedup gap of Fig.~\re
 \label{sec:design:pu}
 
 % P:des-command-set
-\paragraph{Command set}
+\runin{Command set}
 CoDe adds two commands to the all-bank interface of AiM-style PIM~\cite{aimjssc} and keeps every other command
 (Table~\ref{tab:cmds}). The \emph{tile MAC} (col, $V$) reads one column from every open bank with the stock MAC command's
 timing and tells each PU to run $V$ beats on that column. The \emph{burst drain} moves a tile's $V$ sums out of every PU in
@@ -87,7 +87,7 @@ one burst after the tile's last column.
 
 
 % P:des-tile-mac-pu
-\paragraph{Tile MAC in the PU}
+\runin{Tile MAC in the PU}
 Fig.~\ref{fig:tile} follows one \emph{tile MAC} through the PU. The \emph{tile MAC} latches the column that the bank delivers in the
 weight latch (\ding{172}). The beat sequencer then steps a token index $k$ from 0 to $V-1$, one beat per CK cycle
 (\ding{173}). Beat $k$ multiplies the latched weights by token $k$'s slice from the staging buffer in the lanes (\ding{174}), and the adder
@@ -95,7 +95,7 @@ tree adds the products into accumulator slot $k$ (\ding{175}). After the tile's 
 $V$ sums out through the drain port (\ding{176}).
 
 % P:des-storage
-\paragraph{Storage}
+\runin{Storage}
 The global buffer holds the tile's $V$ tokens for one chunk of $K$. On the mobile platform a $K$ chunk holds 2,048 INT8
 inputs, 2\,KB per token, so the GB of an eight-token tile holds 16\,KB (Table~\ref{tab:designs}); one WRGB burst of 512
 writes of 32\,B fills it. The staging buffer next to the lanes is a three-entry queue of 512-bit GB words, each word
@@ -104,7 +104,7 @@ one tile's sums drain from one set while the next tile accumulates into the othe
 holds four sets (Table~\ref{tab:designs}).
 
 % P:des-tile-size
-\paragraph{Tile size}
+\runin{Tile size}
 The tile size $V$ sizes CoDe's GB, HBM2 staging register and accumulator file, while the lanes, the weight latch, the
 beat sequencer and the mobile staging queue keep their size at any $V$. Below $V = D$ the column period paces the PU and beats idle; from
 $V = D$ every beat computes, and a larger $V$ cuts only the row-switch term $\trow / V$ of a token's non-MAC time. A weight row takes $\lceil M/V \rceil$ row sweeps, so a last sweep with fewer than $V$
@@ -125,7 +125,7 @@ chunk and a 512-bit slice, and one PU serves two banks, so an added slot costs a
 \end{table}
 
 % P:des-pu-clock
-\paragraph{PU clock}
+\runin{PU clock}
 CoDe needs a PU clock above the column rate, not one equal to CK, and the tile keeps that clock within the reach of
 the DRAM silicon of Section~\ref{sec:bg:depth}. Registered stages pipeline each beat (latch and staging
 operands, multiply, adder tree, accumulate); only the accumulate feeds back, and beat $k$ writes accumulator slot $k$, so each slot takes one update per tile of $V \ge D$ beats, and the add loop of each slot spans a column

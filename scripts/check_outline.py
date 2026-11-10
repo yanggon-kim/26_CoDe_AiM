@@ -7,7 +7,7 @@ main.tex, following \\input / \\include in order. Fails (exit 1) on:
   - a duplicated id (in either list);
   - a different order;
   - a source paragraph with no anchor right before it, or an anchor not followed by a paragraph
-    (paragraph = text between blank lines or a \\paragraph{} block, floats, headings and \\label lines excluded).
+    (paragraph = text between blank lines or a \\paragraph{} / \\runin{} block, floats, headings and \\label lines excluded).
 Prints one summary line on success. Stdlib only.
 
 Usage: python3 scripts/check_outline.py [outline.md] [main.tex]   (defaults: the repo's own files)
@@ -63,7 +63,7 @@ def scan(path, root, ids, errors, seen):
             continue
         if s.startswith("%"):
             continue
-        starts = not prev_text or s.startswith("\\paragraph{")
+        starts = not prev_text or s.startswith(("\\paragraph{", "\\runin{"))
         if starts and not pending:
             errors.append(f"{path.name}:{n}: paragraph without a % P: anchor: {s[:60]}")
         pending, prev_text = None, True
