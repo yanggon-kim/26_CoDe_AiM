@@ -287,7 +287,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 ### A. Hardware Platforms
 - **[meth-platforms]**
   - Message: Each platform follows the published setup of the rival that targets it (the so-that clause cut 2026-11-08): the mobile platform takes x64 LPDDR5-6400 and INT8 from LP-Spec (its Snapdragon 8 Gen 3 host and NPU replace LP-Spec's modelled NPU), and the edge server takes its NPU, HBM2 and W4A8 from P3-LLM (P3-LLM's W4A8KV4P8 scheme), with one HBM2 stack (Table III). Verified 2026-11-06: LP-Spec Sec. III / VI-A (x64 LPDDR5, 4 x16 dies, 51.2 GB/s, INT8; its NPU is a 41 TFLOPS model of commercial products); P3-LLM Sec. VI (4-core NPU after [27], 16 pseudo HBM channels, HBM2 t_CCD_S, W4A8KV4P8).
-  - Floats: Table III (platform table, F12 exception; float defined after this paragraph, lands p8 L top; the design block left for Table IV, 2026-11-06)
+  - Floats: Table III (platform table, F12 exception; float defined after this paragraph, lands p7 R top in the ACM build; the design block left for Table IV, 2026-11-06)
   - Numbers: platform block (NPU 12 / 131 TOPS, 42 / 256 GB/s; LPDDR5-6400 / HBM2 2.0 Gb/s; 4 dies × 16 / 16 pCH × 16 banks; 409.6 / 1,024 GB/s; t_CK 1.25 / 1 ns; t_CCD_S, t_CCD_L 2.5, 5 / 2, 4 ns; PU per bank / per two banks; t_REFI, t_RFCab 3.906 µs, 280 ns / simulator preset; INT8 / W4A8) ← tables [platform_block] (dac_sd8g3 ev57_host, ev57_ceilings, ev56_mech_inputs, context.md; dac_2x2 ev57_host, ev57_ceilings, dacp_inputs, dac2x2_setup, utrace_run_core8_gbfill; EV-58 dac_table4) and cited spec values; prose: 12 TOPS for INT8 [assumption], 131 TOPS peak [assumption]; 30 µs [assumption] ← npufaster; 2.285 W [assumption] ← derived from cites, no script; 55 W [assumption] ← tpuv4i
   - Cites: lpspec, p3llm, sd8g3, hao2025, npufaster, heterollm, tman, tpuv4i; Table III's Precision row cites lpspec / p3llm
   - Links: ← bg-aim-pu, mot-roofline-setup
@@ -309,7 +309,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Message: Logic area comes from 45 nm synthesis scaled to 1z by AttAcc's estimated GEMV unit (an estimate carrying UPMEM's tenfold density penalty), with fixed control per PU and the GB as DRAM-process SRAM; AiM's fabricated 0.19 mm² PU is 2.24× our model of it, so VI-D also scales logic and registers by 2.24 as an upper bound; die shares divide by a 60.92 mm² 16 Gb LPDDR5 die (as LP-Spec reports) and by a stack of eight 84.4 mm² HBM-PIM dies standing in for plain HBM2 dies [assumption].
   - Floats: —
   - Numbers: 0.19 mm² (aimjssc p. 297); 2.24 ← budget.silicon_factor.aim; 60.92 mm² ← budget.cite.lpddr5_die_mm2_1z (LP-Spec p. 7; its ISSCC'21 origin unread, so never cited directly); 8 × 84.4 mm² ← budget.cite.hbmpim_die_mm2, budget.hbm2.stack_mm2 ([A-XC4]) ← tables [budget_checks] (sd8g3 §2g, 2x2 §2q)
-  - Floats: — (Table IV tab:designs float defined after this paragraph since 2026-11-08, so that it lands at p8 R top)
+  - Floats: — (Table IV tab:designs float defined after this paragraph since 2026-11-08; lands p8 L top in the ACM build)
   - Cites: attacc, devaux, aimjssc, lpspec, hbmpim
   - Links: → eval-area-budget, eval-area-split, eval-gemm-per-mm2, eval-vsweep-area, intro-contributions (one tenfold factor, limitation; moved from eval-modelled 2026-11-08)
 - **[meth-power-model]** (split from meth-simulator, 2026-11-06)
@@ -322,7 +322,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[meth-workloads]** (label sec:method:work)
   - Message: The mobile platform runs speculative decoding of Llama-2-7B with a 1.1B draft (the EAGLE-head sentence cut 2026-11-10 with VI-E's EAGLE clause, its only reader; eagle bib entry kept, uncited) and the edge server batched decoding of five LLMs at a 4K context; GEMMs use six FC shapes (mobile) and 25 (edge server); end to end every system runs M = 4 (mobile) and batch 8 (edge server).
   - Floats: —
-  - Floats: — (Fig. 7 fig:gemm, one column, float defined after this paragraph since 2026-11-08 so that it lands at p9 L top, VI-A's page)
+  - Floats: — (Fig. 7 fig:gemm, one column, float defined after this paragraph since 2026-11-08, lands p8 R top, VI-A's page; Fig. 8 fig:e2e figure* defined right after it since 2026-11-10, so that it renders at the top of p9, VI-B's page)
   - Numbers: acceptance 0.7; L = 1024; M = 4, batch 8; six / 25 FC shapes ← configuration (sd8g3 §2f, 2x2 §2p)
   - Cites: —
   - Links: → eval-gemm-summary, eval-e2e-phone, eval-e2e-server
@@ -420,7 +420,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← meth-area-model, mot-logic-cost
 - **[eval-area-split]** "Logic against LP-Spec-style" (moved from V-B, 2026-11-06)
   - Message: CoDe matches LP-Spec-style's peak throughput with 0.539× its logic per die (an exact tie of the 4× ceiling, CoDe the subject) because it spends its logic on storage rather than arithmetic; on HBM2 its logic is 0.56× LP-Spec-style's and 1.33× P3-LLM-style's for twice P3-LLM-style's beats per column period (the 0.524 / 0.536 silicon-scale ratio sentence cut, user 2026-11-06; guard-only assert).
-  - Floats: — (Table V tab:umac_src float defined after this paragraph, before VI-E's heading, so that it lands at p11 L top, out of Fig. 9's column)
+  - Floats: — (Table V tab:umac_src float defined after this paragraph, before VI-E's heading; lands p10 R top in the ACM build, Fig. 9 alone on p11 L)
   - Numbers: 0.539×; arithmetic 0.73 / 0.34, storage 0.32 / 0.10; 0.56×, 1.33× ← tables [table4, area_split]; 0.524 / 0.536 no longer printed (guard-only in tables [budget_checks])
   - Cites: —
   - Links: ← meth-area-model, mot-two-levers, eval-gemm-per-mm2
@@ -465,22 +465,24 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Links: ← mot-depth, eval-area-split, eval-e2e-server
 
 ## Float map
+ACM sigconf since 2026-11-10: the paper prints Table 1–5, Figure 1–9 and Sections 1–7 with arabic subsections (3.2);
+the outline's roman ids (Table I–V, III-B) name the same floats and sections. Pages are the ACM build's.
 | float | label | source file | first cite | lands |
 |---|---|---|---|---|
-| Fig. 1 | fig:dram_pim | figs/fig_dram_pim.pdf (01_introduction.tex) | intro-pim-gemv-ceiling (p1 L) | p1 R |
-| Fig. 2 | fig:roofline | figs/fig_roofline.pdf ← roof (01_introduction.tex) | intro-pim-gemv-ceiling (p1 L) | p2 L |
-| Fig. 3 | fig:breakdown | figs/fig_breakdown.pdf ← brk (03_motivation.tex, after mot-breakdown-setup) | mot-breakdown-setup (p3 L) | p3 R |
-| Table I | tab:umac | tables/tab_umac.tex ← tables (03_motivation.tex, inside mot-utilization) | mot-utilization (p4 R) | p4 R |
-| Fig. 4 | fig:timeline | figs/fig_timeline.pdf ← make_fig_timeline.py (03_motivation.tex, after mot-wider-pu, so that it misses Table I's column) | mot-prior-families (p4 R) | p5 L |
-| Fig. 5 | fig:tile | figs/fig_tile.pdf ← figs/src/fig_tile.html, html2pdf.py (04_design.tex, top of IV) | des-tile-mac-overview (p6 L) | p6 L |
-| Fig. 6 | fig:mapping | figs/fig_mapping.pdf ← map, html2pdf.py (04_design.tex, after IV-A) | des-row-reuse (p6 L) | p6 R |
-| Table II | tab:cmds | tables/tab_cmds.tex ← map (04_design.tex) | des-command-set (p7 L) | p7 R |
-| Table III | tab:params | tables/tab_params.tex ← tables [platform_block] (05_methodology.tex, after meth-platforms; platform rows only since 2026-11-06) | bg-dram-channel (p2) | p8 L top (configuration table: F12 exception; first cite in V on p8) |
-| Table IV | tab:designs | tables/tab_designs.tex ← tables [table4, budget_cells] (05_methodology.tex, after meth-area-model since 2026-11-08; split from tab:params 2026-11-06: lanes, MHz, D, V, slots, GB, mm², mW with CoDe's gated mW in parentheses) | mot-wider-pu (p4) | p8 R top (F12 exception; first cite in V, meth-designs, p8 L) |
-| Fig. 7 | fig:gemm | figs/fig_gemm.pdf ← gemm, html2pdf.py (05_methodology.tex, one-column figure after meth-workloads since 2026-11-08; figure* until 2026-11-06) | eval-gemm-speed (p9 L) | p9 L top |
-| Fig. 8 | fig:e2e | figs/fig_e2e.pdf ← e2e, html2pdf.py (06_evaluation.tex, figure* after eval-gemm-per-mm2) | eval-e2e-phone (p9 R) | p10 top, both columns |
-| Fig. 9 | fig:vsweep | figs/fig_vsweep.pdf ← vsw (06_evaluation.tex) | eval-vsweep-gain (p11 L) | p11 R top |
-| Table V | tab:umac_src | tables/tab_umac_src.tex ← tables (06_evaluation.tex, after eval-area-split, before VI-E's heading; since 2026-11-06; D = 2 / 3 rows since 2026-11-10) | eval-gain-sources (p11 L) | p11 L top (citing page; Fig. 9 alone in p11 R) |
+| Fig. 1 | fig:dram_pim | figs/fig_dram_pim.pdf ← figs/src/fig_dram_pim.html, html2pdf.py (01_introduction.tex) | intro-pim-gemv-ceiling (p1 L) | p1 R |
+| Fig. 2 | fig:roofline | figs/fig_roofline.pdf ← roof (01_introduction.tex) | intro-pim-gemv-ceiling (p1 L) | p2 R top |
+| Fig. 3 | fig:breakdown | figs/fig_breakdown.pdf ← brk (03_motivation.tex, after mot-breakdown-setup) | mot-breakdown-setup (p3 L) | p3 R top |
+| Table I | tab:umac | tables/tab_umac.tex ← tables (03_motivation.tex, inside mot-utilization) | mot-utilization (p4 L) | p4 L top |
+| Fig. 4 | fig:timeline | figs/fig_timeline.pdf ← make_fig_timeline.py (03_motivation.tex, after mot-wider-pu, so that it misses Table I's column) | mot-prior-families (p4 R) | p4 R top |
+| Fig. 5 | fig:tile | figs/fig_tile.pdf ← figs/src/fig_tile.html, html2pdf.py (04_design.tex, top of IV) | des-tile-mac-overview (p5 R) | p5 R top |
+| Fig. 6 | fig:mapping | figs/fig_mapping.pdf ← map, html2pdf.py (04_design.tex, after IV-A) | des-row-reuse (p6 R) | p6 L top |
+| Table II | tab:cmds | tables/tab_cmds.tex ← map (04_design.tex) | des-command-set (p6 R) | p7 L top |
+| Table III | tab:params | tables/tab_params.tex ← tables [platform_block] (05_methodology.tex, after meth-platforms; platform rows only since 2026-11-06) | bg-dram-channel (p2 R) | p7 R top (configuration table: F12 exception; first cite in V on p7 R) |
+| Table IV | tab:designs | tables/tab_designs.tex ← tables [table4, budget_cells] (05_methodology.tex, after meth-area-model since 2026-11-08; split from tab:params 2026-11-06: lanes, MHz, D, V, slots, GB, mm², mW with CoDe's gated mW in parentheses) | mot-wider-pu (p4 R) | p8 L top (F12 exception; first cite in V, meth-designs, p7 R) |
+| Fig. 7 | fig:gemm | figs/fig_gemm.pdf ← gemm, html2pdf.py (05_methodology.tex, one-column figure after meth-workloads since 2026-11-08; figure* until 2026-11-06) | eval-gemm-speed (p8 R) | p8 R top |
+| Fig. 8 | fig:e2e | figs/fig_e2e.pdf ← e2e, html2pdf.py (05_methodology.tex, figure* right after Fig. 7's source since 2026-11-10 (ACM), so that it renders on VI-B's page; was after eval-gemm-per-mm2) | eval-e2e-phone (p9) | p9 top, both columns |
+| Table V | tab:umac_src | tables/tab_umac_src.tex ← tables (06_evaluation.tex, after eval-area-split, before VI-E's heading; since 2026-11-06; D = 2 / 3 rows since 2026-11-10) | eval-gain-sources (p10 R) | p10 R top (citing page) |
+| Fig. 9 | fig:vsweep | figs/fig_vsweep.pdf ← vsw (06_evaluation.tex) | eval-vsweep-gain (p10 R) | p11 L top |
 | Eq. 1 | eq:fmac | 03_motivation.tex | mot-sweep-factor | p4 L |
 
 ## Observations
@@ -489,7 +491,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 | 1 | resolved | mot-nonmac-classes … mot-utilization | Resolved again (user, 2026-10-28): III-B now runs setup (mot-breakdown-setup) → Non-MAC commands (classes, non-MAC cost with row switch first, sweep factor; mot-load-refresh-cost merged into mot-rowswitch-cost, user 2026-10-29) → Idle beats (idle beats, cause) → mot-utilization (U, Table I, transition to III-C). Before (user plan, 2026-10-27): split into Non-MAC commands (what each command costs per row sweep; row switches outlast the useful MAC work) and Sweep factor (Eq. 1, Table I, f_MAC 0.717, U 0.179). Was: one paragraph (≈ 30 source lines, ≈ 25 numbers) carries the f_MAC formula and fit, the per-command row-switch split, token load against GB fills, refresh, the edge-server totals and stock U = 0.179; class names are used before this paragraph defines them. |
 | 2 | resolved | meth-simulator | Resolved (2026-11-06): V-C is three paragraphs, meth-simulator (simulator, P3-LLM validation, C/A re-timing, refresh), meth-area-model and meth-power-model. Was: one paragraph with five topics. |
 | 3 | two messages | mot-logic-cost, eval-e2e-phone | mot-logic-cost (logic-die designs) still adds a second claim (eval-vsweep-robust's two claims split into eval-vsweep-partial / -choice, 2026-10-30, merged back into eval-vsweep-choice conclusion-first, 2026-11-10); eval-e2e-phone carries the figure setup and its reason (M = 4, batch 8), the M = 4 result, the best-M check and the M ≥ 5 lead. The former eval-phone-per-mm2 / -energy / eval-server-beats cases left with the VI restructure (2026-10-30). |
-| 4 | placement | eval-gain-sources | eval-gain-sources opens VI-E (Ablation Study, VI-D until 2026-11-06); Table V lands at the top of its citing page (cite p11 L, table p11 L top) from its source before VI-E's heading (moved from after the Conclusion heading, 2026-11-06). It remains the only home of the both-order gain. |
+| 4 | placement | eval-gain-sources | eval-gain-sources opens VI-E (Ablation Study, VI-D until 2026-11-06); Table V lands at the top of its citing page (ACM build: cite p10 R, table p10 R top) from its source before VI-E's heading (moved from after the Conclusion heading, 2026-11-06). It remains the only home of the both-order gain. |
 | 5 | resolved | eval-gain-sources | Resolved (user plan, 2026-10-27): des-gain-order deleted; the both-order gain lives only in VI-B (2.37× / 1.83×, Table V values); the 2.3 % reconciling sentence left IV-B. Was: the two-order gain printed 2.39× then 1.84× (Fig. 5 window) in IV-A and 2.37× then 1.83× (one layer, Table V) in VI-B; only des-beat-slot-factor's 2.3 % sentence reconciles them. |
 | 6 | restatement | intro-prior-families / mot-prior-families; intro-timing-insight / mot-depth; mot-idle-beats / mot-depth | The two families are named in I and III-C; mot-depth now points to Table III for the column period and CK instead of reprinting the intro's 5 ns / 4 ns / 0.8–1 GHz, and mot-idle-cause's column-access argument is now one sentence (each column command reads one column; t_CCD spacing), leaving the latched-column argument to mot-depth. D is now defined once, in bg-aim-pu (its first point of need), and III and IV point back to it (resolves "D derived late"); intro-timing-insight still derives D = t_col × f_PU itself (introduction untouched). |
 | 7 | restatement | intro-prior-families / mot-logic-cost; eval-area-budget | The V = 4 reason now lives in IV-D only (V-B points to it, 2026-11-08); LP-Spec's 16.92 % is printed in I and III-C (not in VI-D), reconciled with 4.28 % in III-C; 0.539× appears in the abstract, I, VI-A, VI-D and VII (the area-efficiency headline); HBM-PIM's halved sub-arrays in III-C only. |

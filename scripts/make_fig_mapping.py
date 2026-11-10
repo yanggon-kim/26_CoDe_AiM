@@ -167,14 +167,14 @@ def I(s):
 
 
 def draw(row_ns, split, tab):
-    W = 252.0
+    W = 240.0                       # ACM sigconf \columnwidth in pt (IEEEtran was 252)
     g = S()
     # ---------------- (a) the skinny GEMM, M = 8; one bank's work in one row sweep in red ----------------
     g.t(1, 8.5, f"(a) skinny GEMM, {I('M')} = 8", 8.5, bold=True)
     top, rh = 25.0, 6.0
-    X0, XW = 12.0, 74.0
-    W0, WW = 106.0, 58.0
-    Y0, YW = 186.0, 58.0
+    X0, XW = 12.0, 70.0
+    W0, WW = 98.0, 56.0
+    Y0, YW = 178.0, 56.0
     H = 8 * rh                      # X and Y rows; W's height (K) drawn equal to X's height
     nc = 20.0                       # the output this bank holds: matrix column of W and Y
     g.t(X0, top - 4, f"X: {I('M')} = 8 tokens &#215; {I('K')}")
@@ -207,11 +207,11 @@ def draw(row_ns, split, tab):
         g.t(x, ya, s, 8.0, fill=RED)
 
     # ---------------- (b) one weight row of one bank: stock AiM against CoDe ----------------
-    # Lane names sit above their lanes, so the lanes span the width and each stock unit gets about 31 pt. RS and D
+    # Lane names sit above their lanes, so the lanes span the width and each stock unit gets about 30 pt. RS and D
     # carry their labels inside at 7 pt and stock AiM's "x64" sits at 6.5 pt: the user's explicit decision (2026-10-29).
     yb = ya + 15.0
     g.t(1, yb, "(b) one weight row of one bank", 8.5, bold=True)
-    lx, lend = 1.5, 250.0
+    lx, lend = 1.5, W - 1.5
     T = row_ns["stock"]
     sx = (lend - lx) / T                                                        # pt per ns
     lh = 14.0
@@ -220,11 +220,12 @@ def draw(row_ns, split, tab):
     yn = yb + 12.0                                                              # lane name
     ys = yn + 13.0                                                              # lane top (token numbers between)
     uw = (lend - lx) / SWEEPS
-    rs_w = max(split["stock"]["row"] * sx, width("RS", 7.0) + 2.4)
-    d_w = max(split["stock"]["drain"] * sx, width("D", 7.0) + 2.4)
+    rs_w = max(split["stock"]["row"] * sx, width("RS", 7.0) + 1.8)          # 0.9 pt pad a side (ACM column)
+    d_w = max(split["stock"]["drain"] * sx, width("D", 7.0) + 1.8)
     mac_w = uw - rs_w - d_w
     assert abs(uw * SWEEPS - (split["stock"]["row"] + split["stock"]["mac"] + split["stock"]["drain"]) * SWEEPS * sx) < 1e-9
-    assert uw > 30 and mac_w > width("x64", 6.5) + 2.4, (uw, mac_w)
+    # unit floor 29 pt since the ACM column (240 pt; 30 pt on IEEEtran's 252); the label fit is the binding check
+    assert uw > 29 and mac_w > width("x64", 6.5) + 2.4, (uw, mac_w)
     g.t(lx, yn, "stock AiM", 8.0, bold=True)
     for k in range(SWEEPS):
         x = lx + k * uw
@@ -290,7 +291,7 @@ def draw(row_ns, split, tab):
     assert by + 16.5 + 3 + 9.5 + 2.0 < zy + zh
     # the count table: equal MAC beats; what each lever removes
     ty = zy + zh + 12.0
-    cols = [(76.0, "MAC beats"), (126.0, "row opens"), (176.0, "column reads"), (225.0, "MAC time")]
+    cols = [(74.0, "MAC beats"), (121.0, "row opens"), (168.0, "column reads"), (214.0, "MAC time")]
     for (c0, h0), (c1, h1) in zip(cols, cols[1:]):
         assert c0 + width(h0, 8.0) / 2 + 4 < c1 - width(h1, 8.0) / 2
     for cx, h in cols:

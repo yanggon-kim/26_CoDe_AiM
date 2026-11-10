@@ -107,6 +107,16 @@ edge server. End to end, every system runs the mobile loop at $M = 4$ and the ed
   \label{fig:gemm}
 \end{figure}
 
+% figure* (Section VI-B), placed early: met on Fig. 7's page so that it renders at the top of the next page, VI-B's
+% citing page (ACM layout, p. 9); placement checked on the float map after each build
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figs/fig_e2e.pdf}
+  \caption{End-to-end decoding, mobile platform (top) and edge server (bottom): (a)~speed-up over NPU only, tokens/s
+  on bars; (b)~tokens/s per logic mm$^2$; (c)~energy per token.}
+  \label{fig:e2e}
+\end{figure*}
+
 % P:meth-systems
 NPU only runs the whole model on the NPU; in NPU + $X$, PIM design $X$ runs every weight GEMM and attention layer and
 the NPU runs the element-wise work.

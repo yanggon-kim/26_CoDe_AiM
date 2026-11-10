@@ -5,7 +5,8 @@ thin solid line (LW pt) through small hollow markers at its data points, joined 
 marker outline; series told apart by colour plus marker shape (STYLE in dac_data.py, the palette Table II and Fig. 5
 share); light gray thin gridlines at the major ticks; a thin black axis box; one legend row of line + marker samples
 on top, shared by all panels. Text in Liberation Serif (TrueType, so Chrome embeds no Type 3 font) at 8-8.5 pt.
-Units: 1 SVG user unit = 1 pt (1/72 in). \\textwidth = 516 TeX pt = 514 pt; \\columnwidth = 252 TeX pt = 251 pt.
+Units: 1 SVG user unit = 1 pt (1/72 in). ACM sigconf (since 2026-11-10): \\textwidth = 506.3 TeX pt = 504 pt;
+\\columnwidth = 241.1 TeX pt = 240 pt (IEEEtran was 514 / 251 pt).
 Each figure script calls write_html(); scripts/html2pdf.py turns figs/src/<name>.html into figs/<name>.pdf + .png.
 """
 import math
@@ -16,7 +17,7 @@ from PIL import ImageFont
 
 from dac_data import REPO, STYLE
 
-TEXTWIDTH, COLUMNWIDTH = 514.0, 251.0
+TEXTWIDTH, COLUMNWIDTH = 504.0, 240.0   # ACM sigconf \textwidth, \columnwidth in pt (1/72 in)
 FT, FL = 8.0, 8.5             # tick labels; axis labels, panel titles, legend, notes
 LW = 0.75                     # every series line and marker outline
 BOX_LW, GRID_LW, TICK_LW = 0.6, 0.4, 0.5

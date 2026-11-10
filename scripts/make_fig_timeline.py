@@ -10,7 +10,7 @@ A schematic (no measured data): four designs, each with three lanes (cmd / bank 
                  for max(1, m/D) periods (m = tokens in the tile).
 Asserts the counts the figure prints at D = 4, M = 8, V = 8:
   stock 8T / 8 cmd / 8 rd; LP-Spec 2T / 2 / 2; P3 4T / 8 / 4; CoDe 2T / 1 / 1.
-Layout (skill F10): one column (252 pt), four stacked units (stock, area family, faster-PU family, CoDe), each a header row (name left, summary right) over its
+Layout (skill F10): one column (240 pt, ACM sigconf), four stacked units (stock, area family, faster-PU family, CoDe), each a header row (name left, summary right) over its
 cmd / bank / PU lanes on the shared 0T..8T grid; one time axis at the bottom. Rivals in white / grays, CoDe in the
 one tint (#CFE2F3 fill, #2B5FA8 stroke).
 Writes figs/src/fig_timeline.html (one inline SVG at final size); then
@@ -78,10 +78,10 @@ def model(design):
 ROWS = [("stock", "Stock AiM"), ("lpspec", "LP-Spec-style"), ("p3", "P3-LLM-style"), ("core", "CoDe")]   # area family first
 EXPECT = {"stock": (8, 8, 8), "p3": (4, 8, 4), "lpspec": (2, 2, 2), "core": (2, 1, 1)}
 
-# ---- geometry (pt; 1 SVG unit = 1 pt; \columnwidth = 252 pt) ----
-W = 252
+# ---- geometry (pt; 1 SVG unit = 1 pt; ACM sigconf \columnwidth = 240 pt, IEEEtran was 252) ----
+W = 240
 FS, FN = 8, 8.5            # body text, design names
-X0, PER_T = 22.0, 28.125   # grid origin and width of one column period T (8T = 225 pt)
+X0, PER_T = 20.0, 26.625   # grid origin and width of one column period T (8T = 213 pt; ACM column)
 HEAD_H, LANE_H, NOTE_H, UNIT_GAP = 11.0, 10.0, 10.0, 4.0
 I = lambda s: f'<tspan font-style="italic">{s}</tspan>'                       # a variable
 SUB = lambda s: f'<tspan dy="1.8" font-size="6">{s}</tspan><tspan dy="-1.8"> </tspan>'
@@ -175,7 +175,7 @@ def main():
             note(X(1) + 3, yb + 2.8, f"{I('T')} = one column period; the PU computes {I('T')}/{I('D')} of it")
         elif d == "p3":
             span(X(3.0) + 0.5, X(3.5) - 0.5, y_cmd + 6.5)
-            note(X(4) + 2.5, y_cmd + 7.2, f"&#8592; command spacing {I('t')}{SUB('CCD_S')}= {I('T')}/2")
+            note(X(4) + 2.0, y_cmd + 7.2, f"&#8592; command spacing {I('t')}{SUB('CCD_S')}= {I('T')}/2")
         elif d == "lpspec":
             note(X(2) + 4, y_bank + 7.3, "4 ALUs, each busy a full " + I("T"))
             note(X(2) + 4, y_pu + 7.3, "(one read feeds 4 tokens)")

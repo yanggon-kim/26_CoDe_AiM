@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Turn an HTML figure prototype (figs/src/<name>.html) into the paper's figs/<name>.pdf and a figs/<name>.png preview.
 
-Each prototype holds one inline <svg> drawn at its final physical size (width/height in pt; \\columnwidth = 3.5 in =
-252 pt), so LaTeX includes it unscaled. Steps:
+Each prototype holds one inline <svg> drawn at its final physical size (width/height in pt; ACM sigconf \\columnwidth =
+240 pt, \\textwidth = 504 pt), so LaTeX includes it unscaled. Steps:
   1. inject `@page { size: <w> <h>; margin: 0 }` from the svg's width/height into a temporary copy of the page;
   2. google-chrome --headless --disable-gpu --no-pdf-header-footer --print-to-pdf=...;
   3. assert one page, then pdfcrop;
