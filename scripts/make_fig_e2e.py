@@ -2,14 +2,17 @@
 """Figure 8 (Sec. VI-B/C, fig:e2e): end-to-end decoding on five systems, both platforms, as bars.
 
 Systems (user, 2026-10-30): NPU only; NPU + X for X = stock AiM, P3-LLM-style, LP-Spec-style, CoDe, where PIM design X
-runs every weight GEMM and attention and the NPU the element-wise work. Rows: mobile platform (speculative loop of
+runs every weight GEMM and attention and the NPU the element-wise work, except NPU + P3-LLM-style on the edge server,
+which follows P3-LLM's own placement at batch 8 (linear layers on the NPU, attention on PIM; user 2026-11-10, option B;
+ids isca.e2e.hbm2.p3own.*, evaluation cd0678a, dac_2x2 Sec. 2p). Rows: mobile platform (speculative loop of
 Llama-2-7B, M = 4, L 1024, acceptance 0.7, 1.1B draft, NPU 42 GB/s, synthesised PU energy, reads priced) and edge
 server (batch 8, gmean of five LLMs, W4A8, energy at the NPU's 55 W idle). Columns: (a) speed-up over NPU only, tok/s
 printed on the bars; (b) tok/s per logic mm^2 normalised to LP-Spec-style (PIM designs only); (c) energy per token (mJ).
 Source (read only): the ISCA evaluation ids, evaluation f896213 / 77a9b9d:
   isca.e2e.phone.<npu|stock|h3|h2|core8>.*, isca.e2e.phone.core8_over_h2.{per_mm2,speed_M5,speed_Mge5.*},
   isca.e2e.phone.h3.best_M.d1b / best_tok_s.d1b and x.ev56.e2e.d1b.<d>.{best_M,tok_s} (evaluation/dac_sd8g3, Sec. 2f);
-  isca.e2e.hbm2.<npu|stock|p3_500|h2|core4>.*, isca.e2e.hbm2.npu_overtakes.core4.* (evaluation/dac_2x2, Sec. 2p);
+  isca.e2e.hbm2.<npu|stock|p3own|h2|core4>.*, isca.e2e.hbm2.npu_overtakes.core4.* (evaluation/dac_2x2, Sec. 2p; the all-PIM
+  P3-LLM-style cell isca.e2e.hbm2.p3_500.* is history, guarded below, never printed);
   the best-M rows also against evaluation/dac_sd8g3/raw/ev56_best.csv (L 1024, d1b, alpha 0.7).
 Every number Secs. VI-B and VI-C print about Fig. 8 is asserted in check_prose_numbers(). Writes figs/src/fig_e2e.html;
 then  python3 scripts/html2pdf.py fig_e2e  ->  figs/fig_e2e.pdf (+ .png preview).
@@ -17,14 +20,14 @@ then  python3 scripts/html2pdf.py fig_e2e  ->  figs/fig_e2e.pdf (+ .png preview)
 import csv
 import os
 
-from dac_data import PHONE_RAW, ids, r2
+from dac_data import EVAL, PHONE_RAW, ids, r2
 from svgchart import FL, FT, TEXTWIDTH, Fig, I, Panel, row, width
 
 SYS = ["npu", "stock", "p3", "lpspec", "code"]
 LABEL = {"npu": "NPU only", "stock": "NPU + stock AiM", "p3": "NPU + P3-LLM-style", "lpspec": "NPU + LP-Spec-style",
          "code": "NPU + CoDe"}
 KEY = {"phone": {"npu": "npu", "stock": "stock", "p3": "h3", "lpspec": "h2", "code": "core8"},
-       "hbm2": {"npu": "npu", "stock": "stock", "p3": "p3_500", "lpspec": "h2", "code": "core4"}}
+       "hbm2": {"npu": "npu", "stock": "stock", "p3": "p3own", "lpspec": "h2", "code": "core4"}}
 TOPIC = {"phone": "dac_sd8g3", "hbm2": "dac_2x2"}
 EKEY = {"phone": "mJ_tok", "hbm2": "mJ_tok_55W"}
 
@@ -104,20 +107,26 @@ def check_prose_numbers(d):
     assert abs(min(lead[M] for M in range(5, 17)) - pt["isca.e2e.phone.core8_over_h2.speed_Mge5.min"]) < 1e-9
     assert abs(max(lead[M] for M in range(5, 17)) - pt["isca.e2e.phone.core8_over_h2.speed_Mge5.max"]) < 1e-9
     assert r2(lead[8]) == 1.07 == r2(lead[16]), (lead[8], lead[16])
-    # eval-e2e-server: CoDe = LP-Spec-style 1.28x NPU only (456 tok/s); stock 0.45x, P3-LLM-style 0.76x; CoDe 1.68x P3
-    assert [r2(hb["sp"][s]) for s in ("stock", "p3", "lpspec", "code")] == [0.45, 0.76, 1.28, 1.28]
+    # eval-e2e-server: CoDe = LP-Spec-style 1.28x NPU only (456 tok/s); stock 0.45x, P3-LLM-style 0.91x at P3-LLM's own
+    # placement (linear layers on the NPU, attention on PIM); CoDe 1.41x P3 (all-PIM cell 0.76x / 1.68x: history only)
+    assert [r2(hb["sp"][s]) for s in ("stock", "p3", "lpspec", "code")] == [0.45, 0.91, 1.28, 1.28]
     assert hb["tok"]["code"] == hb["tok"]["lpspec"] and round(hb["tok"]["code"]) == 456
     assert all(hb["sp"][s] < 1 for s in ("stock", "p3"))
-    assert r2(ht["isca.e2e.hbm2.core4_over_p3_500.speed"]) == 1.68
+    assert r2(ht["isca.e2e.hbm2.core4_over_p3own.speed"]) == 1.41
+    assert abs(hb["tok"]["code"] / hb["tok"]["p3"] - ht["isca.e2e.hbm2.core4_over_p3own.speed"]) < 1e-9
+    assert r2(ht["isca.e2e.hbm2.core4_over_p3_500.speed"]) == 1.68 and r2(ht["isca.e2e.hbm2.p3_500.speedup_vs_npu"]) == 0.76  # history
     # NPU only overtakes CoDe from batch 16 on the gmean (CoDe last ahead at 12)
     assert ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.first_npu_M"] == 16 and ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.last_pim_M"] == 12
     # eval-e2e-phone setting: batch 8 = the largest power of two at which CoDe still leads NPU only
     lead_b = ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.last_pim_M"]
     assert max(2 ** k for k in range(8) if 2 ** k <= lead_b) == 8 < ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.first_npu_M"]
-    # eval-e2e-per-mm2: CoDe / LP-Spec-style 1.87x (mobile), 1.79x (edge); CoDe / P3-LLM-style 1.10x, 1.26x
+    # eval-e2e-per-mm2: CoDe / LP-Spec-style 1.87x (mobile), 1.79x (edge); CoDe / P3-LLM-style 1.10x, 1.06x (edge: own
+    # placement, PIM logic only, no NPU area); Fig. 8b P3-LLM-style edge bar = p3own_over_h2.per_mm2 (1.69)
     assert r2(ph["pm"]["code"]) == 1.87 == r2(pt["isca.e2e.phone.core8_over_h2.per_mm2"])
     assert r2(hb["pm"]["code"]) == 1.79 == r2(ht["isca.e2e.hbm2.core4_over_h2.per_mm2"])
-    assert r2(pt["isca.e2e.phone.core8_over_h3.per_mm2"]) == 1.10 and r2(ht["isca.e2e.hbm2.core4_over_p3_500.per_mm2"]) == 1.26
+    assert r2(pt["isca.e2e.phone.core8_over_h3.per_mm2"]) == 1.10 and r2(ht["isca.e2e.hbm2.core4_over_p3own.per_mm2"]) == 1.06
+    assert abs(hb["pm"]["p3"] - ht["isca.e2e.hbm2.p3own_over_h2.per_mm2"]) < 1e-9 and r2(hb["pm"]["p3"]) == 1.69
+    assert abs(hb["pm"]["code"] / hb["pm"]["p3"] - ht["isca.e2e.hbm2.core4_over_p3own.per_mm2"]) < 1e-9
     assert r2(pt["isca.e2e.phone.core8_over_h2.speed"]) == 1.01 and ht["isca.e2e.hbm2.core4_over_h2.speed"] == 1.0
     # eval-energy, mobile: CoDe 70.5 mJ/token; NPU only 7.9x, stock AiM 1.80x, P3-LLM-style 1.28x, LP-Spec-style 1.04x CoDe's
     e = ph["en"]
@@ -126,21 +135,28 @@ def check_prose_numbers(d):
     assert r2(pt["isca.e2e.phone.stock_over_core8.mJ"]) == 1.80 and abs(e["stock"] / e["code"] - pt["isca.e2e.phone.stock_over_core8.mJ"]) < 1e-9
     assert r2(pt["isca.e2e.phone.h3_over_core8.mJ"]) == 1.28 and r2(pt["isca.e2e.phone.h2_over_core8.mJ"]) == 1.04
     assert min(e, key=e.get) == "code"
-    # eval-energy, edge server at 55 W idle: NPU only 1.48x, P3-LLM-style 1.64x CoDe's; LP-Spec-style ties (1.00x);
-    # gated NPU (0 W): P3-LLM-style 1.46x, NPU only 2.46x
-    assert r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) == 1.48 and r2(ht["isca.e2e.hbm2.p3_500_over_core4.mJ_55W"]) == 1.64
+    # eval-energy, edge server at 55 W idle: NPU only 1.48x, P3-LLM-style 1.52x CoDe's; LP-Spec-style ties (1.00x);
+    # gated NPU (0 W): P3-LLM-style 2.08x (larger than at 55 W: its NPU runs the linear layers), NPU only 2.46x
+    assert r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) == 1.48 and r2(ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"]) == 1.52
+    assert abs(hb["en"]["p3"] / hb["en"]["code"] - ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"]) < 1e-9
     assert r2(ht["isca.e2e.hbm2.h2_over_core4.mJ_55W"]) == 1.00
-    assert r2(ht["isca.e2e.hbm2.p3_500_over_core4.mJ_0W"]) == 1.46 and r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_0W"]) == 2.46
+    assert r2(ht["isca.e2e.hbm2.p3own_over_core4.mJ_0W"]) == 2.08 > ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"] and r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_0W"]) == 2.46
     assert abs(hb["en"]["npu"] / hb["en"]["code"] - ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) < 1e-9
     # Fig. 8c edge bars in the text (AI-review item 3, 2026-11-08): CoDe 145 mJ per token, stock AiM 2.73x CoDe's
     assert round(hb["en"]["code"]) == 145
     assert r2(ht["isca.e2e.hbm2.stock_over_core4.mJ_55W"]) == 2.73
     assert abs(hb["en"]["stock"] / hb["en"]["code"] - ht["isca.e2e.hbm2.stock_over_core4.mJ_55W"]) < 1e-9
     assert min(hb["en"], key=hb["en"].get) == "code"
-    # abstract / intro / conclusion: 1.87x per mm2 at matched speed (mobile); 1.68x, 1.26x, 1.64x (edge server)
+    # abstract / intro / conclusion: 1.87x per mm2 at matched speed (mobile); 1.41x, 1.06x, 1.52x (edge server)
+    # Fig. 8 HBM2 bars equal the collected export figures/fig_e2e_hbm2.csv (evaluation cd0678a)
+    with open(os.path.join(EVAL, "dac_2x2", "figures", "fig_e2e_hbm2.csv")) as fh:
+        ex = {r["design"]: r for r in csv.DictReader(fh)}
+    for s, k in (("npu", "npu"), ("stock", "stock"), ("p3", "p3_500"), ("lpspec", "h2"), ("code", "core4")):
+        assert abs(float(ex[k]["tok_s"]) - hb["tok"][s]) < 1e-9 and abs(float(ex[k]["mJ_tok_55W"]) - hb["en"][s]) < 1e-9, s
+    assert ex["p3_500"]["placement"] == "npu_lin_pim_attn" and ex["core4"]["placement"] == "pim_all"
     print("Secs. VI-B/C numbers hold: mobile 4.37 / 4.34 / 2.96 / 1.81x, best M 47.1 / 46.8 / 43.8 / 26.5 / 10.6, M = 8 / 16 1.07x; "
-          "edge 1.28 / 1.28 / 0.76 / 0.45x, 1.68x, NPU from batch 16; per mm2 1.87 / 1.79, 1.10 / 1.26; energy 70.5 mJ, "
-          "7.9 / 1.80 / 1.28 / 1.04x; edge 1.48 / 1.64x (gated 1.46 / 2.46x)")
+          "edge 1.28 / 1.28 / 0.91 / 0.45x, 1.41x, NPU from batch 16; per mm2 1.87 / 1.79, 1.10 / 1.06; energy 70.5 mJ, "
+          "7.9 / 1.80 / 1.28 / 1.04x; edge 1.48 / 1.52x (gated 2.08 / 2.46x)")
 
 
 def fmt(v):

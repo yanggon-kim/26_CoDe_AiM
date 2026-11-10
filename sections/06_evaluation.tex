@@ -56,15 +56,17 @@ at $M = 4$.
 % P:eval-e2e-server
 \runin{Edge server}
 On the edge server CoDe decodes a batch of 8 1.28$\times$ faster than NPU only, at 456 tokens/s, and matches
-LP-Spec-style's speed on 0.56$\times$ its logic (Fig.~\ref{fig:e2e}a). Stock AiM runs at 0.45$\times$ and P3-LLM-style at 0.76$\times$ NPU only's speed,
-so CoDe decodes 1.68$\times$ faster than P3-LLM-style. On the five-model geometric mean, NPU only overtakes CoDe from batch 16.
+LP-Spec-style's speed on 0.56$\times$ its logic (Fig.~\ref{fig:e2e}a). Stock AiM runs at 0.45$\times$ and P3-LLM-style at 0.91$\times$ NPU only's speed,
+so CoDe decodes 1.41$\times$ faster than P3-LLM-style. P3-LLM-style here follows P3-LLM's own placement, with the
+linear layers on the NPU and attention on PIM, while CoDe keeps every layer on PIM, its fastest placement at this
+batch. On the five-model geometric mean, NPU only overtakes CoDe from batch 16.
 
 % P:eval-e2e-per-mm2
 \runin{Throughput per logic mm$^2$}
 CoDe decodes at least as fast as LP-Spec-style on about half its logic, so CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the
 mobile platform and 1.79$\times$ on the edge server (Fig.~\ref{fig:e2e}b). Against P3-LLM-style, CoDe's speed lead more than repays its larger logic:
-CoDe returns 1.10$\times$ P3-LLM-style's decoding throughput per logic mm$^2$ on the mobile platform and 1.26$\times$ on the
-edge server.
+CoDe returns 1.10$\times$ P3-LLM-style's decoding throughput per logic mm$^2$ on the mobile platform and 1.06$\times$ on the
+edge server, although the metric charges P3-LLM-style no area for the linear layers it runs on the NPU.
 
 % P:eval-lpspec-variants
 \runin{Eight-token LP-Spec-style}
@@ -84,8 +86,9 @@ CoDe spends the least energy per token of the five systems on the mobile platfor
 server. On the mobile platform CoDe spends 70.5\,mJ per token at $M = 4$, while NPU only spends 7.9$\times$, stock AiM 1.80$\times$,
 P3-LLM-style 1.28$\times$ and LP-Spec-style 1.04$\times$ CoDe's energy (Fig.~\ref{fig:e2e}c). On the edge server,
 with the NPU idling at 55\,W while the PIM works, CoDe spends 145\,mJ per token. NPU only spends
-1.48$\times$, stock AiM 2.73$\times$ and P3-LLM-style 1.64$\times$ CoDe's energy, and CoDe matches LP-Spec-style's energy; with the idle NPU power-gated, P3-LLM-style spends 1.46$\times$
-CoDe's energy.
+1.48$\times$, stock AiM 2.73$\times$ and P3-LLM-style 1.52$\times$ CoDe's energy, and CoDe matches LP-Spec-style's energy. With the idle NPU
+power-gated, P3-LLM-style's ratio grows to 2.08$\times$, because P3-LLM-style's NPU still runs the linear layers
+while CoDe's NPU runs only the element-wise work.
 
 % P:eval-power-headroom
 \runin{Power headroom of all-bank PIM}

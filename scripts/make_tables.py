@@ -467,7 +467,8 @@ def headline():
     assert r2(g(("1B draft", "all CoRe V = 8"), "gain_vs_plain_npu")) == 7.71
     assert r2(g(("EAGLE head", "all CoRe V = 8"), "gain_vs_plain_npu")) == 11.14
     assert int(g(("1B draft", "all CoRe V = 8"), "M")) == 3 and int(g(("EAGLE head", "all CoRe V = 8"), "M")) == 4
-    # HBM2 batch bands, CoDe (V = 4) / P3-LLM-style, min-max of per-M geomeans over five models
+    # HBM2 batch bands, CoDe (V = 4) / P3-LLM-style all-PIM, min-max of per-M geomeans over five models: history guard only
+    # since 2026-11-10 (the paper compares P3-LLM-style at its own placement, isca.e2e.hbm2.p3own.*, make_fig_e2e.py)
     b = {(r["design"], r["metric"], r["band"]): (r2(r["lo"]), r2(r["hi"])) for r in h if r["item"].startswith("HBM2 batch step")}
     assert b[("core4 vs p3_500", "speed", ">=8")] == (1.68, 1.68)
     assert b[("core4 vs p3_500", "per_logic_mm2", ">=8")] == (1.26, 1.26)

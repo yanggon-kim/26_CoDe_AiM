@@ -121,7 +121,8 @@ edge server. End to end, every system runs the mobile loop at $M = 4$ and the ed
 
 % P:meth-systems
 NPU only runs the whole model on the NPU; in NPU + $X$, PIM design $X$ runs every weight GEMM and attention layer and
-the NPU runs the element-wise work.
+the NPU runs the element-wise work. The one exception is NPU + P3-LLM-style on the edge server, which follows the
+placement of P3-LLM~\cite{p3llm} at batch 8: the NPU runs the linear layers and P3-LLM-style the attention layers.
 
 \subsection{Metrics}
 % P:meth-metrics

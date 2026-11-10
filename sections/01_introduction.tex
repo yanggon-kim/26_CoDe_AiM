@@ -53,8 +53,8 @@ platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, I
 LP-Spec-style, 46.4 against 46.1 tokens/s, with the stock multiplier count clocked at 0.8\,GHz and on 0.539$\times$
 LP-Spec-style's logic area, and so returns 1.87$\times$ its tokens per second per logic mm$^2$. Built as LP-Spec publishes it, with one unit
 shared between two banks, LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes 1.49$\times$ faster. On an
-edge server with HBM2 at W4A8, CoDe decodes a batch of 8 1.68$\times$ faster than P3-LLM-style and 1.28$\times$ faster
-than NPU only, with 1.64$\times$ P3-LLM-style's system energy efficiency.
+edge server with HBM2 at W4A8, CoDe decodes a batch of 8 1.41$\times$ faster than P3-LLM-style and 1.28$\times$ faster
+than NPU only, with 1.52$\times$ P3-LLM-style's system energy efficiency.
 
 % P:intro-contributions
 In summary, this paper makes the following contributions:
@@ -65,7 +65,7 @@ In summary, this paper makes the following contributions:
         at the stock multiplier count (Section~\ref{sec:design}).
   \item We show, on one DRAM timing per platform, that CoDe decodes at least as fast as LP-Spec-style, decodes
         1.49$\times$ faster than LP-Spec-style as published (mobile platform only) and decodes a batch of 8
-        1.68$\times$ faster than P3-LLM-style on HBM2 (Sections~\ref{sec:eval:e2e} and~\ref{sec:eval:ablation}).
+        1.41$\times$ faster than P3-LLM-style on HBM2 (Sections~\ref{sec:eval:e2e} and~\ref{sec:eval:ablation}).
   \item We show, under one area model with one tenfold DRAM-process factor for every design, that CoDe's logic takes
         0.539$\times$ LP-Spec-style's area and 2.31\,\% of the die on the mobile platform and 1.95\,\% of the HBM2
         stack (Section~\ref{sec:eval:area}).

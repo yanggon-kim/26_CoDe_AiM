@@ -8,7 +8,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[abs-summary]**
   - Message: Speculative decoding and small batches turn decoding's GEMVs into memory-bound skinny GEMMs that suit PIM, but stock PIM, built for GEMVs, fills under a fifth of its GEMM time with useful MACs because a DRAM command paces every MAC; CoDe decouples MACs from commands (row reuse, beat filling) and buys LP-Spec-style's speed with about half its logic. Order (user-approved text, 2026-11-08): context → skinny GEMM, host memory-bound → PIM fits, stock PIM falls short → characterization (useful share, two root causes) → common cause → CoDe's two techniques → results.
   - Floats: —
-  - Numbers: M 2 to 32 ← cited ranges (bg-skinny-range); useful 14.1–19.1 %, non-MAC 23.4–43.7 %, idle 42.2–57.4 % ← brk (2x2 §2j); mobile: LP-Spec-style's decoding speed on 0.539× its logic area ← tables [table4], e2e; 1.49× faster at about the same logic area (LP-Spec-style as published, 0.96× CoDe's logic, printed in I and VI-E, eval-placement) ← tables [lpsv_checks] (sd8g3 §2h); HBM2 batch of 8: 1.68× P3-LLM-style and 1.28× NPU only ← e2e (sd8g3 §2f, 2x2 §2p), roof. 1.87× / 1.26× per mm², 1.64× energy, 5 / 4 ns column, four beats, 4× multipliers left the abstract (body only).
+  - Numbers: M 2 to 32 ← cited ranges (bg-skinny-range); useful 14.1–19.1 %, non-MAC 23.4–43.7 %, idle 42.2–57.4 % ← brk (2x2 §2j); mobile: LP-Spec-style's decoding speed on 0.539× its logic area ← tables [table4], e2e; 1.49× faster at about the same logic area (LP-Spec-style as published, 0.96× CoDe's logic, printed in I and VI-E, eval-placement) ← tables [lpsv_checks] (sd8g3 §2h); HBM2 batch of 8: 1.41× P3-LLM-style (P3-LLM's own placement, isca.e2e.hbm2.core4_over_p3own.speed; 1.68× all-PIM until 2026-11-10) and 1.28× NPU only ← e2e (sd8g3 §2f, 2x2 §2p), roof. 1.87× / 1.06× per mm², 1.52× energy, 5 / 4 ns column, four beats, 4× multipliers left the abstract (body only).
   - Cites: —
   - Links: → intro-code-proposal, mot-breakdown-setup, des-row-reuse, des-beat-decouple, eval-e2e-phone, eval-e2e-server, eval-e2e-per-mm2, eval-placement, eval-area-split
 
@@ -44,15 +44,15 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: hbmpim, lpspec, aimjssc
   - Links: → mot-depth, mot-pu-clock-precedent
 - **[intro-code-proposal]**
-  - Message: CoDe runs D beats per column command over a tile of V tokens at the stock multiplier count, and on each rival's own ground it decodes faster than LP-Spec-style on the mobile platform (46.4 against 46.1 tok/s, CoDe the subject: user 2026-11-10, CoDe leads every CoDe/LP-Spec-style sentence where its number is strictly higher) with the stock multiplier count clocked at 0.8 GHz on 0.539× its logic (1.87× per logic mm², supporting), beats LP-Spec-style as published (one unit per two banks, near-equal logic) by 1.49×, and on HBM2 decodes a batch of 8 faster than both P3-LLM-style and NPU only (P3-LLM's fallback clause cut, user 2026-11-10: nothing about hybrid NPU/PIM placement). Never "stock multipliers" bare.
+  - Message: CoDe runs D beats per column command over a tile of V tokens at the stock multiplier count, and on each rival's own ground it decodes faster than LP-Spec-style on the mobile platform (46.4 against 46.1 tok/s, CoDe the subject: user 2026-11-10, CoDe leads every CoDe/LP-Spec-style sentence where its number is strictly higher) with the stock multiplier count clocked at 0.8 GHz on 0.539× its logic (1.87× per logic mm², supporting), beats LP-Spec-style as published (one unit per two banks, near-equal logic) by 1.49×, and on HBM2 decodes a batch of 8 faster than both P3-LLM-style (at P3-LLM's own placement, meth-systems; user 2026-11-10, option B) and NPU only. Never "stock multipliers" bare.
   - Floats: —
-  - Numbers: 46.4 / 46.1 tok/s ← e2e; 0.539× logic area ← tables [table4]; 1.87× per logic mm²; 0.96×, 1.49× ← tables [lpsv_checks]; 1.68×, 1.28×, 1.64× (batch 8) ← e2e
+  - Numbers: 46.4 / 46.1 tok/s ← e2e; 0.539× logic area ← tables [table4]; 1.87× per logic mm²; 0.96×, 1.49× ← tables [lpsv_checks]; 1.41×, 1.28×, 1.52× (batch 8; core4_over_p3own.speed, p3own_over_core4.mJ_55W) ← e2e
   - Cites: sd8g3
   - Links: → des-tile-mac-overview, eval-e2e-phone, eval-e2e-server, eval-e2e-per-mm2, eval-placement, eval-energy
 - **[intro-contributions]** (itemize, six items; claim–evidence map since 2026-11-08, user-approved AI-review item 1)
-  - Message: Each item states one claim, its headline number with its scope and the section that proves it: the depth analysis (III-D); the CoDe PU and command extension (IV); on one DRAM timing per platform, CoDe decodes at least as fast as LP-Spec-style (faster on the mobile platform, equal on HBM2; never "faster" on both), 1.49× over LP-Spec-style as published (mobile platform only) and 1.68× over P3-LLM-style at batch 8 on HBM2 (VI-B and VI-E, the latter for the published sharing); under one area model with one tenfold DRAM-process factor, 0.539× LP-Spec-style's logic and 2.31 % / 1.95 % of the die / stack (VI-D); the least energy per token on the mobile platform and a tie with LP-Spec-style for the least on the edge server with a 55 W idle NPU (VI-C; user fix 2026-11-08: never "least on both platforms" in I); the two sources of gain (VI-E). The limits of the former eval-modelled sentence (one DRAM timing, one 10× factor, variants phone-only) sit here, next to the claims they bound (AI-review item 2).
+  - Message: Each item states one claim, its headline number with its scope and the section that proves it: the depth analysis (III-D); the CoDe PU and command extension (IV); on one DRAM timing per platform, CoDe decodes at least as fast as LP-Spec-style (faster on the mobile platform, equal on HBM2; never "faster" on both), 1.49× over LP-Spec-style as published (mobile platform only) and 1.41× over P3-LLM-style at batch 8 on HBM2 (P3-LLM's own placement; VI-B and VI-E, the latter for the published sharing); under one area model with one tenfold DRAM-process factor, 0.539× LP-Spec-style's logic and 2.31 % / 1.95 % of the die / stack (VI-D); the least energy per token on the mobile platform and a tie with LP-Spec-style for the least on the edge server with a 55 W idle NPU (VI-C; user fix 2026-11-08: never "least on both platforms" in I); the two sources of gain (VI-E). The limits of the former eval-modelled sentence (one DRAM timing, one 10× factor, variants phone-only) sit here, next to the claims they bound (AI-review item 2).
   - Floats: —
-  - Numbers: D = 4 (LPDDR5-6400, HBM2) ← structural; 1.49× ← tables [lpsv_checks]; 1.68× ← e2e; 0.539× ← tables [table4]; 2.31 % / 1.95 % ← tables [budget_checks]; 70.5 mJ ← e2e; 1.24× / 3.49× (beat filling's total over row reuse alone, D = 1 → 4; "adds 3.49×", not "a 3.49× step": Table V's steps are per beat since 2026-11-10) ← tables [umac_src_table] (every number also printed in VI)
+  - Numbers: D = 4 (LPDDR5-6400, HBM2) ← structural; 1.49× ← tables [lpsv_checks]; 1.41× ← e2e; 0.539× ← tables [table4]; 2.31 % / 1.95 % ← tables [budget_checks]; 70.5 mJ ← e2e; 1.24× / 3.49× (beat filling's total over row reuse alone, D = 1 → 4; "adds 3.49×", not "a 3.49× step": Table V's steps are per beat since 2026-11-10) ← tables [umac_src_table] (every number also printed in VI)
   - Cites: —
   - Links: → mot-depth, des-command-set, des-tile-mac-pu, eval-e2e-phone, eval-e2e-server, eval-placement, eval-area-budget, eval-area-split, eval-energy, eval-gain-sources
 
@@ -115,7 +115,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Floats: —
   - Numbers: batch 8 (P3-LLM offload) ← cited
   - Cites: attacc, neupims, ianus, p3llm
-  - Links: ← intro-pim-gemv-ceiling, mot-host-roof; → mot-a-summary, eval-e2e-server
+  - Links: ← intro-pim-gemv-ceiling, mot-host-roof; → mot-a-summary, meth-systems (the evaluation's NPU + P3-LLM-style follows this placement on the edge server, 2026-11-10), eval-e2e-server
 - **[mot-a-summary]**
   - Message: Closing A summary and A → B transition (no heading): skinny GEMMs are memory-bound on the host and so belong on PIM, which reads the weights inside the DRAM, yet stock PIM's GEMM throughput stays flat at its GEMV ceiling; III-B splits a stock GEMM's time to locate the cause (summary sentence cut 2026-11-10 in e92f99e, restored by the user the same day).
   - Floats: —
@@ -327,11 +327,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: → eval-gemm-summary, eval-e2e-phone, eval-e2e-server
 - **[meth-systems]** (split from meth-workloads, user 2026-11-06)
-  - Message: The five systems: NPU only runs the whole model on the NPU; in NPU + X, PIM design X runs every weight GEMM and attention layer and the NPU runs the element-wise work.
+  - Message: The five systems: NPU only runs the whole model on the NPU; in NPU + X, PIM design X runs every weight GEMM and attention layer and the NPU runs the element-wise work; the one exception (user, 2026-11-10, option B, after a reviewer's "a configuration P3-LLM would not run"): on the edge server NPU + P3-LLM-style follows P3-LLM's placement at batch 8, the NPU running the linear layers and P3-LLM-style the attention layers (P3-LLM p. 13). CoDe keeps every layer on PIM; the per-class-best placement (1.24×, 0.93× per mm²) is never printed.
   - Floats: —
-  - Numbers: —
-  - Cites: —
-  - Links: ← meth-designs (the four designs X); → eval-e2e-phone, eval-e2e-server, eval-energy
+  - Numbers: batch 8 ← configuration
+  - Cites: p3llm
+  - Links: ← meth-designs (the four designs X), mot-gemv-only; → eval-e2e-phone, eval-e2e-server, eval-energy
 ### E. Metrics
 - **[meth-metrics]**
   - Message: GEMM speed is operations over time including the output drain, relative to stock AiM; end-to-end speed is tokens per second, relative to NPU only; area efficiency divides either throughput by the PIM logic area (Table IV); energy is system energy per token; edge-server values are geometric means over the five models (the C-bus counting rule and the M / L range rule left with eval-server-beats and VI-A's old ranges).
@@ -375,15 +375,15 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: ← intro-code-proposal, abs-summary, meth-workloads, meth-systems, des-mapping
 - **[eval-e2e-server]** "Edge server"
-  - Message: At batch 8 CoDe decodes 1.28× faster than NPU only at 456 tok/s and matches LP-Spec-style's speed (equal tok/s in the data: the tie is stated, never a lead) on 0.56× its logic; stock AiM and P3-LLM-style stay below NPU only, so CoDe decodes 1.68× faster than P3-LLM-style (the P3-LLM offload clause cut, user 2026-11-10: nothing about hybrid placement); NPU only overtakes CoDe from batch 16 on the gmean.
+  - Message: At batch 8 CoDe decodes 1.28× faster than NPU only at 456 tok/s and matches LP-Spec-style's speed (equal tok/s in the data: the tie is stated, never a lead) on 0.56× its logic; stock AiM and P3-LLM-style stay below NPU only, so CoDe decodes 1.41× faster than P3-LLM-style; P3-LLM-style runs P3-LLM's own placement (linear layers on the NPU at this batch, attention on PIM), CoDe every layer on PIM, its fastest placement at batch 8 (user 2026-11-10, option B; replaces the all-PIM 0.76× / 1.68×); NPU only overtakes CoDe from batch 16 on the gmean.
   - Floats: Fig. 8a
-  - Numbers: 1.28× at 456 tok/s (CoDe = LP-Spec-style exactly, asserted); 0.56× ← tables [table4]; stock 0.45×, P3-LLM-style 0.76×; 1.68×; batch 16 ← e2e (2x2 §2p)
+  - Numbers: 1.28× at 456 tok/s (CoDe = LP-Spec-style exactly, asserted); 0.56× ← tables [table4]; stock 0.45×, P3-LLM-style 0.91× (isca.e2e.hbm2.p3own.speedup_vs_npu); 1.41× (core4_over_p3own.speed); batch 16 ← e2e (2x2 §2p)
   - Cites: —
   - Links: ← mot-gemv-only, intro-code-proposal, abs-summary
 - **[eval-e2e-per-mm2]** "Throughput per logic mm$^2$" (headline)
-  - Message: CoDe decodes at least as fast as LP-Spec-style on about half its logic and so returns 1.87× / 1.79× LP-Spec-style's tokens/s per logic mm² (one opener sentence since 2026-11-08; the about-half-the-logic reason clause cut 2026-11-08, T6: VI-A gives it), and CoDe's speed lead over P3-LLM-style more than repays its larger PU.
+  - Message: CoDe decodes at least as fast as LP-Spec-style on about half its logic and so returns 1.87× / 1.79× LP-Spec-style's tokens/s per logic mm² (one opener sentence since 2026-11-08; the about-half-the-logic reason clause cut 2026-11-08, T6: VI-A gives it), and CoDe's speed lead over P3-LLM-style more than repays its larger PU; on the edge server the metric charges P3-LLM-style no area for the linear layers it runs on the NPU (PIM logic only, 2x2 §2p).
   - Floats: Fig. 8b
-  - Numbers: 1.87× / 1.79× vs LP-Spec-style; 1.10× / 1.26× vs P3-LLM-style ← e2e
+  - Numbers: 1.87× / 1.79× vs LP-Spec-style; 1.10× / 1.06× vs P3-LLM-style (core4_over_p3own.per_mm2) ← e2e
   - Cites: —
   - Links: ← intro-code-proposal, abs-summary, mot-logic-cost
 - **[eval-lpspec-variants]** "Eight-token LP-Spec-style" (new 2026-11-08 as "LP-Spec-style variants"; the shared design moved to eval-placement, 2026-11-10; lpsv, microarch 1a8bb77, collected a355e66)
@@ -396,7 +396,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[eval-energy]** "Energy per token"
   - Message: CoDe spends the least energy per token of the five systems on the mobile platform and ties for the least on the edge server (LP-Spec-style 1.00× printed; 1.0027× unprinted, never claimed as a lead), with the edge NPU idling at 55 W (gated case in one clause); every Fig. 8c bar is printed (edge: CoDe's mJ and stock AiM's ratio added 2026-11-08, AI-review item 3).
   - Floats: Fig. 8c
-  - Numbers: 70.5 mJ/token; NPU only 7.9×, stock 1.80×, P3-LLM-style 1.28×, LP-Spec-style 1.04× (mobile); CoDe 145 mJ/token, NPU only 1.48×, stock 2.73×, P3-LLM-style 1.64×, CoDe ties LP-Spec-style (1.00×, edge, 55 W); gated 1.46× ← e2e (2x2 §2p: isca.e2e.hbm2.core4.mJ_tok_55W, stock_over_core4.mJ_55W)
+  - Numbers: 70.5 mJ/token; NPU only 7.9×, stock 1.80×, P3-LLM-style 1.28×, LP-Spec-style 1.04× (mobile); CoDe 145 mJ/token, NPU only 1.48×, stock 2.73×, P3-LLM-style 1.52×, CoDe ties LP-Spec-style (1.00×, edge, 55 W); gated P3-LLM-style 2.08×, larger because its NPU still runs the linear layers (p3own_over_core4.mJ_55W / mJ_0W) ← e2e (2x2 §2p: isca.e2e.hbm2.core4.mJ_tok_55W, stock_over_core4.mJ_55W)
   - Cites: —
   - Links: ← intro-code-proposal, abs-summary, meth-platforms (55 W)
 - **[eval-power-headroom]** "Power headroom of all-bank PIM" (new 2026-11-06; setting before the peak-power finding)
@@ -460,7 +460,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
 - **[conc-summary]**
   - Message: Decoupling MAC timing from DRAM command timing lets one column command feed many PU beats over a tile of tokens: CoDe decodes slightly faster than LP-Spec-style (CoDe the subject, user 2026-11-10) with the stock multiplier count clocked at the command clock on 0.539× its logic, and on HBM2 decodes a batch of 8 faster than P3-LLM-style and NPU only; the decoupling carries over to any DRAM whose column outlasts one beat.
   - Floats: —
-  - Numbers: 0.539× ← tables [table4]; 1.68×, 1.28× ← e2e
+  - Numbers: 0.539× ← tables [table4]; 1.41×, 1.28× ← e2e
   - Cites: —
   - Links: ← mot-depth, eval-area-split, eval-e2e-server
 
@@ -511,3 +511,4 @@ the outline's roman ids (Table I–V, III-B) name the same floats and sections. 
 | 22 | wording trap | meth-area-model, eval-area-budget, eval-power | Area / power budget (2026-11-06): 60.92 mm² is printed "as LP-Spec reports" (its ISSCC'21 origin is closed access, never cited); the HBM2 stack is 8 × the 84.4 mm² HBM-PIM die ([A-XC4], no plain HBM2 die area published); 27 % is our division; peak excludes activation, refresh, background and I/O power, so the read yardsticks (447 mW at LPDDR5X-7500 for a 6400 part; 8.0 W from O'Connor's 4-die figure on an 8-die stack) are scales, not budget shares; AiM's 3× is a GDDR6 current ratio (framing); the plan's "the stack in PIM mode draws less than in normal reads" became "CoDe's PUs fit within the read power an HBM2 stack already delivers" plus HBM-PIM's TDP sentence, because the peak omits activation power and HBM-PIM measured +5.4 %, within the original TDP. SK hynix's bank-count throttling is a "future AiM design" knob on its HC36 slide, not a shipped feature. |
 | 23 | citation | shevgoor | The Shevgoor MICRO'13 entry has no pages or DOI (not verifiable offline); the quote is on PDF pp. 2 and 6 of the authors' copy. |
 | 24 | reviewer risk | eval-placement, eval-lpspec-variants, mot-logic-cost | The LP-Spec-style variants (2026-11-08) are phone-only and modelled: the shared design (eval-placement, VI-E since 2026-11-10) at LP-Spec's own 10 ns bank column is not run (no longer stated in the paper: user cut the clause, 2026-11-10), no HBM2 shared variant is run (eval-placement argues it loses no speed: 8 ns bank column vs 4 ns PU), and the shared unit's 2:1 bank mux is unpriced (favours LP-Spec-style). The abstract keeps "1.49× faster at about the same logic area" (user, 2026-11-10). LP-Spec's register-file area stays unprinted (9.80 / 12.08 mm² at 16 sets vs 4.90 / 6.04 at 8 sets, sd8g3 context §5 row 40, for microarch-owner). |
+| 25 | reviewer risk | meth-systems, eval-e2e-server, eval-e2e-per-mm2, eval-energy | Edge-server P3-LLM-style follows P3-LLM's own placement since 2026-11-10 (user, option B; reviewer: "a configuration P3-LLM would not run"): linear layers on the NPU at batch 8, attention on PIM (P3-LLM p. 13); CoDe stays all-PIM (its fastest placement at batch 8). Per logic mm² counts no NPU area, which favours P3-LLM-style (stated in eval-e2e-per-mm2). Not printed: the per-class best of each (1.24× speed, 0.93× per mm², hyb.hbm2.*). Old all-PIM ids isca.e2e.hbm2.p3_500.* (0.76×, 1.68×, 1.26×, 1.64× / 1.46×) are history; make_tables headline() still guards them as the pack's values. |
