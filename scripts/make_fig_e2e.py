@@ -136,12 +136,16 @@ def check_prose_numbers(d):
     assert r2(pt["isca.e2e.phone.h3_over_core8.mJ"]) == 1.28 and r2(pt["isca.e2e.phone.h2_over_core8.mJ"]) == 1.04
     assert min(e, key=e.get) == "code"
     # eval-energy, edge server at 55 W idle: NPU only 1.48x, P3-LLM-style 1.52x CoDe's; LP-Spec-style ties (1.00x);
-    # gated NPU (0 W): P3-LLM-style 2.08x (larger than at 55 W: its NPU runs the linear layers), NPU only 2.46x
+    # gated NPU (0 W): P3-LLM-style 2.08x (larger than at 55 W: its NPU reads the linear weights over the pins), NPU only 2.46x
     assert r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) == 1.48 and r2(ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"]) == 1.52
     assert abs(hb["en"]["p3"] / hb["en"]["code"] - ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"]) < 1e-9
     assert r2(ht["isca.e2e.hbm2.h2_over_core4.mJ_55W"]) == 1.00
     assert r2(ht["isca.e2e.hbm2.p3own_over_core4.mJ_0W"]) == 2.08 > ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"] and r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_0W"]) == 2.46
     assert abs(hb["en"]["npu"] / hb["en"]["code"] - ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) < 1e-9
+    # gated-NPU cause (evaluation 860384d, 2x2 §2r/§8): P3-LLM-style's linear-weight reads over the HBM pins are 76 % of
+    # the 0 W gap (26.41 mJ/token); context: linear placement 0.788 of the gap, P3-LLM-style's NPU MACs 0.0149 of its energy
+    assert round(100 * ht["hyb.esplit.hbm2.b8.gap_share.weight_io"]) == 76
+    assert ht["hyb.esplit.hbm2.b8.gap_share.weight_io"] < ht["hyb.esplit.hbm2.b8.gap_share.linear_placement"] < 1
     # Fig. 8c edge bars in the text (AI-review item 3, 2026-11-08): CoDe 145 mJ per token, stock AiM 2.73x CoDe's
     assert round(hb["en"]["code"]) == 145
     assert r2(ht["isca.e2e.hbm2.stock_over_core4.mJ_55W"]) == 2.73
@@ -156,7 +160,7 @@ def check_prose_numbers(d):
     assert ex["p3_500"]["placement"] == "npu_lin_pim_attn" and ex["core4"]["placement"] == "pim_all"
     print("Secs. VI-B/C numbers hold: mobile 4.37 / 4.34 / 2.96 / 1.81x, best M 47.1 / 46.8 / 43.8 / 26.5 / 10.6, M = 8 / 16 1.07x; "
           "edge 1.28 / 1.28 / 0.91 / 0.45x, 1.41x, NPU from batch 16; per mm2 1.87 / 1.79, 1.10 / 1.06; energy 70.5 mJ, "
-          "7.9 / 1.80 / 1.28 / 1.04x; edge 1.48 / 1.52x (gated 2.08 / 2.46x)")
+          "7.9 / 1.80 / 1.28 / 1.04x; edge 1.48 / 1.52x (gated 2.08 / 2.46x, weight I/O 76 % of the gap)")
 
 
 def fmt(v):
