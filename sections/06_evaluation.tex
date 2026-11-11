@@ -11,19 +11,8 @@ LP-Spec's shared unit (Section~\ref{sec:eval:ablation}), and P3-LLM-style gains 
 \label{sec:eval:gemm}
 
 % P:eval-gemm-summary
-CoDe runs GEMMs at least as fast as LP-Spec-style on about half its logic, and faster than P3-LLM-style once a GEMM
-has more than two token rows.
-
-% P:eval-gemm-speed
-\runin{GEMM speed}
-Up to $M = 2$ the column period paces every design: one column read serves every token, and CoDe,
-LP-Spec-style and P3-LLM-style all run 1.96--1.97$\times$ faster than stock AiM at $M = 2$ (Fig.~\ref{fig:gemm}a). Beyond
-$M = 2$ P3-LLM-style needs a second pass for the tokens beyond its two per read, while CoDe fills up to four beats per
-command: at $M = D = 4$ CoDe runs 3.74$\times$ stock AiM's speed on the mobile platform and 3.82$\times$ on the edge
-server, against P3-LLM-style's 1.95$\times$, and at $M = 64$ CoDe runs 4.16$\times$ and 3.80$\times$. CoDe fills the same four beats per column period that LP-Spec-style
-fills with four times the multipliers, so CoDe equals LP-Spec-style's speed up to $M = 4$, and at every $M$ on the edge
-server, where CoDe's tile of $V = D = 4$ issues LP-Spec-style's command stream. On the mobile platform CoDe runs ahead
-of LP-Spec-style from $M = 8$, because its eight-token tile halves LP-Spec-style's row sweeps.
+CoDe reaches LP-Spec-style's GEMM speed on about half its logic, and exceeds P3-LLM-style's speed beyond two token
+rows.
 
 % P:eval-gemm-per-mm2
 \runin{GEMM throughput per logic mm$^2$}
@@ -37,43 +26,52 @@ beyond $M = 2$: CoDe returns 1.43$\times$ P3-LLM-style's throughput per logic mm
 $M = 8$ on the mobile platform, and 1.46--1.47$\times$ from $M = 4$ on the edge server. Only at $M \le 2$, where CoDe's
 third and fourth beats sit idle, does P3-LLM-style's smaller PU lead, with CoDe at 0.75$\times$.
 
+% P:eval-gemm-speed
+\runin{GEMM speed}
+Up to $M = 2$ the column period paces every design: one column read serves every token, and CoDe,
+LP-Spec-style and P3-LLM-style all run 1.96--1.97$\times$ faster than stock AiM at $M = 2$ (Fig.~\ref{fig:gemm}a). Beyond
+$M = 2$ P3-LLM-style needs a second pass for the tokens beyond its two per read, while CoDe fills up to four beats per
+command: at $M = D = 4$ CoDe runs 3.74$\times$ stock AiM's speed on the mobile platform and 3.82$\times$ on the edge
+server, against P3-LLM-style's 1.95$\times$, and at $M = 64$ CoDe runs 4.16$\times$ and 3.80$\times$. Filling LP-Spec-style's four beats per column period,
+CoDe equals LP-Spec-style's speed up to $M = 4$, and at every $M$ on the edge
+server, where CoDe's tile of $V = D = 4$ issues LP-Spec-style's command stream. On the mobile platform CoDe runs ahead
+of LP-Spec-style from $M = 8$, because its eight-token tile halves LP-Spec-style's row sweeps.
+
 \subsection{End-to-End Speedup and Area Efficiency}
 \label{sec:eval:e2e}
 
-% P:eval-e2e-phone
-\runin{Mobile platform}
+% P:eval-e2e-overview
 Fig.~\ref{fig:e2e} runs whole decoding on the five systems at the operating points of Section~\ref{sec:method:work}:
-the speculative loop at $M = 8$ on the mobile platform and a batch of 8, a light load, on the edge server.
-On the mobile platform CoDe
-decodes fastest, 3.22$\times$ faster than NPU only at 29.9 tokens/s, ahead of LP-Spec-style's 3.00$\times$ at 27.9
-(Fig.~\ref{fig:e2e}a). P3-LLM-style reaches 2.06$\times$, because its two-token read needs four passes over the eight
-token rows, and stock AiM reaches 1.27$\times$. At each system's own best $M$ the order holds: CoDe reaches
-47.1 tokens/s and LP-Spec-style 46.8 at $M = 3$, P3-LLM-style 43.8 and stock AiM 26.5 at $M = 2$, and NPU only 10.6
-at $M = 4$.
+the speculative loop at $M = 8$ on the mobile platform and a batch of 8, a light load, on the edge server. CoDe decodes
+3.22$\times$ faster than NPU only on the mobile platform, at 29.9 tokens/s, and 1.28$\times$ faster on the edge server,
+at 456 tokens/s, where stock AiM reaches 1.27$\times$ and 0.45$\times$ (Fig.~\ref{fig:e2e}a). At each system's own best
+$M$ on the mobile platform the order holds: CoDe reaches 47.1 tokens/s and LP-Spec-style 46.8 at $M = 3$, P3-LLM-style
+43.8 and stock AiM 26.5 at $M = 2$, and NPU only 10.6 at $M = 4$. On the five-model geometric mean, NPU only overtakes
+CoDe from batch 16.
 
-% P:eval-e2e-server
-\runin{Edge server}
-On the edge server CoDe decodes a batch of 8 1.28$\times$ faster than NPU only, at 456 tokens/s, and matches
-LP-Spec-style's speed on 0.56$\times$ its logic (Fig.~\ref{fig:e2e}a). Stock AiM runs at 0.45$\times$ and P3-LLM-style at 0.91$\times$ NPU only's speed,
-so CoDe decodes 1.41$\times$ faster than P3-LLM-style. P3-LLM-style here follows P3-LLM's own placement, with the
-linear layers on the NPU and attention on PIM, while CoDe keeps every layer on PIM, its fastest placement at this
-batch. On the five-model geometric mean, NPU only overtakes CoDe from batch 16.
-
-% P:eval-e2e-per-mm2
-\runin{Throughput per logic mm$^2$}
-CoDe decodes at least as fast as LP-Spec-style on about half its logic, so CoDe returns 1.99$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the
-mobile platform and 1.79$\times$ on the edge server (Fig.~\ref{fig:e2e}b). Against P3-LLM-style, CoDe's speed lead more than repays its larger logic:
-CoDe returns 1.17$\times$ P3-LLM-style's decoding throughput per logic mm$^2$ on the mobile platform and 1.06$\times$ on the
-edge server, although the metric charges P3-LLM-style no area for the linear layers it runs on the NPU.
+% P:eval-e2e-lpspec
+\runin{Area efficiency against LP-Spec-style}
+CoDe returns 1.99$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and 1.79$\times$ on
+the edge server (Fig.~\ref{fig:e2e}b), because CoDe decodes at least as fast on about half its logic. On the mobile
+platform LP-Spec-style reaches 3.00$\times$ NPU only's speed, at 27.9 tokens/s, so CoDe decodes 1.07$\times$ faster;
+on the edge server CoDe matches LP-Spec-style's speed on 0.56$\times$ its logic.
 
 % P:eval-lpspec-variants
 \runin{Eight-token LP-Spec-style}
-An eight-token tile does not close CoDe's lead per logic mm$^2$ on the mobile platform. CoDe matches the eight-token LP-Spec-style's
-loop speed at every $M$ we run (2--4, 8 and 16) and its GEMM speed from $M = 8$ (1.007$\times$ at $M = 12$),
-so the tile, not decoupling, gives CoDe its 1.07$\times$ mobile speed lead over the per-bank LP-Spec-style, also at
-$M = 16$. The
-eight-token tile, however, grows LP-Spec-style's logic to 4.72\,\% of the die, and CoDe returns 2.05$\times$ that
-design's tokens per second per logic mm$^2$.
+The eight-token tile is what decoupling makes affordable. An eight-token LP-Spec-style design matches CoDe's loop speed
+at every $M$ we run (2--4, 8 and 16) and its GEMM speed from $M = 8$ (CoDe 1.007$\times$ at $M = 12$), but grows its
+logic to 4.72\,\% of the die, so CoDe returns 2.05$\times$ its tokens per second per logic mm$^2$. The tile thus gives
+CoDe its speed lead over the per-bank LP-Spec-style, at $M = 8$ and 16, and CoDe's tile costs storage, not multipliers.
+
+% P:eval-e2e-p3
+\runin{Speed against P3-LLM-style}
+CoDe decodes a batch of 8 1.41$\times$ faster than P3-LLM-style on the edge server, where P3-LLM-style runs at
+0.91$\times$ NPU only's speed (Fig.~\ref{fig:e2e}a). P3-LLM-style here follows P3-LLM's own placement, with the linear
+layers on the NPU and attention on PIM, while CoDe keeps every layer on PIM, its fastest placement at this batch. On
+the mobile platform P3-LLM-style reaches 2.06$\times$ NPU only's speed, because its two-token read needs four passes
+over the eight token rows. CoDe's speed lead more than repays its larger logic: CoDe returns 1.17$\times$
+P3-LLM-style's decoding throughput per logic mm$^2$ on the mobile platform and 1.06$\times$ on the edge server,
+although the metric charges P3-LLM-style no area for the linear layers it runs on the NPU.
 
 \subsection{Energy and Peak Power}
 \label{sec:eval:energy}
@@ -124,12 +122,16 @@ periphery.
 \runin{Logic against LP-Spec-style}
 CoDe matches LP-Spec-style's peak throughput on the mobile platform with 0.539$\times$ its logic area per die: arithmetic takes
 0.73 of LP-Spec-style's logic and 0.34 of CoDe's, while storage, the staging queue, accumulator file and weight latch,
-takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. On HBM2, CoDe's logic is 0.56$\times$ LP-Spec-style's and
+takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. CoDe does not pay for the saved area with power: its peak power
+stays below LP-Spec-style's on both platforms (Section~\ref{sec:eval:energy}). On HBM2, CoDe's logic is 0.56$\times$ LP-Spec-style's and
 1.33$\times$ P3-LLM-style's, an area that buys twice P3-LLM-style's beats per column period.
 
+\subsection{Ablation Study}
+\label{sec:eval:ablation}
+
 % sources-of-gain table (D-35; generated by scripts/make_tables.py, simulated rows, evaluation/dac_2x2 Sec. 2i):
-% defined before VI-E's heading so that it lands at the top of p. 11 L, its citing page, and Fig. 9 alone takes
-% p. 11 R (one float per column); placement checked on the float map after each build
+% defined right after VI-E's heading so that it lands at the top of VI-E's first column, its citing column, and Fig. 9
+% alone takes the next column (one float per column); placement checked on the float map after each build
 \begin{table}[t]
   \caption{Useful-MAC utilization from stock AiM to CoDe, one step at a time.}
   \label{tab:umac_src}
@@ -138,9 +140,6 @@ takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. On HBM2, CoDe's logic is
   \setlength{\tabcolsep}{4pt}
   \input{tables/tab_umac_src}
 \end{table}
-
-\subsection{Ablation Study}
-\label{sec:eval:ablation}
 
 % P:eval-gain-sources
 \runin{Sources of CoDe's gain}
@@ -199,31 +198,6 @@ CoDe keeps its lead under the other placement commercial PIM uses, one unit shar
 edge server, a bank delivers a column every 8\,ns and a PU takes one every 4\,ns (Table~\ref{tab:params}), so every design
 there, CoDe included, already shares one PU between two banks at full speed. On the mobile platform, a bank delivers a
 column every 5\,ns, as fast as a unit takes one, so a shared unit halves each bank's rate. Built with one unit per two
-banks, LP-Spec-style takes 0.96$\times$ CoDe's logic, and CoDe decodes
-1.60$\times$ faster at $M = 8$ and returns 1.53$\times$ its tokens per second per logic mm$^2$. Whichever placement
+banks, LP-Spec-style takes 0.96$\times$ CoDe's logic, so CoDe and LP-Spec-style compare at about equal logic area, and
+there CoDe decodes 1.60$\times$ faster at $M = 8$ and returns 1.53$\times$ its tokens per second per logic mm$^2$. Whichever placement
 LP-Spec-style uses, CoDe therefore decodes at least as fast and returns more throughput per logic mm$^2$.
-
-\subsection{Beat Filling on Newer DRAM}
-\label{sec:eval:newdram}
-
-% P:eval-newer-dram-depth
-Beat filling keeps a depth of four on newer DRAM generations, because each generation shortens the command clock but
-keeps the all-bank column at four command clocks. We evaluate LPDDR5-6400 and HBM2 because LP-Spec and P3-LLM were
-built on them. JEDEC spaces column commands to the same bank group by $t_\mathrm{CCD\_L} = 4\,t_\mathrm{CK}$~\cite{jedeclpddr5}, so
-LPDDR5X-8533 and LPDDR5X-9600, whose command clocks reach 1.07 and 1.2\,GHz~\cite{micronlp5x}, have all-bank columns of
-3.75 and 3.33\,ns. HBM3 at 6.4\,Gb/s runs its command clock at 1.6\,GHz~\cite{synopsyshbm3}; at HBM2's four-clock
-column (Table~\ref{tab:params}), its column lasts 2.5\,ns\ASSUMPTION. A PU clocked at CK therefore runs $D = 4$ beats
-per column on each of these memories, CoDe's tile of $V \ge D$ tokens fills all four beats, and \UMAC stays at 1 while
-the PU's MAC rate grows as the column shortens.
-
-% P:eval-newer-dram-clock
-CoDe on these memories clocks its PU above 1\,GHz, at 1.07 to 1.6\,GHz, and three trends in DRAM technology support a
-PU above 1\,GHz. First, the DRAM die already clocks its command logic at CK and its data path faster still:
-LPDDR5X-9600 runs its data clock WCK at four times CK~\cite{micronlp5x}, and HBM3 runs its data strobes at
-3.2\,GHz~\cite{synopsyshbm3}. Second, DRAM periphery has moved closer to logic-class transistors since the 1\,GHz
-GDDR6-AiM PU of Section~\ref{sec:bg:depth}. SK hynix~\cite{skhynixhkmg} builds its
-8.5\,Gb/s LPDDR5X with high-k metal gates at 25\,\% less power than the previous generation.
-Micron~\cite{micron1gamma} adopts next-generation high-k metal gates in its 1$\gamma$ node for faster transistors and
-designs its 1$\gamma$ DDR5 for 9200\,MT/s. HBM4 goes further: TSMC~\cite{tsmchbm4} plans to build HBM4 base dies in its 12-nm and 5-nm
-logic processes. Third, commercial PIM has already moved to the newer generation: Samsung's
-LPDDR5X-PIM~\cite{lp5xpim} computes at 614\,GB/s inside the DRAM, eight times the 76.8\,GB/s of its interface.

@@ -213,7 +213,8 @@ vectors instead: it keeps a weight row open across tokens and gives each PU seve
 shares the row's activation, yet every token re-reads every column with its own MAC command, so each column read still
 feeds one token at one beat per column period. Across the two families and these four designs, only DOTS shares a
 row's activation beyond the tokens of one MAC slot, and none, P3-LLM's two-token latch included, lets one column read
-feed several tokens without added multipliers or commands.
+feed several tokens without added multipliers or commands. Neither family reaches the 4$\times$ ceiling without spending
+multipliers or commands.
 
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
@@ -240,9 +241,11 @@ features: Samsung, SK hynix and Micron build periphery transistors with high-k m
 1a-nm dies route in five to six metal layers~\cite{tid1a16,tid1a24}.
 
 % P:mot-two-levers
-A PU at CK thus fits in a DRAM die, and the wider-PU family shows how much logic area a PIM die already gives to
-filling idle beats. We therefore keep the stock multiplier count, run it at CK within that area, and answer each root
-cause of Section~\ref{sec:bg:cmd} with one lever. \emph{Row reuse} (Section~\ref{sec:design:reuse}) lets the $V$
+A PU at CK thus fits in a DRAM die, and it fills idle beats at a different cost from the wider-PU family. Our
+LP-Spec-style model spends about 1.7\,mm$^2$ per die on the logic it adds to stock AiM to fill the beats
+(Table~\ref{tab:designs}), whereas a PU at CK fills the same beats with storage for a tile of tokens and a beat sequencer
+clocked at CK. We therefore keep the stock multiplier count, run it at CK, and answer each root cause of
+Section~\ref{sec:bg:cmd} with one lever. \emph{Row reuse} (Section~\ref{sec:design:reuse}) lets the $V$
 tokens of a tile share one row sweep and pay its row-switch commands once, and answers the non-MAC commands by cutting
 their time per token. \emph{Beat filling} (Section~\ref{sec:design:beat}) uses all $D$ beats of a column period
 (Fig.~\ref{fig:dram_pim}b) without adding multipliers and answers the idle beats.
