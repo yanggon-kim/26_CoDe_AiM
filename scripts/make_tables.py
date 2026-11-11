@@ -605,6 +605,41 @@ def lpsv_checks():
           "A8 ties (1.007 at M = 12), 4.72 %, CoDe 2.05x per mm2; LP-Spec RF 50,688 b per unit")
 
 
+def newdram_checks():
+    """Sec. VI-F (Beat Filling on Newer DRAM): spec constants with their citations, no simulation. D = column x CK for a
+    PU clocked at CK. The HBM3 four-clock column follows HBM2's (Table III: t_CK 1 ns, t_CCD_L 4 ns) and is tagged
+    [ASSUMPTION] (JESD238 is not public); never cite AttAcc for it."""
+    TCCDL_CK = 4                     # t_CCD_L = 4 t_CK, same bank group (jedeclpddr5; Table III: 5 ns = 4 x 1.25 ns, 4 ns = 4 x 1 ns)
+    assert abs(TCCDL_CK * 1.25 - 5.0) < 1e-12 and abs(TCCDL_CK * 1.0 - 4.0) < 1e-12
+    CK = {                           # command clock, GHz
+        "lp5x8533": 1.0665,          # micronlp5x Table 6 CK bin 1066.5 MHz (8533 / 8 = 1066.6 MHz)
+        "lp5x9600": 1.2,             # micronlp5x p. 1: 1200 MHz max, 9600 Mb/s with WCK:CK = 4:1
+        "hbm3": 1.6,                 # synopsyshbm3: CK capped at 1.6 GHz at 6.4 Gb/s
+    }
+    printed = {"lp5x8533": ("0.9376", "3.75", "1.07"), "lp5x9600": ("0.8333", "3.33", "1.2"),
+               "hbm3": ("0.625", "2.5", "1.6")}
+    for k, ck in CK.items():
+        tck = 1.0 / ck
+        col = TCCDL_CK * tck
+        t_p, c_p, ck_p = printed[k]
+        assert f"{tck:.4f}".rstrip("0") == t_p.rstrip("0"), (k, tck)
+        assert f"{col:.2f}".rstrip("0").rstrip(".") == c_p, (k, col)
+        assert f"{ck:.2f}".rstrip("0").rstrip(".") == ck_p, (k, ck)
+        assert round(col * ck, 9) == 4   # D = column x CK = 4 beats
+    # 8533 / 8 = 1066.625 MHz against the 1066.5 MHz bin: both print 1.07 GHz and a 3.75 ns column
+    ck_raw = 8.533 / 8
+    assert f"{ck_raw:.2f}" == "1.07" and f"{TCCDL_CK / ck_raw:.2f}" == "3.75"
+    # CK range of the PU clock printed "1.07 to 1.6 GHz"
+    assert f"{min(CK.values()):.2f}" == "1.07" and f"{max(CK.values()):.1f}" == "1.6"
+    # WCK = 4 x CK (micronlp5x p. 1); WCK is double-data-rate: 4 x 1.2 GHz x 2 = 9.6 Gb/s per pin
+    assert abs(4 * CK["lp5x9600"] * 2 - 9.6) < 1e-12
+    # HBM3 strobes 3.2 GHz = 2 x CK, 6.4 Gb/s = 2 x 3.2 (synopsyshbm3)
+    assert abs(2 * CK["hbm3"] - 3.2) < 1e-12 and abs(2 * 3.2 - 6.4) < 1e-12
+    # LPDDR5X-PIM (lp5xpim, as reported from the talk): 614 GB/s inside, 76.8 GB/s interface -> "eight times"
+    assert round(614 / 76.8) == 8 and abs(614 / 76.8 - 8) < 0.01
+    print("newdram: columns 3.75 / 3.33 / 2.5 ns at CK 1.07 / 1.2 / 1.6 GHz, D = 4 each; WCK 4 x CK; 614 / 76.8 = 8.0")
+
+
 if __name__ == "__main__":
     os.makedirs(os.path.join(REPO, "tables"), exist_ok=True)
     table4(table_power())
@@ -617,4 +652,5 @@ if __name__ == "__main__":
     stock_checks()
     headline()
     phone_levels()
+    newdram_checks()
     print("checks: all frozen values hold")
