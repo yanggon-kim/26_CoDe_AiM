@@ -147,12 +147,15 @@ takes 0.32 of CoDe's logic and 0.10 of LP-Spec-style's. On HBM2, CoDe's logic is
 % P:eval-gain-sources
 \runin{Sources of CoDe's gain}
 CoDe's gain over stock AiM has two sources, row reuse and beat filling. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform. The row-reuse-only design keeps the stock PU's pace of one beat per column
-period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$. Row reuse alone speeds
+period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$. The
+row-reuse-only design matches DOTS~\cite{dots} in timing, because DOTS also spends one column period per token on each
+column of an open row. Row reuse alone speeds
 the layer up 1.24$\times$ on the mobile platform and 1.15$\times$ on the edge server, yet $U$ reaches 0.223 and
-0.222, because \UMAC stays at 1/4. Beat filling then adds one beat per column period at each step, raising \UMAC to
+0.222, because \UMAC stays at 1/4. Beat filling, which DOTS lacks, then adds one beat per column period at each step, raising \UMAC to
 0.50, 0.73 and 1.00 ($D = 3$ runs 2.91 beats, as the PU's hold rounds to whole simulator cycles), and its three steps
 speed the layer up 3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
-near stock AiM's 0.717 and 0.771. At $D = 2$, half its PU clock, CoDe already returns 1.14$\times$
+near stock AiM's 0.717 and 0.771. End to end, CoDe decodes 1.99$\times$ faster than the DOTS-style design in the
+speculative loop at $M = 4$ on the mobile platform and 2.29$\times$ faster at a batch of 8 on the edge server. At $D = 2$, half its PU clock, CoDe already returns 1.14$\times$
 LP-Spec-style's throughput per logic mm$^2$ on this layer on the mobile platform and 1.02$\times$ on the edge server,
 because its logic changes by at most 1.3\,\% across $D$.
 Beat filling pays off only after row reuse. Applied alone, it would shorten every MAC slot to a quarter but keep every

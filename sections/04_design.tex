@@ -45,7 +45,10 @@ all $V$ tokens, so the row-switch commands are paid once per $V$ tokens. Fig.~\r
 GEMM terms at $M = V = 8$: the GB holds the eight tokens' inputs for one chunk of $K$, one bank's open 2\,KB row holds
 one output's weights over that chunk, and the tile produces that output's eight sums. In Fig.~\ref{fig:mapping}b,
 stock AiM sweeps the weight row once per token and pays a row switch and a drain in each of its eight sweeps, whereas
-CoDe pays one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64. With $A$ tokens per row sweep, a token pays
+CoDe pays one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64. Row
+reuse shares a row's activation across a tile, as DOTS~\cite{dots} does, but CoDe reads each column once per tile
+through its tile MAC command, whereas DOTS re-reads each column for every token with its own MAC command and so keeps
+all 512 column reads. With $A$ tokens per row sweep, a token pays
 $\trow / A + \ttok$ of non-MAC commands per row sweep, plus its share of refresh. The token load/drain commands stay
 per token: WRGB writes each token's input chunk into the GB, and the \emph{burst drain} reads each token's sums once per row
 sweep. The two families

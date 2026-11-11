@@ -205,13 +205,15 @@ mm$^2$, 390\,GOPS on the mobile platform and 830 on the edge server, lies above 
 The remaining LLM PIM designs fall outside the wider-PU and faster-PU families. GEMV-only designs serve one input
 vector per weight read~\cite{newton,cent,pimgpt}, lookup-table designs replace multiplications with table
 lookups~\cite{localut,pimpal,pimdl}, and scheduling and dataflow designs reorganize the work around the
-PU~\cite{pimba,paise,splitsync,dots,pimphony}. Three designs, the closest prior art, run several MAC beats per column
-read, yet each design holds one input vector ($M = 1$): SAL-PIM~\cite{salpim} clocks its MAC units at twice the column
+PU~\cite{pimba,paise,splitsync,pimphony}. Four designs are the closest prior art. Three of them run several MAC beats
+per column read, yet each design holds one input vector ($M = 1$): SAL-PIM~\cite{salpim} clocks its MAC units at twice the column
 rate, the Precision-Flexible PU~\cite{pfpu} spends the four phases of a column interval on the low-bit weights packed in one column, and
-CD-PIM~\cite{cdpim} runs two compute units per bank at twice the internal clock. Across the two families and
-these three designs, a column read feeds several tokens only through added multipliers or added commands, and a row
-sweep serves only the tokens of one MAC slot: none, P3-LLM's two-token latch included, lets a larger tile share one
-row sweep and pay its row-switch commands once, or fills the idle beats with its tokens without added multipliers or commands.
+CD-PIM~\cite{cdpim} runs two compute units per bank at twice the internal clock. DOTS~\cite{dots} holds several input
+vectors instead: it keeps a weight row open across tokens and gives each PU several result latches, so a tile of tokens
+shares the row's activation, yet every token re-reads every column with its own MAC command, so each column read still
+feeds one token at one beat per column period. Across the two families and these four designs, only DOTS shares a
+row's activation beyond the tokens of one MAC slot, and none, P3-LLM's two-token latch included, lets one column read
+feed several tokens without added multipliers or commands.
 
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
