@@ -577,15 +577,16 @@ def lpsv_checks():
     """Sec. I / III-C / VI-B numbers of the two LP-Spec-style variants on the mobile platform (lpsv @ microarch 1a8bb77,
     collected at workspace a355e66: evaluation/dac_sd8g3 context Sec. 2h, Sec. 5 rows 38-41). Shared = LP-Spec's
     published one unit per two banks (h2sh); A8 = LP-Spec-style with an eight-token tile (h2a8). Wording traps: against
-    the shared variant quote 1.42-1.45x per mm2, never 1.87x; the 1.49x holds on the common 5 ns all-bank column
+    the shared variant quote 1.53x per mm2 (M = 8), never 1.99x; the 1.60x holds on the common 5 ns all-bank column
     (LP-Spec's Table II implies 10 ns, not run); 9.80 / 12.08 mm2 are never printed (16 vs 8 register-file sets
     unresolved, row 40); LP-Spec's register files are "included" in its 16.92 %, never "mostly"."""
     ps = ids("dac_sd8g3")
     # shared variant: area and loop speed / per mm2 against CoDe (V = 8)
     # (VI-E PU placement since 2026-11-10; 2.21 %, 1.60x and 1.45x are no longer printed)
     assert r2(ps["lpsv.phone.h2sh_over_core8.logic"]) == 0.96
-    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M4"]) == 1.49
-    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M4"]) == 1.42
+    # at the mobile operating point M = 8 (abstract, I, VI-E; evaluation 7cf79d5): CoDe 1.60x faster, 1.53x per mm2
+    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M8"]) == 1.60
+    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M8"]) == 1.53
     # VI-B eval-lpspec-variants: CoDe decodes 1.07x faster than the per-bank LP-Spec-style at M = 8 and 16 (loop, L 1024,
     # alpha 0.7, 1B draft, 42 GB/s; sd8g3 Sec. 2g); make_fig_e2e recomputes the same ratio from ev56_chain rows
     assert r2(ps["isca.e2e.phone.core8_over_h2.speed_M8"]) == 1.07 == r2(ps["isca.e2e.phone.core8_over_h2.speed_M16"])
@@ -598,10 +599,11 @@ def lpsv_checks():
     assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M12"], 3) == 1.007
     assert r2(ps["lpsv.phone.h2a8.pct_of_die"]) == 4.72
     assert r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.min"]) == 2.05 == r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.max"])
+    assert ps["lpsv.phone.loop.core8_over_h2a8.speed_M8"] == 1.0 and r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2_M8"]) == 2.05
     # III-C: LP-Spec's own 16.92 % and its register files per matrix unit, against our 4.28 % (Table IV)
     assert r2(ps["budget.lpspec_own.pct_of_die_1z"]) == 16.92 and ps["budget.lpspec_own.rf_bits_per_mpu"] == 50688
     assert r2(ps["budget.phone.h2.pct_of_die_1z"]) == 4.28
-    print("lpsv: shared 0.96x CoDe's logic, CoDe 1.49x faster, 1.42x per mm2 (M = 4); bank column 8 / 5 ns; "
+    print("lpsv: shared 0.96x CoDe's logic, CoDe 1.60x faster, 1.53x per mm2 (M = 8); bank column 8 / 5 ns; "
           "A8 ties (1.007 at M = 12), 4.72 %, CoDe 2.05x per mm2; LP-Spec RF 50,688 b per unit")
 
 
@@ -643,10 +645,10 @@ def newdram_checks():
 def dots_checks():
     """Secs. IV-B / VI-E: DOTS (cite dots) is named only in III-C and IV-B; the row-reuse-only design (CoDe's trace at
     D = 1, Table V's "Row reuse only" row) still reads each column once per tile and is never tied to DOTS (user,
-    2026-11-11). VI-E prints CoDe over row reuse alone end to end (the dots.* id names do not print). Ids from evaluation 0683cc6: dac_sd8g3 Sec. 2j (phone loop, M = 4) and dac_2x2 Sec. 2t (HBM2, batch 8);
+    2026-11-11). VI-E prints CoDe over row reuse alone end to end (the dots.* id names do not print). Ids from evaluation 0683cc6 / 7cf79d5: dac_sd8g3 Sec. 2j (phone loop, M = 8) and dac_2x2 Sec. 2t (HBM2, batch 8);
     the layer ratios are aliases of umac.dsteps.<p>.bf_total (asserted in umac_src_table)."""
     ps, hs = ids("dac_sd8g3"), ids("dac_2x2")
-    assert f"{ps['dots.e2e.phone.loop.M4.core8_over_d1.speed']:.2f}" == "1.99"    # 1.987
+    assert f"{ps['dots.e2e.phone.loop.M8.core8_over_d1.speed']:.2f}" == "2.03"    # 2.026
     assert f"{hs['dots.e2e.hbm2.b8.core4_over_d1.speed']:.2f}" == "2.29"         # 2.287
     for p, v in (("phone.M8.core8", "3.49"), ("hbm2.M8.core4", "3.33")):
         k = p.split(".")[0]
@@ -654,7 +656,7 @@ def dots_checks():
         assert abs(hs[f"dots.layer.{p}_over_d1.speed"] / hs[f"umac.dsteps.{k}.bf_total"] - 1) < 1e-5
     # Fig. 6b at M = V = 8 (IV-B): DOTS keeps one column read per token per column, 8 x 64 = 512; CoDe 64 reads, 64 commands
     assert 8 * 64 == 512
-    print("dots: e2e CoDe / row reuse only 1.99x (phone loop M 4) / 2.29x (HBM2 b 8); layer 3.49x / 3.33x")
+    print("dots: e2e CoDe / row reuse only 2.03x (phone loop M 8) / 2.29x (HBM2 b 8); layer 3.49x / 3.33x")
 
 
 if __name__ == "__main__":
