@@ -19,7 +19,9 @@ import os
 from dac_data import EVAL, HBM2_RAW, PHONE_RAW, STYLE, ids
 from svgchart import COLUMNWIDTH, FL, FT, I, LW, Fig, Panel, marker, row, width
 
-CODE, GRAY, ISO = STYLE["code"]["color"], "#606060", "#A8A8A8"
+# CoDe's tint is Fig. 8's light blue #CFE2F3 (hue 208 deg); lines and markers use a darker shade of that hue (#3D85C6,
+# hue 208 deg) so they read on white; rivals stay gray, stock AiM black (skill 02 Sec. 3 / G6).
+CODE, GRAY, ISO = "#3D85C6", "#606060", "#A8A8A8"
 STYLE.update({
     "st_code": dict(color=CODE, marker="diamond", label="CoDe, " + I("D") + " = 1 to 4"),
     "st_lp": dict(color=GRAY, marker="tri_up", label="LP-Spec-style, 1 to 4 ALUs", dash="2.4 1.4"),
@@ -179,7 +181,7 @@ def main():
         if p == "phone":
             x8, y8 = g("LP-Spec-like-A8", "A8")
             pn.series("st_lp8", [(x8, y8)])
-            label(pn, x8, y8, "eight-token", -4.0, FT * 0.34, "end")
+            label(pn, x8, y8, "eight-token", -0.8, -3.6, "end")   # above its marker, clear of "4 ALUs" below-left
         pn.finish()
     fig.write("fig_storage", "scripts/make_fig_storage.py")
 
