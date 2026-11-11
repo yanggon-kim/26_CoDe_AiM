@@ -239,10 +239,10 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: ← mot-idle-beats, mot-idle-cause, mot-two-levers, des-row-reuse (the latched column)
 - **[des-beat-slot-factor]**
-  - Message: Beat filling raises the slot factor from 1/4 to 1, reaching the wider-PU family's 4× ceiling with the stock multiplier count and fewer MAC commands per token than the faster-PU family; joined with row reuse it makes the weight row 4.40× shorter (Fig. 6b's speedup gap).
+  - Message: Beat filling raises the slot factor from 1/4 to 1, reaching the wider-PU family's 4× ceiling with the stock multiplier count; unlike P3-LLM's faster PU, whose MACs each wait for a command every tCCD_S (at most two tokens per column read, 4 reads for Fig. 4's 8 tokens; points back to mot-faster-pu), CoDe starts its beats from the PU clock, so one tile MAC command and one column read feed all V tokens (beats per column period follow t_col × f_PU, not tCCD_L / tCCD_S) and it issues fewer MAC commands per token; joined with row reuse it makes the weight row 4.40× shorter (Fig. 6b's speedup gap).
   - Floats: Fig. 4 (family comparison, CoDe lane), Fig. 6 (b, table and speedup gap)
   - Numbers: 1/V MAC commands per token and column vs 1 (stock, P3-LLM-style), 1/4 (LP-Spec-style) ← structural; time in MAC slots 512 → 128 column periods for the same 8 × 64 MAC beats (the figure's "MAC time" column; CoDe's slot is 10 ns, so never "128 MAC slots"); weight row 3,250 → 738.75 ns, 4.40× ← map (2,560 → 640 ns and 1,360 ns cut with fig:sequence; the two-structures sentence moved to des-tile-mac-overview)
-  - Cites: —
+  - Cites: p3llm
   - Links: ← mot-idle-beats, mot-wider-pu, mot-faster-pu; → eval-gemm-speed, eval-gain-sources
 ### D. Tile MAC Command and PU Microarchitecture
 - **[des-command-set]** "Command set"

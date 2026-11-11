@@ -75,9 +75,13 @@ token's accumulator slot. The tile's partial sums leave in one \emph{burst drain
 % P:des-beat-slot-factor
 Beat filling raises the slot factor from stock AiM's 1/4 to 1, because every beat of a MAC slot computes for one token
 of the tile. A PU with the stock multiplier count thus reaches the 4$\times$ ceiling that the wider-PU family reaches
-with four times the multipliers. Against the faster-PU family, beat filling saves commands: per token and weight
-column, CoDe issues $1/V$ MAC commands, against one for stock AiM and P3-LLM-style and $1/4$ for LP-Spec-style
-(Fig.~\ref{fig:timeline}). In the table of Fig.~\ref{fig:mapping}b, the weight row's time in MAC slots falls from 512
+with four times the multipliers. Beat filling differs from the faster PU of P3-LLM~\cite{p3llm} in what starts a MAC.
+P3-LLM-style also clocks its PU above the column rate, but each MAC still waits for its own command, issued only every
+\tccds, so one column read feeds at most two tokens (Section~\ref{sec:bg:walls}) and the 8 tokens of
+Fig.~\ref{fig:timeline} read the column four times. CoDe starts its beats from the PU clock instead: one \emph{tile
+MAC} command and one column read feed all $V$ tokens, so the beats per column period follow $t_\mathrm{col} \times
+f_\mathrm{PU}$ rather than the ratio of \tccdl{} to \tccds. Per token and weight column, CoDe therefore issues $1/V$
+MAC commands, against one for stock AiM and P3-LLM-style and $1/4$ for LP-Spec-style (Fig.~\ref{fig:timeline}). In the table of Fig.~\ref{fig:mapping}b, the weight row's time in MAC slots falls from 512
 to 128 column periods for the same $8 \times 64$ MAC beats. With both levers joined, the weight row takes 738.75\,ns
 against stock AiM's 3,250\,ns, 4.40$\times$ shorter, the speedup gap of Fig.~\ref{fig:mapping}b.
 
