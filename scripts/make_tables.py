@@ -351,7 +351,7 @@ def umac_src_table():
         ("hbm2", "d2"): ("0.50", "0.832", "0.416", "1.88", "2.16"), ("hbm2", "d3"): ("0.73", "0.787", "0.572", "1.38", "2.97"),
         ("hbm2", "core"): ("1.00", "0.739", "0.739", "1.29", "3.83"),
     }
-    names = {"stock": "Stock AiM", "rs": r"Row reuse only (DOTS-style)", "d2": r"$D = 2$", "d3": r"$D = 3$",
+    names = {"stock": "Stock AiM", "rs": r"Row reuse only", "d2": r"$D = 2$", "d3": r"$D = 3$",
              "core": r"\textbf{CoDe} ($D = 4$)"}
     # D rungs (microarch c23338b, collected at evaluation 909c4a2, dac_2x2 Sec. 2s): only CoDe's PU clock moves;
     # D = 1 = usrc_steps' rs row, D = 4 = its CoRe row (step over D = 3 here)
@@ -641,9 +641,9 @@ def newdram_checks():
 
 
 def dots_checks():
-    """Secs. III-C / IV-B / VI-E (DOTS, cite dots): the row-reuse-only design (CoDe's trace at D = 1, Table V's
-    "Row reuse only (DOTS-style)" row) is DOTS-style in timing only (DOTS re-reads each column per token; never an energy
-    comparison). Ids from evaluation 0683cc6: dac_sd8g3 Sec. 2j (phone loop, M = 4) and dac_2x2 Sec. 2t (HBM2, batch 8);
+    """Secs. IV-B / VI-E: DOTS (cite dots) is named only in III-C and IV-B; the row-reuse-only design (CoDe's trace at
+    D = 1, Table V's "Row reuse only" row) still reads each column once per tile and is never tied to DOTS (user,
+    2026-11-11). VI-E prints CoDe over row reuse alone end to end (the dots.* id names do not print). Ids from evaluation 0683cc6: dac_sd8g3 Sec. 2j (phone loop, M = 4) and dac_2x2 Sec. 2t (HBM2, batch 8);
     the layer ratios are aliases of umac.dsteps.<p>.bf_total (asserted in umac_src_table)."""
     ps, hs = ids("dac_sd8g3"), ids("dac_2x2")
     assert f"{ps['dots.e2e.phone.loop.M4.core8_over_d1.speed']:.2f}" == "1.99"    # 1.987
@@ -652,9 +652,9 @@ def dots_checks():
         k = p.split(".")[0]
         assert f"{hs[f'dots.layer.{p}_over_d1.speed']:.2f}" == v
         assert abs(hs[f"dots.layer.{p}_over_d1.speed"] / hs[f"umac.dsteps.{k}.bf_total"] - 1) < 1e-5
-    # Fig. 6b at M = V = 8: DOTS keeps one column read per token per column, 8 x 64 = 512, CoDe 64
+    # Fig. 6b at M = V = 8 (IV-B): DOTS keeps one column read per token per column, 8 x 64 = 512; CoDe 64 reads, 64 commands
     assert 8 * 64 == 512
-    print("dots: e2e CoDe / DOTS-style 1.99x (phone loop M 4) / 2.29x (HBM2 b 8); layer 3.49x / 3.33x")
+    print("dots: e2e CoDe / row reuse only 1.99x (phone loop M 4) / 2.29x (HBM2 b 8); layer 3.49x / 3.33x")
 
 
 if __name__ == "__main__":
