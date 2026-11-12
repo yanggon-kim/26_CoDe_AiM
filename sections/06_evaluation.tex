@@ -45,9 +45,7 @@ of LP-Spec-style from $M = 8$, because its eight-token tile halves LP-Spec-style
 Fig.~\ref{fig:e2e} runs whole decoding on the five systems at the operating points of Section~\ref{sec:method:work}:
 the speculative loop at $M = 8$ on the mobile platform and a batch of 8, a light load, on the edge server. CoDe decodes
 3.22$\times$ faster than NPU only on the mobile platform, at 29.9 tokens/s, and 1.28$\times$ faster on the edge server,
-at 456 tokens/s, where stock AiM reaches 1.27$\times$ and 0.45$\times$ (Fig.~\ref{fig:e2e}a). At each system's own best
-$M$ on the mobile platform the order holds: CoDe reaches 47.1 tokens/s and LP-Spec-style 46.8 at $M = 3$, P3-LLM-style
-43.8 and stock AiM 26.5 at $M = 2$, and NPU only 10.6 at $M = 4$. On the five-model geometric mean, NPU only overtakes
+at 456 tokens/s, where stock AiM reaches 1.27$\times$ and 0.45$\times$ (Fig.~\ref{fig:e2e}a). On the five-model geometric mean, NPU only overtakes
 CoDe from batch 16.
 
 % P:eval-e2e-lpspec
@@ -55,7 +53,8 @@ CoDe from batch 16.
 CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and 1.80$\times$ on
 the edge server (Fig.~\ref{fig:e2e}b), because CoDe decodes at least as fast on less logic. On the mobile
 platform LP-Spec-style reaches 3.00$\times$ NPU only's speed, at 27.9 tokens/s, so CoDe decodes 1.07$\times$ faster on
-0.574$\times$ its logic; on the edge server CoDe matches LP-Spec-style's speed on 0.554$\times$ its logic.
+0.574$\times$ its logic. The lead holds at every $M$: across $M = 2$--16, CoDe decodes at least as fast as
+LP-Spec-style and returns 1.75--2.28$\times$ its tokens per second per logic mm$^2$. On the edge server, CoDe matches LP-Spec-style's speed on 0.554$\times$ its logic.
 
 % P:eval-lpspec-variants
 \runin{Eight-token LP-Spec-style}

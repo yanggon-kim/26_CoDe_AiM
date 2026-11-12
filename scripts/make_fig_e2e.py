@@ -70,8 +70,9 @@ def check_prose_numbers(d):
     assert [r2(ph["sp"][s]) for s in ("stock", "p3", "lpspec", "code")] == [1.27, 2.06, 3.00, 3.22]
     assert round(ph["tok"]["code"], 1) == 29.9 and round(ph["tok"]["lpspec"], 1) == 27.9
     assert -(-8 // 2) == 4
-    # best M of each system (L 1024, 1.1B draft, alpha 0.7): CoDe / LP-Spec-style 47.1 / 46.8 at M = 3, P3-LLM-style 43.8 at
-    # M = 2, stock AiM 26.5 at M = 2, NPU only 10.6 at M = 4
+    # guard only, not printed since 2026-11-12 (the paper never names a best M): each system's own best M (L 1024, 1.1B
+    # draft, alpha 0.7): CoDe / LP-Spec-style 47.1 / 46.8 at M = 3, P3-LLM-style 43.8 and stock AiM 26.5 at M = 2, NPU only
+    # 10.6 at M = 4
     with open(os.path.join(PHONE_RAW, "ev56_best.csv")) as fh:
         best = {r["mapping"]: (int(r["best_M"]), float(r["tok_s"])) for r in csv.DictReader(fh)
                 if r["row_id"].startswith("npu42/1024/d1b/") and r["alpha"] == "0.7"}
@@ -86,6 +87,12 @@ def check_prose_numbers(d):
     with open(os.path.join(PHONE_RAW, "ev56_best.csv")) as fh:
         assert next(int(r["best_M"]) for r in csv.DictReader(fh) if r["row_id"] == "npu42/1024/eagle/all_core/0.7") == 4
     assert best["all_core"][1] > best["all_h2"][1] > best["all_h3"][1] > best["all_stock"][1] > best["all_npu"][1]
+    # VI-B eval-e2e-lpspec: across M = 2-16 (alpha 0.7) CoDe decodes at least as fast as LP-Spec-style and returns
+    # 1.75-2.28x its tok/s per logic mm^2 (evaluation/dac_sd8g3 Sec. 2l, b020aab; speed range and extreme M not printed)
+    acc = "isca.acc.phone.a070.M2to16.core8_over_h2"
+    assert pt[f"{acc}.speed.min_ge_1"] == 1 and pt[f"{acc}.speed.min"] >= 1
+    assert r2(pt[f"{acc}.per_mm2.min"]) == 1.75 and r2(pt[f"{acc}.per_mm2.max"]) == 2.28
+    assert pt[f"{acc}.per_mm2.min"] <= pt["isca.e2e.phone.M8.core8_over_h2.per_mm2"] <= pt[f"{acc}.per_mm2.max"]
     # abstract / intro / VI-B eval-lpspec-variants / conclusion: CoDe decodes 1.07x faster than the per-bank LP-Spec-style
     # at M = 8, also at M = 16; recomputed from the collected ev56_chain rows (L 1024, 1.1B draft, alpha 0.7)
     with open(os.path.join(PHONE_RAW, "ev56_chain.csv")) as fh:
@@ -150,7 +157,7 @@ def check_prose_numbers(d):
         assert abs(float(ex[k]["tok_s"]) - hb["tok"][s]) < 1e-9 and abs(float(ex[k]["mJ_tok_55W"]) - hb["en"][s]) < 1e-9, s
     assert ex["p3_500"]["placement"] == "npu_lin_pim_attn" and ex["core4"]["placement"] == "pim_all"
     print("Secs. VI-B/C numbers hold: mobile M = 8 3.22 / 3.00 / 2.06 / 1.27x at 29.9 / 27.9 tok/s, 1.07x (also M = 16), "
-          "best M 47.1 / 46.8 / 43.8 / 26.5 / 10.6; "
+          "M = 2-16 vs LP-Spec-style speed >= 1, per mm2 1.75-2.28x; "
           "edge 1.28 / 1.28 / 0.91 / 0.45x, 1.41x, NPU from batch 16; per mm2 1.87 / 1.80, 1.11 / 1.05; energy 105.8 mJ, "
           "6.0 / 1.96 / 1.40 / 1.14x; edge 1.48 / 1.52x (gated 2.08 / 2.46x, weight I/O 76 % of the gap)")
 
