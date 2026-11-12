@@ -52,12 +52,14 @@ dies\ASSUMPTION;
 refresh then takes 7.0\,\% of stock AiM's time at $M = 1$ (Section~\ref{sec:bg:cmd}).
 
 % P:meth-area-model
-Logic area comes from synthesis of each PU's arithmetic and registers in a 45\,nm library, scaled to a 1z DRAM process
-by the estimated area of AttAcc's~\cite{attacc} GEMV unit in that process, an estimate that carries the tenfold density
-penalty UPMEM~\cite{devaux} reports for logic in a DRAM process. Each PU adds a fixed control area, and the GB is priced
-as DRAM-process SRAM\ASSUMPTION. Fabricated PUs are larger than such estimates: GDDR6-AiM's~\cite{aimjssc} PU occupies
-0.19\,mm$^2$, 2.24$\times$ our model of the same PU, so Section~\ref{sec:eval:area} also scales each design's logic and
-registers by 2.24 as an upper bound. Die shares divide the logic area by a 60.92\,mm$^2$ 16\,Gb LPDDR5 die, as
+Logic area comes from synthesis of each PU's arithmetic and registers with Synopsys Design Compiler (compile\_ultra
+with DesignWare) on Synopsys' SAED14 educational 14\,nm library (RVT cells, typical corner at 0.8\,V and 25\,$^\circ$C),
+multiplied by ten for the tenfold density penalty UPMEM~\cite{devaux} reports for logic in a DRAM
+process\ASSUMPTION. Registers are priced per bit from synthesized register blocks, each PU adds a fixed control area,
+and the GB is priced as DRAM-process SRAM\ASSUMPTION. PrimeTime confirms that each synthesized PU meets timing at its
+clock of Table~\ref{tab:designs}; PU power and energy come from the separate flow below. Fabricated PUs are larger than
+such estimates: GDDR6-AiM's~\cite{aimjssc} PU occupies 0.19\,mm$^2$, 1.98$\times$ our model of the same PU, so
+Section~\ref{sec:eval:area} also scales each design's logic and registers by 1.98 as an upper bound. Die shares divide the logic area by a 60.92\,mm$^2$ 16\,Gb LPDDR5 die, as
 LP-Spec~\cite{lpspec} reports, and on HBM2 by a stack of eight 84.4\,mm$^2$ dies, the die area of
 HBM-PIM~\cite{hbmpim}, which stands in for a plain HBM2 die\ASSUMPTION.
 

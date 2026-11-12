@@ -47,9 +47,10 @@ POW2 = [1, 2, 4, 8, 16, 32, 64]
 # absolute ceilings back the prose's "2x" / "4x" ceiling (III-A); per-mm^2 ceilings are Table II's rows
 EXPECT = {
     ("phone", "ceil"): {"stock": 819, "h3": 1638, "h2": 3277, "core8": 3277},
-    ("phone", "mm2"): {"stock": 216, "h3": 390, "h2": 314, "core8": 583},
+    # per-mm^2 ceilings on SAED14 x 10 areas (evaluation 35c9d06); Nangate45 history 216 / 390 / 314 / 583, 492 / 830 / 697 / 1247
+    ("phone", "mm2"): {"stock": 203, "h3": 361, "h2": 293, "core8": 510},
     ("hbm2", "ceil"): {"stock": 4096, "p3_500": 8192, "h2": 16384, "core4": 16384},
-    ("hbm2", "mm2"): {"stock": 492, "p3_500": 830, "h2": 697, "core4": 1247},
+    ("hbm2", "mm2"): {"stock": 431, "p3_500": 718, "h2": 591, "core4": 1066},
 }
 
 
@@ -78,7 +79,7 @@ def checks():
     assert float(hh["GBps"]) == 256.0 and float(hc["core4"]["internal_GBps"]) == 1024.0  # 4.000x
     assert abs(float(hh["ridge_M"]) - 128.0) < 1e-9
     r = float(pc["core8"]["peak_GOPS_per_mm2"]) / float(pc["h2"]["peak_GOPS_per_mm2"])
-    assert abs(r - 1.857) < 1e-3                                # ev57.phone.core8_over_h2.ceiling_per_mm2
+    assert abs(r - 1.743) < 1e-3                                # ev57.phone.core8_over_h2.ceiling_per_mm2 (SAED14; Nangate45 1.857)
     for c, (s, p3, lp, co) in ((pc, ("stock", "h3", "h2", "core8")), (hc, ("stock", "p3_500", "h2", "core4"))):
         g = {d: float(c[d]["peak_GOPS"]) for d in (s, p3, lp, co)}
         assert (g[p3] / g[s], g[lp] / g[s], g[co] / g[s]) == (2.0, 4.0, 4.0), g   # "2x" / "4x" ceiling (III-A)

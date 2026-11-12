@@ -20,8 +20,8 @@ PARTS = [("arithmetic", ("arithmetic",), "#404040"), ("control", ("control",), "
          ("storage", ("accumulators", "staging", "staging_fifo_control", "weight_latch"), "#D9D9D9"),
          ("global buffer", ("global_buffer",), "#FFFFFF")]
 ORDER = ["stock", "p3", "lpspec", "code"]
-TOTAL = {"phone": {"stock": 0.947, "p3": 1.050, "lpspec": 2.610, "code": 1.406},
-         "hbm2": {"stock": 0.520, "p3": 0.617, "lpspec": 1.469, "code": 0.821}}
+TOTAL = {"phone": {"stock": 1.009, "p3": 1.135, "lpspec": 2.800, "code": 1.607},  # SAED14 x 10
+         "hbm2": {"stock": 0.594, "p3": 0.713, "lpspec": 1.734, "code": 0.961}}
 
 
 def load():

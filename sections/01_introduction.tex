@@ -52,10 +52,10 @@ To this end, this paper proposes \textbf{CoDe (Command-Decoupled PIM)}. One colu
 column and runs $D$ beats per column period over a tile of $V$ token vectors, at its own clock and the stock
 multiplier count. CoDe thus spends clock cycles that every column period already holds and adds only the storage for
 the tile. We evaluate CoDe against each rival on that rival's own memory, workload and precision. On a mobile
-platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe takes 0.539$\times$
-LP-Spec-style's logic area with the stock multiplier count clocked at 0.8\,GHz and returns 1.99$\times$ its tokens per
+platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe takes 0.574$\times$
+LP-Spec-style's logic area with the stock multiplier count clocked at 0.8\,GHz and returns 1.87$\times$ its tokens per
 second per logic mm$^2$. Built as LP-Spec publishes it, with one unit shared between two banks, LP-Spec-style takes
-0.96$\times$ CoDe's logic, and at about equal logic CoDe decodes 1.60$\times$ faster. On an edge server with HBM2
+0.90$\times$ CoDe's logic, and CoDe decodes 1.60$\times$ faster than this shared design. On an edge server with HBM2
 at W4A8, CoDe decodes a batch of 8 1.41$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only, with
 1.52$\times$ P3-LLM-style's system energy efficiency.
 
@@ -67,14 +67,14 @@ In summary, this paper makes the following contributions:
   \item We propose CoDe, a PU and command extension that runs $D$ MAC beats per column command over a tile of tokens
         at the stock multiplier count (Section~\ref{sec:design}).
   \item We show, under one area model with one tenfold DRAM-process factor for every design, that CoDe reaches the
-        wider-PU family's 4$\times$ MAC ceiling with the stock multiplier count: on 0.539$\times$ LP-Spec-style's logic,
-        CoDe returns 1.99$\times$ (mobile platform) and 1.79$\times$ (HBM2) its tokens per second per logic mm$^2$,
-        decodes 1.60$\times$ faster at about equal logic (mobile platform only), and takes 2.31\,\% of the die on the
-        mobile platform and 1.95\,\% of the HBM2 stack (Sections~\ref{sec:eval:e2e}, \ref{sec:eval:area}
+        wider-PU family's 4$\times$ MAC ceiling with the stock multiplier count: on 0.574$\times$ LP-Spec-style's logic,
+        CoDe returns 1.87$\times$ (mobile platform) and 1.80$\times$ (HBM2) its tokens per second per logic mm$^2$,
+        decodes 1.60$\times$ faster than a shared LP-Spec-style design with 0.90$\times$ its logic (mobile platform
+        only), and takes 2.64\,\% of the die on the mobile platform and 2.28\,\% of the HBM2 stack (Sections~\ref{sec:eval:e2e}, \ref{sec:eval:area}
         and~\ref{sec:eval:ablation}).
   \item We show, on one DRAM timing per platform, that CoDe decodes a batch of 8 1.41$\times$ faster than
         P3-LLM-style on HBM2 (Section~\ref{sec:eval:e2e}).
-  \item We show that filling idle beats with storage costs 4.2$\times$ (mobile platform) and 3.2$\times$ (HBM2) less
+  \item We show that filling idle beats with storage costs 3.5$\times$ (mobile platform) and 3.1$\times$ (HBM2) less
         added logic per unit of speed-up than filling them with arithmetic (Section~\ref{sec:disc:storage}).
   \item We show that CoDe spends the least energy per token on the mobile platform, 105.8\,mJ, and ties LP-Spec-style
         for the least on the edge server with a 55\,W idle NPU (Section~\ref{sec:eval:energy}).

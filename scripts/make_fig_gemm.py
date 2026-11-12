@@ -71,26 +71,30 @@ def check_prose_numbers(data):
     s8 = [sp["phone"]["code"][M] / sp["phone"]["lpspec"][M] for M in MS if M >= 8]
     assert {r2(x) for x in s8} == {1.11}, s8
     assert all(sp["phone"]["code"][M] > sp["phone"]["lpspec"][M] for M in MS_ALL if M > D)
-    # per logic mm2 against LP-Spec-style: mobile 1.86x up to M = 4, 2.07x from M = 8; edge server 1.79x at every M
-    assert {r2(ratio("phone", "code", "lpspec", M)) for M in MS if M <= 4} == {1.86}
-    assert {r2(ratio("phone", "code", "lpspec", M)) for M in MS if M >= 8} == {2.07}
-    assert {r2(ratio("hbm2", "code", "lpspec", M)) for M in MS_ALL} == {1.79}
-    # area: CoDe's logic is 0.539x (mobile) and 0.56x (edge) LP-Spec-style's: per-mm2 ratio = speed ratio / area ratio
-    for p, a in (("phone", 0.539), ("hbm2", 0.56)):
+    # SAED14 x 10 areas (evaluation 35c9d06); Nangate45 history: LP 1.86 / 2.07 / 1.79, area 0.539 / 0.56, P3 1.43 / 1.59 /
+    # 1.46-1.47, 0.75 at M <= 2
+    # per logic mm2 against LP-Spec-style: mobile 1.74x up to M = 4, 1.94x from M = 8; edge server 1.80x at every M
+    assert {r2(ratio("phone", "code", "lpspec", M)) for M in MS if M <= 4} == {1.74}
+    assert {r2(ratio("phone", "code", "lpspec", M)) for M in MS if M >= 8} == {1.94}
+    assert {r2(ratio("hbm2", "code", "lpspec", M)) for M in MS_ALL} == {1.80}
+    # VI-A summary "at least 1.74x per logic mm2 on both platforms": holds on the whole collected grid
+    assert min(ratio(p, "code", "lpspec", M) for p in data for M in MS_ALL) > 1.74
+    # area: CoDe's logic is 0.574x (mobile) and 0.554x (edge) LP-Spec-style's: per-mm2 ratio = speed ratio / area ratio
+    for p, a in (("phone", 0.574), ("hbm2", 0.554)):
         ar = sp[p]["code"][1] / pm[p]["code"][1] * pm[p]["lpspec"][1] / sp[p]["lpspec"][1]
-        assert round(ar, 3 if p == "phone" else 2) == a, (p, ar)
-    # per logic mm2 against P3-LLM-style: mobile 1.43x at M = 4, 1.59x from M = 8; edge 1.46-1.47x from M = 4;
-    # P3-LLM-style leads at M <= 2 on both (CoDe 0.75x)
-    assert r2(ratio("phone", "code", "p3", 4)) == 1.43
-    assert {r2(ratio("phone", "code", "p3", M)) for M in MS if M >= 8} == {1.59}
+        assert round(ar, 3) == a, (p, ar)
+    # per logic mm2 against P3-LLM-style: mobile 1.35x at M = 4, 1.50-1.51x from M = 8; edge 1.44-1.45x from M = 4;
+    # P3-LLM-style leads at M <= 2 on both (CoDe 0.71x mobile, 0.74-0.75x edge)
+    assert r2(ratio("phone", "code", "p3", 4)) == 1.35
+    assert rng([ratio("phone", "code", "p3", M) for M in MS if M >= 8]) == (1.50, 1.51)
     h = [ratio("hbm2", "code", "p3", M) for M in MS if M >= 4]
-    assert rng(h) == (1.46, 1.47), h
-    low = [ratio(p, "code", "p3", M) for p in data for M in (1, 2)]
-    assert {r2(x) for x in low} == {0.75}, low
+    assert rng(h) == (1.44, 1.45), h
+    assert {r2(ratio("phone", "code", "p3", M)) for M in (1, 2)} == {0.71}
+    assert rng([ratio("hbm2", "code", "p3", M) for M in (1, 2)]) == (0.74, 0.75)
     assert all(ratio(p, "code", "p3", M) > 1 for p in data for M in MS_ALL if M >= 3)
     print("Sec. VI-A numbers hold (M = 1, 2, 4, ..., 64): M = 2 1.96-1.97x; M = 4 3.74 / 3.82 vs 1.95; mobile M >= 8 "
-          "1.11x LP speed; per mm2 vs LP 1.86 / 2.07 mobile, 1.79 edge; vs P3 1.43, 1.59 mobile, 1.46-1.47 edge, "
-          "0.75 at M <= 2")
+          "1.11x LP speed; per mm2 vs LP 1.74 / 1.94 mobile, 1.80 edge; vs P3 1.35, 1.50-1.51 mobile, 1.44-1.45 edge, "
+          "0.71 / 0.74-0.75 at M <= 2")
 
 
 def clip(pts, top):

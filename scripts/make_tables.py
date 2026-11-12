@@ -104,9 +104,10 @@ def budget_cells():
         assert abs(v - 100 * f(t4[("serve", d)]["logic_mm2_total"]) / stack) < 1e-9
         assert abs(f(t4[("serve", d)]["logic_mm2_total"]) - 16 * f(t4[("serve", d)]["logic_mm2"])) < 1e-6
         pct[("serve", d)] = f"{r2(v):.2f}"
-    # printed: CoDe 2.31 / 1.95 (I, VI-D), LP-Spec-style 4.28 (III-C, from Table IV); 3.48 and the rest guard only
-    assert [pct[("phone", d)] for d, _ in PHONE] == ["1.55", "1.72", "4.28", "2.31"], pct
-    assert [pct[("serve", d)] for d, _ in HBM2] == ["1.23", "1.46", "3.48", "1.95"], pct
+    # printed (SAED14 x 10 areas, evaluation 35c9d06): CoDe 2.64 / 2.28 (I, VI-D), LP-Spec-style 4.60 (III-C, from Table IV);
+    # 4.11 and the rest guard only. History guard (Nangate45, never printed): 1.55 / 1.72 / 4.28 / 2.31, 1.23 / 1.46 / 3.48 / 1.95
+    assert [pct[("phone", d)] for d, _ in PHONE] == ["1.66", "1.86", "4.60", "2.64"], pct
+    assert [pct[("serve", d)] for d, _ in HBM2] == ["1.41", "1.69", "4.11", "2.28"], pct
     cuts = {"phone": {r["row_id"]: r for r in read("pupow_cuts_phone.csv", os.path.join(EVAL, "dac_sd8g3", "raw"))},
             "hbm2": {r["row_id"]: r for r in read("pupow_cuts_hbm2.csv", os.path.join(EVAL, "dac_2x2", "raw"))}}
     gated = {sub: f(cuts[sub]["a1b"]["total_mW"]) for sub in cuts}
@@ -123,7 +124,7 @@ def budget_checks():
     I/O power; AiM's 3x is a GDDR6 current ratio (framing); only CoDe has a gated value."""
     ps, hs = ids("dac_sd8g3"), ids("dac_2x2")
     # V-C area model: silicon factor (AiM PU 0.19 mm2 / our model of it), die and stack denominators
-    assert r2(ps["budget.silicon_factor.aim"]) == 2.24 == r2(hs["budget.silicon_factor.aim"])
+    assert r2(ps["budget.silicon_factor.aim"]) == 1.98 == r2(hs["budget.silicon_factor.aim"])
     assert ps["budget.cite.lpddr5_die_mm2_1z"] == 60.92 and hs["budget.cite.hbmpim_die_mm2"] == 84.4
     assert hs["budget.cite.hbmpim_dies_per_stack"] == 8
     # V-C power yardsticks: one x16 LPDDR5X channel's full-rate read (Micron Y52Q) and an HBM2 stack at 3.92 pJ/bit
@@ -142,15 +143,15 @@ def budget_checks():
     assert hs["budget.cite.hbmpim_units_per_die"] == 32 and hs["budget.cite.hbmpim_unit_mm2"] == 0.712
     assert round(hs["budget.hbmpim.area_share_pct"]) == 27
     assert (hs["budget.cite.aim_area_overhead_pct_lo"], hs["budget.cite.aim_area_overhead_pct_hi"]) == (20.0, 25.0)
-    # CoDe / LP-Spec-style share of the die / stack at AiM's silicon scale (x2.24 on logic and registers, GB unscaled)
-    assert (r2(ps["budget.phone.core8.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.core4.pct_of_stack_anch_aim"])) == (4.96, 4.02)
+    # CoDe / LP-Spec-style share of the die / stack at AiM's silicon scale (x1.98 on logic and registers, GB unscaled)
+    assert (r2(ps["budget.phone.core8.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.core4.pct_of_stack_anch_aim"])) == (5.06, 4.24)
     # LP-Spec-style at silicon scale: no longer printed (VI-D sentence cut 2026-11-10), guard only
-    assert (r2(ps["budget.phone.h2.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.h2.pct_of_stack_anch_aim"])) == (9.47, 7.50)
-    # "at most a quarter of AiM's share": CoDe at silicon scale <= 1/4 of AiM's lower end (20 %)
-    assert max(ps["budget.phone.core8.pct_of_die_anch_aim"], hs["budget.hbm2.core4.pct_of_stack_anch_aim"]) <= 0.25 * 20.0
+    assert (r2(ps["budget.phone.h2.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.h2.pct_of_stack_anch_aim"])) == (9.00, 7.90)
+    # VI-D prints CoDe at silicon scale beside AiM's 20-25 % (the former "at most a quarter" no longer holds: 5.06 > 5)
+    assert max(ps["budget.phone.core8.pct_of_die_anch_aim"], hs["budget.hbm2.core4.pct_of_stack_anch_aim"]) < 20.0
     # VI-D paragraph 2: the CoDe / LP-Spec-style logic ratio at silicon scale
-    assert (r3(ps["budget.phone.anch_aim.core8_over_h2"]), r3(hs["budget.hbm2.anch_aim.core4_over_h2"])) == (0.524, 0.536)
-    print("budget: die 60.92 mm2, stack 8 x 84.4 mm2, x2.24; CoDe 2.31 / 1.95 % (4.96 / 4.02 % at silicon scale); "
+    assert (r3(ps["budget.phone.anch_aim.core8_over_h2"]), r3(hs["budget.hbm2.anch_aim.core4_over_h2"])) == (0.562, 0.537)
+    print("budget: die 60.92 mm2, stack 8 x 84.4 mm2, x1.98; CoDe 2.64 / 2.28 % (5.06 / 4.24 % at silicon scale); "
           "gated 0.54 W per die = 1.20x read, 5.98 W per stack = 0.75x read; 0.92 / 0.87x LP-Spec-style")
 
 
@@ -159,10 +160,10 @@ def table4(peak):
     t = read("dac_table4.csv")
     by = {(r["substrate"][:5], r["design"]): r for r in t}
     exp = {  # frozen: lanes x ALUs, MHz, D, V, accumulator slots, staging bits, GB KB, logic mm2 (V prose)
-        ("phone", "stock"): (32, 1, 200, 1, 1, 1, 256, 2, 0.947), ("phone", "h3"): (32, 1, 400, 2, 2, 2, 512, 4, 1.050),
-        ("phone", "h2"): (32, 4, 200, 4, 4, 4, 1024, 8, 2.610), ("phone", "core8"): (32, 1, 800, 4, 8, 16, 1536, 16, 1.406),
-        ("serve", "stock"): (64, 1, 250, 1, 1, 2, 512, 4, 0.520), ("serve", "p3_500"): (64, 1, 500, 2, 2, 4, 1024, 8, 0.617),
-        ("serve", "h2"): (64, 4, 250, 4, 4, 8, 2048, 16, 1.469), ("serve", "core4"): (64, 1, 1000, 4, 4, 16, 2048, 16, 0.821),
+        ("phone", "stock"): (32, 1, 200, 1, 1, 1, 256, 2, 1.009), ("phone", "h3"): (32, 1, 400, 2, 2, 2, 512, 4, 1.135),
+        ("phone", "h2"): (32, 4, 200, 4, 4, 4, 1024, 8, 2.800), ("phone", "core8"): (32, 1, 800, 4, 8, 16, 1536, 16, 1.607),
+        ("serve", "stock"): (64, 1, 250, 1, 1, 2, 512, 4, 0.594), ("serve", "p3_500"): (64, 1, 500, 2, 2, 4, 1024, 8, 0.713),
+        ("serve", "h2"): (64, 4, 250, 4, 4, 8, 2048, 16, 1.734), ("serve", "core4"): (64, 1, 1000, 4, 4, 16, 2048, 16, 0.961),
     }
     lines = []
     for sub, designs, head in (("phone", PHONE, r"\multicolumn{9}{@{}l}{\emph{Mobile platform,} per die} \\"),
@@ -189,9 +190,9 @@ def table4(peak):
     # ratios the prose prints
     p = {d: f(by[("phone", d)]["logic_mm2"]) for d, _ in PHONE}
     s = {d: f(by[("serve", d)]["logic_mm2"]) for d, _ in HBM2}
-    assert r3(p["core8"] / p["h2"]) == 0.539                     # x.ev56.area.core8_over_h2
-    assert r2(s["core4"] / s["p3_500"]) == 1.33                   # CoDe / P3-LLM-style logic, per pCH
-    assert r2(s["core4"] / s["h2"]) == 0.56                       # CoDe / LP-Spec-style logic on HBM2
+    assert r3(p["core8"] / p["h2"]) == 0.574                     # x.ev56.area.core8_over_h2
+    assert r2(s["core4"] / s["p3_500"]) == 1.35                   # CoDe / P3-LLM-style logic, per pCH
+    assert r3(s["core4"] / s["h2"]) == 0.554                      # CoDe / LP-Spec-style logic on HBM2
     assert all(f(by[(k, d)]["peak_GOPS"]) == v for k, d, v in
                (("phone", "h2", 3276.8), ("phone", "core8", 3276.8), ("serve", "core4", 16384.0)))
     out = os.path.join(REPO, "tables", "tab_params.tex")
@@ -219,10 +220,11 @@ def area_split():
         if c in ("accumulators", "staging", "staging_fifo_control", "weight_latch"):
             store[(sub, d)] = store.get((sub, d), 0) + v
     # V prose (former Fig. area): share of the logic in multipliers vs in storage
-    assert r2(arith[("phone", "h2")]) == 0.73 and r2(arith[("phone", "core8")]) == 0.34
-    assert r2(store[("phone", "core8")]) == 0.32 and r2(store[("phone", "h2")]) == 0.10
-    assert r2(arith[("hbm2", "core4")]) == 0.30 and r2(store[("hbm2", "core4")]) == 0.33
-    print("area split: phone arith LP 0.73 / CoDe 0.34, storage CoDe 0.32 / LP 0.10; HBM2 CoDe arith 0.30 storage 0.33")
+    # SAED14 x 10 (evaluation 35c9d06); Nangate45 history: 0.73 / 0.34, 0.32 / 0.10, HBM2 0.30 / 0.33
+    assert r2(arith[("phone", "h2")]) == 0.71 and r2(arith[("phone", "core8")]) == 0.31
+    assert r2(store[("phone", "core8")]) == 0.39 and r2(store[("phone", "h2")]) == 0.14
+    assert r2(arith[("hbm2", "core4")]) == 0.29 and r2(store[("hbm2", "core4")]) == 0.40
+    print("area split: phone arith LP 0.71 / CoDe 0.31, storage CoDe 0.39 / LP 0.14; HBM2 CoDe arith 0.29 storage 0.40")
 
 
 def mech_checks():
@@ -384,13 +386,14 @@ def umac_src_table():
         assert r2(f(ds[(p, 1)]["t_slot_ns"]) / f(ds[(p, 3)]["t_slot_ns"])) == 2.91 == r2(tid[f"umac.dsteps.{p}.d3_eff_beats"])
         # U_MAC 0.25 -> 0.50 -> 0.73 -> 1.00 ("one beat per column period at each step")
         assert [want[(p, d)][0] for d in ("rs", "d2", "d3", "core")] == ["0.25", "0.50", "0.73", "1.00"]
-        # VI-E prose: at D = 2 (half the PU clock) CoDe returns 1.14x / 1.02x the per-bank LP-Spec-style's throughput per
-        # logic mm2 (layer basis, M = 8; the measured rung, replacing the interpolated D* 1.74 / 1.96, 2026-11-10); CoDe's
-        # logic changes by at most 1.3 % across D
-        assert r2(f(ds[(p, 2)]["per_mm2_vs_lp"])) == {"phone": 1.14, "hbm2": 1.02}[p]
+        # VI-E prose: at D = 2 (half the PU clock) CoDe returns 1.07x / 1.015x the per-bank LP-Spec-style's throughput per
+        # logic mm2 (layer basis, M = 8; SAED14 x 10 areas, evaluation 35c9d06; Nangate45 history 1.14 / 1.02); CoDe's
+        # logic is the same at every D (x.saed.core_logic_change_across_D_maxabs_pct = 0)
+        assert (r2(f(ds[(p, 2)]["per_mm2_vs_lp"])), r3(f(ds[(p, 2)]["per_mm2_vs_lp"]))) == {"phone": (1.07, 1.067), "hbm2": (1.02, 1.015)}[p]
         assert f(ds[(p, 1)]["per_mm2_vs_lp"]) < 1 < f(ds[(p, 2)]["per_mm2_vs_lp"])
         a = [f(ds[(p, D)]["core_logic_mm2"]) for D in (1, 2, 3, 4)]
-        assert round(100 * (max(a) / min(a) - 1), 1) <= 1.3, (p, a)     # 0.13 % / 1.30 % (printed "at most 1.3 %")
+        assert max(a) / min(a) - 1 < 1e-9, (p, a)                       # printed "its logic is the same at every D"
+        assert tid["x.saed.core_logic_change_across_D_maxabs_pct"] == 0.0
         # identities: U = U_MAC x f_MAC, product of the steps = cumulative, both orders' products agree
         for d in ("stock", "rs", "core"):
             assert abs(g(p, d, "U_MAC") * g(p, d, "f_MAC") - g(p, d, "U")) < 1e-5
@@ -471,15 +474,15 @@ def headline():
     # since 2026-11-10 (the paper compares P3-LLM-style at its own placement, isca.e2e.hbm2.p3own.*, make_fig_e2e.py)
     b = {(r["design"], r["metric"], r["band"]): (r2(r["lo"]), r2(r["hi"])) for r in h if r["item"].startswith("HBM2 batch step")}
     assert b[("core4 vs p3_500", "speed", ">=8")] == (1.68, 1.68)
-    assert b[("core4 vs p3_500", "per_logic_mm2", ">=8")] == (1.26, 1.26)
+    assert b[("core4 vs p3_500", "per_logic_mm2", ">=8")] == (1.24, 1.25)   # SAED14 (Nangate45 1.26)
     # system energy, P3-LLM-style / CoDe from batch 8: synthesised PU (pupow_head_hbm2 synth column); printed at the lower end
     ph = {r["row_id"]: f(r["synth"]) for r in read("pupow_head_hbm2.csv", os.path.join(EVAL, "dac_2x2", "raw"))}
     e = lambda w, k: ph[f"batch/vs_p3_500/energy_sys_{w}/b8+/{k}"]  # noqa: E731
     assert r2(e("55W", "lo")) == 1.64 and r2(e("55W", "hi")) == 1.64   # both ends round to the printed "1.64x"
     assert r2(e("0W", "lo")) == 1.46 and r2(e("0W", "hi")) == 1.46
     assert b[("core4 vs p3_500", "speed", "3-6")] == (1.43, 1.71)
-    assert b[("core4 vs p3_500", "per_logic_mm2", "3-6")] == (1.08, 1.28)
-    assert b[("core4 vs p3_500", "per_logic_mm2", "1-2")] == (0.80, 0.84)
+    assert b[("core4 vs p3_500", "per_logic_mm2", "3-6")] == (1.06, 1.27)
+    assert b[("core4 vs p3_500", "per_logic_mm2", "1-2")] == (0.79, 0.83)
     assert b[("core4 vs p3_500", "speed", "1-2")] == (1.07, 1.12)
     assert b[("core4 vs stock", "speed", ">=8")] == (2.87, 2.88)
     # crossovers vs the NPU (largest grid M at which the PIM step wins; min-max)
@@ -502,9 +505,9 @@ def phone_levels():
         v = [f(r[metric]) for r in rows if r["level"].startswith(level) and r["design"] == "h2"
              and f(r[metric]) is not None and lo <= int(r["M"]) <= hi]
         return r2(min(v)), r2(max(v))
-    assert band("GEMM", "core_per_mm2_vs") == (1.86, 3.06)
-    assert band("attention", "core_per_mm2_vs") == (1.86, 2.34)
-    assert band("decode", "core_per_mm2_vs") == (1.86, 2.85)
+    assert band("GEMM", "core_per_mm2_vs") == (1.74, 2.87)         # SAED14 (Nangate45 1.86 / 3.06)
+    assert band("attention", "core_per_mm2_vs") == (1.74, 2.20)
+    assert band("decode", "core_per_mm2_vs") == (1.74, 2.68)
     assert band("decode", "core_speed_vs", 5, 5) == (1.54, 1.54)
     assert band("decode", "core_speed_vs", 8, 64) == (1.07, 1.31)
     assert band("decode", "core_speed_vs", 1, 4) == (1.00, 1.00)
@@ -577,16 +580,16 @@ def lpsv_checks():
     """Sec. I / III-C / VI-B numbers of the two LP-Spec-style variants on the mobile platform (lpsv @ microarch 1a8bb77,
     collected at workspace a355e66: evaluation/dac_sd8g3 context Sec. 2h, Sec. 5 rows 38-41). Shared = LP-Spec's
     published one unit per two banks (h2sh); A8 = LP-Spec-style with an eight-token tile (h2a8). Wording traps: against
-    the shared variant quote 1.53x per mm2 (M = 8), never 1.99x; the 1.60x holds on the common 5 ns all-bank column
+    the shared variant quote 1.44x per mm2 (M = 8), never 1.87x; the 1.60x holds on the common 5 ns all-bank column
     (LP-Spec's Table II implies 10 ns, not run); 9.80 / 12.08 mm2 are never printed (16 vs 8 register-file sets
     unresolved, row 40); LP-Spec's register files are "included" in its 16.92 %, never "mostly"."""
     ps = ids("dac_sd8g3")
     # shared variant: area and loop speed / per mm2 against CoDe (V = 8)
     # (VI-E PU placement since 2026-11-10; 2.21 %, 1.60x and 1.45x are no longer printed)
-    assert r2(ps["lpsv.phone.h2sh_over_core8.logic"]) == 0.96
-    # at the mobile operating point M = 8 (abstract, I, VI-E; evaluation 7cf79d5): CoDe 1.60x faster, 1.53x per mm2
+    assert r2(ps["lpsv.phone.h2sh_over_core8.logic"]) == 0.90           # SAED14 (Nangate45 0.96)
+    # at the mobile operating point M = 8 (abstract, I, VI-E; evaluation 7cf79d5): CoDe 1.60x faster, 1.44x per mm2
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M8"]) == 1.60
-    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M8"]) == 1.53
+    assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M8"]) == 1.44
     # VI-B eval-lpspec-variants: CoDe decodes 1.07x faster than the per-bank LP-Spec-style at M = 8 and 16 (loop, L 1024,
     # alpha 0.7, 1B draft, 42 GB/s; sd8g3 Sec. 2g); make_fig_e2e recomputes the same ratio from ev56_chain rows
     assert r2(ps["isca.e2e.phone.core8_over_h2.speed_M8"]) == 1.07 == r2(ps["isca.e2e.phone.core8_over_h2.speed_M16"])
@@ -597,14 +600,14 @@ def lpsv_checks():
     assert ps["lpsv.phone.loop.core8_over_h2a8.speed.min"] == 1.0 == ps["lpsv.phone.loop.core8_over_h2a8.speed.max"]
     assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M8plus_no12.min"], 3) == 1.0 == round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M8plus_no12.max"], 3)
     assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M12"], 3) == 1.007
-    assert r2(ps["lpsv.phone.h2a8.pct_of_die"]) == 4.72
-    assert r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.min"]) == 2.05 == r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.max"])
-    assert ps["lpsv.phone.loop.core8_over_h2a8.speed_M8"] == 1.0 and r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2_M8"]) == 2.05
-    # III-C: LP-Spec's own 16.92 % and its register files per matrix unit, against our 4.28 % (Table IV)
+    assert r2(ps["lpsv.phone.h2a8.pct_of_die"]) == 5.18
+    assert r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.min"]) == 1.96 == r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.max"])
+    assert ps["lpsv.phone.loop.core8_over_h2a8.speed_M8"] == 1.0 and r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2_M8"]) == 1.96
+    # III-C: LP-Spec's own 16.92 % and its register files per matrix unit, against our 4.60 % (Table IV)
     assert r2(ps["budget.lpspec_own.pct_of_die_1z"]) == 16.92 and ps["budget.lpspec_own.rf_bits_per_mpu"] == 50688
-    assert r2(ps["budget.phone.h2.pct_of_die_1z"]) == 4.28
-    print("lpsv: shared 0.96x CoDe's logic, CoDe 1.60x faster, 1.53x per mm2 (M = 8); bank column 8 / 5 ns; "
-          "A8 ties (1.007 at M = 12), 4.72 %, CoDe 2.05x per mm2; LP-Spec RF 50,688 b per unit")
+    assert r2(ps["budget.phone.h2.pct_of_die_1z"]) == 4.60
+    print("lpsv: shared 0.90x CoDe's logic, CoDe 1.60x faster, 1.44x per mm2 (M = 8); bank column 8 / 5 ns; "
+          "A8 ties (1.007 at M = 12), 5.18 %, CoDe 1.96x per mm2; LP-Spec RF 50,688 b per unit")
 
 
 def newdram_checks():

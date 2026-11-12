@@ -179,11 +179,11 @@ than an ASIC process and routes the logic in three metal layers instead of ten o
 the die's memory capacity. By LP-Spec's~\cite{lpspec} own estimate its compute units and buffers take
 16.92\,\% of a 16\,Gb LPDDR5 die, against 20--25\,\% of the chip for all of AiM's~\cite{aimjssc} compute circuits.
 LP-Spec's estimate includes register files of 50,688 bits per matrix unit, whereas our LP-Spec-style model keeps only
-the accumulators its dataflow needs and takes 4.28\,\% of the die (Table~\ref{tab:designs}), a reading that favours
+the accumulators its dataflow needs and takes 4.60\,\% of the die (Table~\ref{tab:designs}), a reading that favours
 LP-Spec-style.
 Four times the multipliers per bank therefore cost capacity, and per unit of logic area the wider-PU family keeps
-only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 314\,GOPS on the mobile platform and
-697 on the edge server, against stock AiM's 216 and 492.
+only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 293\,GOPS on the mobile platform and
+591 on the edge server, against stock AiM's 203 and 431.
 
 % P:mot-faster-pu
 \runin{Faster-PU family}
@@ -199,7 +199,7 @@ fast its PU runs. The 2$\times$ ceiling moves the crossover of this design with 
 server (Fig.~\ref{fig:roofline}b). P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we
 take P3-LLM as the representative of the faster-PU family and model it as a \textbf{P3-LLM-style} design, the rival on
 the edge server (Section~\ref{sec:eval}). With the stock multiplier count, P3-LLM-style's ceiling per logic
-mm$^2$, 390\,GOPS on the mobile platform and 830 on the edge server, lies above LP-Spec-style's.
+mm$^2$, 361\,GOPS on the mobile platform and 718 on the edge server, lies above LP-Spec-style's.
 
 % P:mot-other-pim
 The remaining LLM PIM designs fall outside the wider-PU and faster-PU families. GEMV-only designs serve one input
@@ -242,7 +242,7 @@ features: Samsung, SK hynix and Micron build periphery transistors with high-k m
 
 % P:mot-two-levers
 A PU at CK thus fits in a DRAM die, and it fills idle beats at a different cost from the wider-PU family. Our
-LP-Spec-style model spends about 1.7\,mm$^2$ per die on the logic it adds to stock AiM to fill the beats
+LP-Spec-style model spends about 1.8\,mm$^2$ per die on the logic it adds to stock AiM to fill the beats
 (Table~\ref{tab:designs}), whereas a PU at CK fills the same beats with storage for a tile of tokens and a beat sequencer
 clocked at CK. We therefore keep the stock multiplier count, run it at CK, and answer each root cause of
 Section~\ref{sec:bg:cmd} with one lever. \emph{Row reuse} (Section~\ref{sec:design:reuse}) lets the $V$

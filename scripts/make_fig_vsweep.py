@@ -69,11 +69,12 @@ def gain_by_v():
     ar = {(r["platform"], r["staging_form"], int(r["V"])): r for r in rows("cvs_area.csv")}
     a = {p: [float(ar[(p, STAGING[p], v)]["logic_sram_mm2"]) for v in VS] for p in ("phone", "hbm2")}
     at = {p: [float(ar[(p, STAGING[p], v)]["logic_sram_mm2_total"]) for v in VS] for p in ("phone", "hbm2")}
-    assert [round(a["phone"][i], 3) for i in (2, 3)] == [1.212, 1.406]
-    assert [round(a["hbm2"][i], 3) for i in (2, 3)] == [0.821, 1.153]
-    assert round(a["phone"][3] / a["phone"][2], 3) == 1.160 and round(a["hbm2"][3] / a["hbm2"][2], 3) == 1.405
-    assert round(100 * (a["phone"][3] / a["phone"][2] - 1)) == 16 and round(100 * (a["hbm2"][3] / a["hbm2"][2] - 1)) == 40
-    # per logic mm^2: argmax at V = D on both platforms; V = 8 keeps 96.3 % / 77.5 % of the peak
+    # SAED14 x 10 areas (evaluation 35c9d06); Nangate45 history: 1.212 / 1.406, 0.821 / 1.153, 1.160 / 1.405, 16 / 40 %
+    assert [round(a["phone"][i], 3) for i in (2, 3)] == [1.349, 1.607]
+    assert [round(a["hbm2"][i], 3) for i in (2, 3)] == [0.961, 1.393]
+    assert round(a["phone"][3] / a["phone"][2], 3) == 1.191 and round(a["hbm2"][3] / a["hbm2"][2], 3) == 1.449
+    assert round(100 * (a["phone"][3] / a["phone"][2] - 1)) == 19 and round(100 * (a["hbm2"][3] / a["hbm2"][2] - 1)) == 45
+    # per logic mm^2: argmax at V = D on both platforms; V = 8 keeps 93.8 % / 75.1 % of the peak (guard only)
     pa = {(r["platform"], int(r["V"])): r for r in rows("cvs_pa.csv")
           if r["workload"] == "W2" and r["gb_form"] == "sram" and r["staging_form"] == STAGING[r["platform"]]}
     for p in ("phone", "hbm2"):
@@ -81,11 +82,11 @@ def gain_by_v():
         assert VS[per.index(max(per))] == D and pa[(p, D)]["argmax"] == "True"
         for v, x, ttl, sv in zip(VS, per, at[p], sp[p]):
             assert abs(x - sv / ttl) < 1e-5 * x
-    assert pct(float(pa[("phone", 8)]["vs_argmax"])) == 96.3 and pct(float(pa[("hbm2", 8)]["vs_argmax"])) == 77.5
+    assert pct(float(pa[("phone", 8)]["vs_argmax"])) == 93.8 and pct(float(pa[("hbm2", 8)]["vs_argmax"])) == 75.1
     # stock AiM's logic in the cvs_area scope (per die / per pCH, SRAM GB): Table I's stock rows (dacp_table4.stock)
     st = {p: float(next(r for r in rows("dacp_table4.csv", raw) if r["design"] == "stock")["logic_mm2"])
           for p, raw in (("phone", PHONE_RAW), ("hbm2", HBM2_RAW))}
-    assert (round(st["phone"], 3), round(st["hbm2"], 3)) == (0.947, 0.520), st
+    assert (round(st["phone"], 3), round(st["hbm2"], 3)) == (1.009, 0.594), st
     # plotted: speed-up, and throughput per logic mm^2 over stock AiM's (speed-up x A_stock / A(V))
     out = {}
     for p, k in (("phone", "m"), ("hbm2", "h")):
@@ -93,9 +94,16 @@ def gain_by_v():
         out["pa_" + k] = [(v, x * st[p] / ar_) for v, x, ar_ in zip(VS, sp[p], a[p])]
     # VI-C prints the peak (V = D) of each per-mm^2 curve
     assert max(out["pa_m"], key=lambda t: t[1])[0] == D and max(out["pa_h"], key=lambda t: t[1])[0] == D
-    assert (round(out["pa_m"][2][1], 2), round(out["pa_h"][2][1], 2)) == (3.01, 2.34)
-    # Fig. 9a right endpoint of each per-mm^2 curve (AI-review item 3, 2026-11-08): 1.66x and 0.38x at V = 64
-    assert (round(out["pa_m"][6][1], 2), round(out["pa_h"][6][1], 2)) == (1.66, 0.38)
+    assert (round(out["pa_m"][2][1], 2), round(out["pa_h"][2][1], 2)) == (2.89, 2.28)
+    # Fig. 9a right endpoint of each per-mm^2 curve (AI-review item 3, 2026-11-08): 1.51x and 0.34x at V = 64
+    assert (round(out["pa_m"][6][1], 2), round(out["pa_h"][6][1], 2)) == (1.51, 0.34)
+    # the plotted ends equal the collected abl ids (evaluation 35c9d06, dac_2x2 Sec. 2k)
+    from dac_data import ids
+    tid = ids("dac_2x2")
+    for k, p, st_ in (("m", "phone", "fifo"), ("h", "hbm2", "register")):
+        assert abs(out["pa_" + k][2][1] - tid[f"abl.{p}.W2.{st_}.sram.v4.per_mm2_over_stock"]) < 1e-3
+        assert abs(out["pa_" + k][6][1] - tid[f"abl.{p}.W2.{st_}.sram.v64.per_mm2_over_stock"]) < 1e-3
+    assert (round(tid["abl.phone.fifo.sram.v4_to_v8.logic_growth_pct"]), round(tid["abl.hbm2.register.sram.v4_to_v8.logic_growth_pct"])) == (19, 45)
     return out
 
 
@@ -111,15 +119,15 @@ def robustness():
     rp = [(m, ph[(m, 8)] / ph[(m, 4)]) for m in Ms]
     rh = [(m, hb[(m, 8)] / hb[(m, 4)]) for m in Ms]
     rk = [(m, k2[(m, 8)] / k2[(m, 4)]) for m in Ms]
-    win = [5, 6, 7, 9, 10, 13, 14, 15]
+    win = [5, 6, 7, 9, 10, 13, 14]                               # SAED14 (Nangate45 also won at M = 15)
     assert [m for m, x in rp if x > 1] == win and [m for m, x in rk if x > 1] == win
     assert max(x for _, x in rh) < 1 and max(rh, key=lambda t: t[1])[0] == 5
-    assert round(rp[4][1], 3) == 1.324 and round(rk[4][1], 3) == 1.416 and round(rh[4][1], 3) == 0.944
-    # at M <= 4 both tiles run one pass: the ratio is the area ratio (1 / 1.160, 1 / 1.405)
-    assert all(abs(x - rp[0][1]) < 1e-5 for _, x in rp[:4]) and round(1 / rp[0][1], 3) == 1.160 and round(rp[0][1], 3) == 0.862
-    assert all(abs(x - rh[0][1]) < 1e-5 for _, x in rh[:4]) and round(1 / rh[0][1], 3) == 1.405
-    # Fig. 9b edge-server range (AI-review item 3, 2026-11-08): "returns 0.712-0.944x" (low end at M <= 4)
-    assert (round(min(x for _, x in rh), 3), round(max(x for _, x in rh), 3)) == (0.712, 0.944)
+    assert round(rp[4][1], 3) == 1.290 and round(rk[4][1], 3) == 1.379 and round(rh[4][1], 3) == 0.915
+    # at M <= 4 both tiles run one pass: the ratio is the area ratio (1 / 1.191, 1 / 1.449)
+    assert all(abs(x - rp[0][1]) < 1e-5 for _, x in rp[:4]) and round(1 / rp[0][1], 3) == 1.191 and round(rp[0][1], 3) == 0.840
+    assert all(abs(x - rh[0][1]) < 1e-5 for _, x in rh[:4]) and round(1 / rh[0][1], 3) == 1.449
+    # Fig. 9b edge-server range (AI-review item 3, 2026-11-08): "returns 0.690-0.915x" (low end at M <= 4)
+    assert (round(min(x for _, x in rh), 3), round(max(x for _, x in rh), 3)) == (0.690, 0.915)
     # worst per-mm^2 loss over M 3-16 against the best of V = 2, 4, 8, 16 at each M (the minimax table, current)
     reg = {}
     for r in rows("hvm_regret.csv") + rows("hvm_st_regret.csv"):
@@ -127,16 +135,16 @@ def robustness():
             reg[(r["row_id"].split("/")[0], r["row_id"].split("/")[1], r["staging_form"], int(r["V"]))] = \
                 (pct(float(r["worst_loss"])), r["worst_at_M"])
     q = lambda p, w, v: reg[(p, w, STAGING[p], v)][0]   # noqa: E731
-    assert (q("phone", "W2", 4), q("phone", "step", 4)) == (29.4, 24.5)
+    assert (q("phone", "W2", 4), q("phone", "step", 4)) == (27.5, 22.5)
     assert reg[("phone", "W2", "fifo", 4)][1] == "5" and reg[("phone", "step", "fifo", 4)][1] == "5"
-    assert q("phone", "W2", 8) == q("phone", "step", 8) == q("phone", "W1", 8) == 13.8
-    assert round(100 * (1 - 1 / 1.160), 1) == 13.8               # V = 8's area premium where both run one pass
+    assert q("phone", "W2", 8) == q("phone", "step", 8) == q("phone", "W1", 8) == 16.0
+    assert round(100 * (1 - 1 / 1.191), 1) == 16.0               # V = 8's area premium where both run one pass
     # VI-D eval-vsweep-choice: the mobile V = 8 pays its worst loss at M = 3-4 (Sec. VI-B's M = 4 among them)
     assert all(reg[("phone", w, "fifo", 8)][1] in ("3", "4") for w in ("W1", "W2", "step"))
-    assert q("phone", "W1", 4) == 4.6                            # the exception: the one-tile kernel prefers V = 4
+    assert q("phone", "W1", 4) == 2.0                            # the exception: the one-tile kernel prefers V = 4
     hb4 = [q("hbm2", w, 4) for w in ("W1", "W2", "step batch (gmean)")]
     hb8 = [q("hbm2", w, 8) for w in ("W1", "W2", "step batch (gmean)")]
-    assert max(hb4) == 11.7 and (min(hb8), max(hb8)) == (28.8, 30.0), (hb4, hb8)
+    assert max(hb4) == 8.9 and (min(hb8), max(hb8)) == (31.0, 32.2), (hb4, hb8)
     return {"pa_m": rp, "pa_h": rh}
 
 
