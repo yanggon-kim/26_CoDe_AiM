@@ -37,11 +37,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: lpspec, p3llm
   - Links: → mot-wider-pu, mot-faster-pu, mot-logic-cost
 - **[intro-timing-insight]**
-  - Message: DRAM timing parameters space the column commands that access the array, not the MACs on a latched column, so one column period can feed D = 4 PU beats; closing (user, 2026-11-11): a DRAM die builds logic ten times less densely than an ASIC, so multipliers are the costliest way to fill idle beats, whereas the beats themselves come with the column period.
+  - Message: DRAM timing parameters space the column commands that access the array, not the MACs on a latched column, so one column period can feed D = 4 PU beats, and our pipelined PU meets timing in synthesis at 0.8 GHz (LPDDR5-6400) and 1 GHz (HBM2), the clocks at which it fits D = 4 (→ des-pu-clock; since 2026-11-11); closing (user, 2026-11-11): a DRAM die builds logic ten times less densely than an ASIC, so multipliers are the costliest way to fill idle beats, whereas the beats themselves come with the column period.
   - Floats: —
-  - Numbers: 5 ns (LPDDR5-6400), 4 ns (HBM2) column; 1 GHz PU in silicon; 0.8 / 1 GHz; D = 4; ten times less densely (devaux, as in mot-logic-cost) ← cited / structural
+  - Numbers: 5 ns (LPDDR5-6400), 4 ns (HBM2) column; 1 GHz PU in silicon; 0.8 / 1 GHz met in synthesis ← timing.saed.{phone,hbm2}.core.{met,clk_MHz} (2x2 §2v) ← tables [timing_checks]; D = 4; ten times less densely (devaux, as in mot-logic-cost) ← cited / structural
   - Cites: hbmpim, lpspec, aimjssc, devaux
-  - Links: → mot-depth, mot-pu-clock-precedent
+  - Links: → mot-depth, mot-pu-clock-precedent, des-pu-clock
 - **[intro-code-proposal]**
   - Message: CoDe runs D beats per column command over a tile of V tokens at the stock multiplier count; the beats come with the column period, so CoDe adds only the tile's storage (why it is cheap); against LP-Spec-style on the mobile platform it takes 0.574× its logic with the stock multiplier count clocked at 0.8 GHz and returns 1.87× its tokens/s per logic mm², and against LP-Spec as published (one unit per two banks, 0.90× CoDe's logic) it decodes 1.60× faster than this shared design (SAED14 areas: "about equal logic" no longer printed in the body; the abstract keeps "about the same logic area"); on HBM2 it decodes a batch of 8 1.41× faster than P3-LLM-style (P3-LLM's own placement) and 1.28× faster than NPU only, with 1.52× P3-LLM-style's energy efficiency. The 1.07× and 29.9 / 27.9 tok/s left the introduction (user, 2026-11-11; VI-B keeps them). Never "stock multipliers" bare.
   - Floats: —
@@ -267,11 +267,11 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: —
   - Links: → eval-vsweep-gain, eval-vsweep-choice
 - **[des-pu-clock]** "PU clock"
-  - Message: CoDe needs a PU clock above the column rate, not one equal to CK, and the tile keeps that clock within the reach of III-D's DRAM silicon: the PU pipelines its beats (operand registers for the latched column and token k's staging slice, multiply, registered adder-tree stages, accumulate; stages as in the synthesised RTL, microarch 03_tools/d1/synth/run_power.py gen_int / pipe_latency; AI-review T5, 2026-11-08), only the accumulate feeds back and each accumulator slot takes one update per V ≥ D beats, and the lanes multiply narrow integers (the grows-with-V closing sentence cut 2026-11-08).
+  - Message: CoDe needs a PU clock above the column rate, not one equal to CK, and the tile keeps that clock within the reach of III-D's DRAM silicon: the PU pipelines its beats (operand registers for the latched column and token k's staging slice, multiply, registered adder tree, accumulate; consistent with the SAED14 DC configurations, inferred 3-stage — no depth is printed, no id carries it; AI-review T5, 2026-11-08), only the accumulate feeds back and each accumulator slot takes one update per V ≥ D beats, and the lanes multiply narrow integers; closing (since 2026-11-11): synthesized with Synopsys DC on a 14 nm library (→ meth-area-model), the pipelined PU meets timing at 0.8 GHz (mobile) and 1 GHz (HBM2), as PrimeTime confirms (no slack or f_max).
   - Floats: —
-  - Numbers: — (precedent and its citations live only in mot-pu-clock-precedent)
+  - Numbers: 0.8 / 1 GHz met ← timing.saed.{phone,hbm2}.core.{met,clk_MHz} (2x2 §2v; evaluation 51e9688) ← tables [timing_checks] (precedent and its citations live only in mot-pu-clock-precedent)
   - Cites: —
-  - Links: ← mot-pu-clock-precedent; → meth-designs (PU clock in Table IV), eval-power-headroom, eval-power
+  - Links: ← mot-pu-clock-precedent, intro-timing-insight; → meth-area-model, meth-designs (PU clock in Table IV), eval-power-headroom, eval-power
 ### E. Mapping Skinny GEMMs and Attention
 - **[des-mapping]**
   - Message: CoDe maps a skinny GEMM as stock AiM does but cuts the M token rows into tiles of V, and speculative-decoding attention maps the same way while batched attention stays one GEMV per request.
@@ -303,7 +303,7 @@ Number sources, short names: `tables` = scripts/make_tables.py (functions in bra
   - Cites: ramulator2, cent, p3llm
   - Links: ← mot-rowswitch-cost (refresh), mot-sweep-factor (ρ)
 - **[meth-area-model]** (split from meth-simulator, 2026-11-06)
-  - Message: Logic area comes from Synopsys Design Compiler (compile_ultra, DesignWare) on the SAED14 educational 14 nm library (RVT, typical corner tt0p8v25c), × 10 for UPMEM's tenfold DRAM-process density penalty [assumption]; registers priced per bit from synthesized register blocks, fixed control per PU, the GB as DRAM-process SRAM [assumption]; PrimeTime confirms timing at each PU's Table IV clock (no f_max or slack printed); PU power and energy stay on the separate flow of meth-power-model (one clause); AiM's fabricated 0.19 mm² PU is 1.98× our model of it, so VI-D also scales logic and registers by 1.98 as an upper bound (since 2026-11-11, microarch 721f156 / evaluation 35c9d06; the Nangate45 × AttAcc-scaled area model is history); die shares divide by a 60.92 mm² 16 Gb LPDDR5 die (as LP-Spec reports) and by a stack of eight 84.4 mm² HBM-PIM dies standing in for plain HBM2 dies [assumption].
+  - Message: Logic area comes from Synopsys Design Compiler (compile_ultra, DesignWare) on the SAED14 educational 14 nm library (RVT, typical corner tt0p8v25c), × 10 for UPMEM's tenfold DRAM-process density penalty [assumption]; registers priced per bit from synthesized register blocks, fixed control per PU, the GB as DRAM-process SRAM [assumption]; PrimeTime confirms timing at each PU's Table IV clock (no f_max or slack printed; all six met ← timing.saed.paper_units_met_n ← tables [timing_checks]; IV-D prints CoDe's two clocks); PU power and energy stay on the separate flow of meth-power-model (one clause); AiM's fabricated 0.19 mm² PU is 1.98× our model of it, so VI-D also scales logic and registers by 1.98 as an upper bound (since 2026-11-11, microarch 721f156 / evaluation 35c9d06; the Nangate45 × AttAcc-scaled area model is history); die shares divide by a 60.92 mm² 16 Gb LPDDR5 die (as LP-Spec reports) and by a stack of eight 84.4 mm² HBM-PIM dies standing in for plain HBM2 dies [assumption].
   - Floats: —
   - Numbers: 0.19 mm² (aimjssc p. 297); 1.98 ← budget.silicon_factor.aim; SAED14 / DC / PrimeTime named, not cited (no bib entry); 60.92 mm² ← budget.cite.lpddr5_die_mm2_1z (LP-Spec p. 7; its ISSCC'21 origin unread, so never cited directly); 8 × 84.4 mm² ← budget.cite.hbmpim_die_mm2, budget.hbm2.stack_mm2 ([A-XC4]) ← tables [budget_checks] (sd8g3 §2g, 2x2 §2q)
   - Floats: — (Table IV tab:designs float defined after this paragraph since 2026-11-08; lands p8 L top in the ACM build)

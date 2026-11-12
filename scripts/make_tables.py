@@ -662,6 +662,18 @@ def dots_checks():
     print("dots: e2e CoDe / row reuse only 2.03x (phone loop M 8) / 2.29x (HBM2 b 8); layer 3.49x / 3.33x")
 
 
+def timing_checks():
+    """Intro / Sec. IV-D / V-C: the pipelined CoDe PU meets timing at 0.8 GHz (mobile, INT8 lanes) and 1 GHz (HBM2,
+    INT4 x INT8 lanes) on Synopsys DC / SAED14 with PrimeTime confirming; all six paper PUs meet their Table IV clocks.
+    Ids timing.saed.* (evaluation dac_2x2 51e9688, dc_units r2 @ 2af7ebc), never the old Nangate timing.phone/hbm2.*.
+    No slack, f_max or pipeline depth is printed (user rule; no id carries the SAED14 depth)."""
+    hs = ids("dac_2x2")
+    assert hs["timing.saed.phone.core.met"] == 1 and hs["timing.saed.hbm2.core.met"] == 1
+    assert hs["timing.saed.phone.core.clk_MHz"] == 800 and hs["timing.saed.hbm2.core.clk_MHz"] == 1000
+    assert hs["timing.saed.paper_units_met_n"] == 6
+    print("timing: SAED14 CoDe PU meets 800 MHz (phone) / 1000 MHz (HBM2); 6 of 6 paper PUs met")
+
+
 if __name__ == "__main__":
     os.makedirs(os.path.join(REPO, "tables"), exist_ok=True)
     table4(table_power())
@@ -676,4 +688,5 @@ if __name__ == "__main__":
     phone_levels()
     newdram_checks()
     dots_checks()
+    timing_checks()
     print("checks: all frozen values hold")

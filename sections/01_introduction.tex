@@ -42,8 +42,9 @@ the MACs on a column already latched beside the bank. The column period
 $t_\mathrm{col}$, the time one all-bank column command occupies the bank, sets how often a column arrives, and the PU
 clock $f_\mathrm{PU}$ sets how often the PU computes, so one column can feed $D = t_\mathrm{col} \times f_\mathrm{PU}$
 beats. An all-bank column lasts 5\,ns on LPDDR5-6400~\cite{lpspec} and 4\,ns on HBM2~\cite{hbmpim}, and a PU built in a
-DRAM process runs at 1\,GHz in silicon~\cite{aimjssc}. A PU clocked at 0.8\,GHz on LPDDR5-6400 or at 1\,GHz on HBM2
-fits $D = 4$ beats into each column period, of which a stock PU uses one. A DRAM die builds logic ten times less
+DRAM process runs at 1\,GHz in silicon~\cite{aimjssc}. Our pipelined PU meets timing in synthesis at 0.8\,GHz on LPDDR5-6400 and at 1\,GHz on
+HBM2 (Section~\ref{sec:design:pu}) and at these clocks fits $D = 4$ beats into each column period, of which a
+stock PU uses one. A DRAM die builds logic ten times less
 densely than an ASIC~\cite{devaux}, so multipliers are the costliest way to fill idle beats, whereas the beats themselves
 come with the column period.
 
