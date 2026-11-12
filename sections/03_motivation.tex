@@ -222,7 +222,7 @@ multipliers or commands.
 % P:mot-depth
 DRAM timing bounds how often a column is read, not how many MACs may consume it. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
 boundary~\cite{hbmpim}, so a column the PU has latched stays usable after its command: P3-LLM~\cite{p3llm} reuses a
-latched column for two tokens at unchanged cell-access and column-decoder power, the majority of PIM power. The column
+latched column for two tokens at unchanged cell-access and column-decoder power. The column
 period thus sets how often weights arrive at a PU, and the PU clock sets how often the PU computes on them, so a PU
 clocked at CK can spend all $D$ beats of a column period on one latched column, as long as its MACs do not wait for
 per-token commands.

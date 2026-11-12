@@ -45,13 +45,7 @@ all $V$ tokens, so the row-switch commands are paid once per $V$ tokens. Fig.~\r
 GEMM terms at $M = V = 8$: the GB holds the eight tokens' inputs for one chunk of $K$, one bank's open 2\,KB row holds
 one output's weights over that chunk, and the tile produces that output's eight sums. In Fig.~\ref{fig:mapping}b,
 stock AiM sweeps the weight row once per token and pays a row switch and a drain in each of its eight sweeps, whereas
-CoDe pays one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64. Row
-reuse differs from the weight-stationary order of DOTS~\cite{dots} in what one column read serves. DOTS keeps the row
-open but sweeps it once per token, with one MAC command and one column read per token on every column, so the tile of
-Fig.~\ref{fig:mapping}b still costs 512 column reads. CoDe's tile MAC reads each column once and latches it beside the
-PU for all $V$ tokens, so the tile costs 64 column reads and 64 commands. Each avoided column read saves cell-access and
-column-decoder energy, the majority of PIM power (Section~\ref{sec:bg:depth}), and the latched column is what beat
-filling (Section~\ref{sec:design:beat}) spends in $D$ beats. With $A$ tokens per row sweep, a token pays
+CoDe pays one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64. With $A$ tokens per row sweep, a token pays
 $\trow / A + \ttok$ of non-MAC commands per row sweep, plus its share of refresh. The token load/drain commands stay
 per token: WRGB writes each token's input chunk into the GB, and the \emph{burst drain} reads each token's sums once per row
 sweep. The two families
@@ -59,6 +53,18 @@ of Section~\ref{sec:bg:walls} tie the tokens of a row sweep to one MAC slot ($A 
 whereas CoDe sets them by $V$ and leaves the PU's lanes unchanged. The simulated non-MAC time per token thus falls
 from stock AiM's 123.39\,ns to CoDe's 22.15\,ns at $V = 8$ on the mobile platform (Table~\ref{tab:umac}) and from
 146.17 to 43.51\,ns at $V = 4$ on the edge server.
+
+% P:des-reuse-novelty
+Row reuse differs from the closest prior designs in how often a weight column is read. DOTS~\cite{dots} keeps a weight
+row open across tokens but sweeps it once per token, with one MAC command and one column read per token on every
+column, so the tile of Fig.~\ref{fig:mapping}b still costs 512 column reads. SAL-PIM~\cite{salpim} and the
+Precision-Flexible PU~\cite{pfpu} spend several beats on one column read, but for one input vector, so each column is
+still read once per token. CoDe's \emph{tile MAC} reads each column once and latches it beside the PU for all $V$
+tokens, so the tile costs 64 column reads and 64 commands: each weight column is read once per tile of $V$ tokens
+($V = 8$ on the mobile platform) instead of once per token. Each avoided column read saves its cell-access and
+column-decoder energy, and against SAL-PIM and the Precision-Flexible PU, which sweep a row once per token, CoDe also
+pays the row-switch commands once per tile. The latched column is what beat filling (Section~\ref{sec:design:beat})
+spends in $D$ beats.
 
 \subsection{Beat Filling}
 \label{sec:design:beat}
@@ -74,16 +80,23 @@ token's accumulator slot. The tile's partial sums leave in one \emph{burst drain
 
 % P:des-beat-slot-factor
 Beat filling raises the slot factor from stock AiM's 1/4 to 1, because every beat of a MAC slot computes for one token
-of the tile. A PU with the stock multiplier count thus reaches the 4$\times$ ceiling that the wider-PU family reaches
-with four times the multipliers. Beat filling differs from the faster PU of P3-LLM~\cite{p3llm} in what starts a MAC.
-P3-LLM-style also clocks its PU above the column rate, but each MAC still waits for its own command, issued only every
-\tccds, so one column read feeds at most two tokens (Section~\ref{sec:bg:walls}) and the 8 tokens of
-Fig.~\ref{fig:timeline} read the column four times. CoDe starts its beats from the PU clock instead: one \emph{tile
-MAC} command and one column read feed all $V$ tokens, so the beats per column period follow $t_\mathrm{col} \times
-f_\mathrm{PU}$ rather than the ratio of \tccdl{} to \tccds. Per token and weight column, CoDe therefore issues $1/V$
-MAC commands, against one for stock AiM and P3-LLM-style and $1/4$ for LP-Spec-style (Fig.~\ref{fig:timeline}). In the table of Fig.~\ref{fig:mapping}b, the weight row's time in MAC slots falls from 512
+of the tile. In the table of Fig.~\ref{fig:mapping}b, the weight row's time in MAC slots falls from 512
 to 128 column periods for the same $8 \times 64$ MAC beats. With both levers joined, the weight row takes 738.75\,ns
 against stock AiM's 3,250\,ns, 4.40$\times$ shorter, the speedup gap of Fig.~\ref{fig:mapping}b.
+
+% P:des-beat-novelty
+Beat filling differs from the two families of Section~\ref{sec:bg:walls} in what fills the beats of a column period.
+LP-Spec~\cite{lpspec} keeps one MAC step per column command and widens the step: one column command feeds four 32-wide
+ALUs with four tokens, so LP-Spec fills the beats with four times the multipliers. P3-LLM~\cite{p3llm} reuses a latched
+column for two tokens, but each MAC still waits for its own command, issued only every \tccds, so one column read feeds
+at most two tokens and the 8 tokens of Fig.~\ref{fig:timeline} read the column four times. CoDe starts its beats from
+the PU clock instead: one \emph{tile MAC} command and one column read feed all $D$ beats of each column period over the
+tile at the stock multiplier count, so the beats per column period follow $t_\mathrm{col} \times f_\mathrm{PU}$ rather
+than the ratio of \tccdl{} to \tccds. Per token and weight column, CoDe therefore issues $1/V$ MAC commands, against
+one for stock AiM and P3-LLM-style and $1/4$ for LP-Spec-style (Fig.~\ref{fig:timeline}). The idle beats thus
+disappear without added multipliers, which gives CoDe 1.87$\times$ LP-Spec-style's tokens per second per logic
+mm$^2$ on the mobile platform (Section~\ref{sec:eval:e2e}), and without per-token MAC commands, which gives CoDe its speed lead over
+P3-LLM-style.
 
 \subsection{Tile MAC Command and PU Microarchitecture}
 \label{sec:design:pu}

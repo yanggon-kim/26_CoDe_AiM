@@ -144,8 +144,9 @@ stays below LP-Spec-style's on both platforms (Section~\ref{sec:eval:energy}). O
 % P:eval-gain-sources
 \runin{Sources of CoDe's gain}
 CoDe's gain over stock AiM has two sources, row reuse and beat filling. Table~\ref{tab:umac_src} adds the two sources with row reuse first for one decoder layer's weight GEMMs at $M = 8$, the layer of Table~\ref{tab:umac} on the mobile platform. The row-reuse-only design keeps the stock PU's pace of one beat per column
-period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$, which still reads
-each column once per tile. Row reuse alone speeds
+period and adds CoDe's storage and row sweeps of $V$ tokens; we simulate it as CoDe's trace at $D = 1$, which reads
+each weight column of the layer once, as CoDe does: one eighth as often as stock AiM, a quarter as often as
+P3-LLM-style and half as often as LP-Spec-style. Row reuse alone speeds
 the layer up 1.24$\times$ on the mobile platform and 1.15$\times$ on the edge server, yet $U$ reaches 0.223 and
 0.222, because \UMAC stays at 1/4. Beat filling then adds one beat per column period at each step, raising \UMAC to
 0.50, 0.73 and 1.00 ($D = 3$ runs 2.91 beats, as the PU's hold rounds to whole simulator cycles), and its three steps

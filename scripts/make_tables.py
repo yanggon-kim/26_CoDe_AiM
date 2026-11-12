@@ -662,6 +662,25 @@ def dots_checks():
     print("dots: e2e CoDe / row reuse only 2.03x (phone loop M 8) / 2.29x (HBM2 b 8); layer 3.49x / 3.33x")
 
 
+def colread_checks():
+    """Intro contribution 2 / Sec. VI-E: CoDe (V = 8) and the row-reuse-only design (CoDe's trace at D = 1) read each
+    weight column of one decoder layer once per tile: one eighth as often as stock AiM, a quarter as often as
+    P3-LLM-style and half as often as LP-Spec-style (mobile platform, M = 8). Ids cr.phone.gemm.M8.layer.* (evaluation
+    dac_sd8g3, microarch row 120, acf9e18; h2 = LP-Spec-like, h3 = P3-LLM-like)."""
+    ps = ids("dac_sd8g3")
+    k = "cr.phone.gemm.M8.layer."
+    want = {"core8.over_stock": 1 / 8, "core8_d1.over_stock": 1 / 8, "core8_over_h3.reads": 0.25,
+            "core8_over_h2.reads": 0.5, "core8_d1_over_core8.reads": 1.0}
+    for i, v in want.items():
+        assert abs(ps[k + i] - v) < 1e-9, (i, ps[k + i])
+    phrase = ("one eighth as often as stock AiM, a quarter as often as P3-LLM-style and half as often as "
+              "LP-Spec-style")
+    for sec in ("01_introduction", "06_evaluation"):
+        with open(os.path.join(REPO, "sections", sec + ".tex")) as fh:
+            assert phrase in " ".join(fh.read().split()), sec
+    print("colread: CoDe / row reuse only read each column 1/8 of stock, 1/4 of P3-LLM-style, 1/2 of LP-Spec-style")
+
+
 def timing_checks():
     """Intro / Sec. IV-D / V-C: the pipelined CoDe PU meets timing at 0.8 GHz (mobile, INT8 lanes) and 1 GHz (HBM2,
     INT4 x INT8 lanes) on Synopsys DC / SAED14 with PrimeTime confirming; all six paper PUs meet their Table IV clocks.
@@ -688,5 +707,6 @@ if __name__ == "__main__":
     phone_levels()
     newdram_checks()
     dots_checks()
+    colread_checks()
     timing_checks()
     print("checks: all frozen values hold")

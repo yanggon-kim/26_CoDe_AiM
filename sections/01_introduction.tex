@@ -34,7 +34,9 @@ family spends multipliers: LP-Spec~\cite{lpspec} keeps one MAC step per column c
 read to four 32-wide ALUs. The four ALUs carry four times the multipliers, and LP-Spec~\cite{lpspec} estimates that its
 compute units and buffers take 16.92\,\% of an LPDDR5 die. The faster-PU family spends commands: P3-LLM~\cite{p3llm}
 latches a weight and issues one command per token, so P3-LLM's MACs inherit the minimum command spacing \tccds, half the
-column period: at most two tokens share a read.
+column period: at most two tokens share a read. DOTS~\cite{dots} keeps a weight row open across tokens but still reads
+every column once per token, and SAL-PIM~\cite{salpim}, the Precision-Flexible PU~\cite{pfpu} and CD-PIM~\cite{cdpim}
+run several beats per column read for one input vector.
 
 % P:intro-timing-insight
 Critically, \textbf{DRAM timing parameters space the column commands} that move data out of the cell array~\cite{hbmpim}, not
@@ -66,7 +68,9 @@ In summary, this paper makes the following contributions:
   \item We identify that prior PIM ties MAC timing to DRAM command timing and derive the depth a column allows once
         MAC timing is separated from command timing: 4 beats on LPDDR5-6400 and HBM2 (Section~\ref{sec:bg:depth}).
   \item We propose CoDe, a PU and command extension that runs $D$ MAC beats per column command over a tile of tokens
-        at the stock multiplier count (Section~\ref{sec:design}).
+        at the stock multiplier count, reading each weight column once per tile: on the mobile platform, one eighth as
+        often as stock AiM, a quarter as often as P3-LLM-style and half as often as LP-Spec-style
+        (Sections~\ref{sec:design} and~\ref{sec:eval:ablation}).
   \item We show, under one area model with one tenfold DRAM-process factor for every design, that CoDe reaches the
         wider-PU family's 4$\times$ MAC ceiling with the stock multiplier count: on 0.574$\times$ LP-Spec-style's logic,
         CoDe returns 1.87$\times$ (mobile platform) and 1.80$\times$ (HBM2) its tokens per second per logic mm$^2$,

@@ -12,9 +12,9 @@ that suits GEMVs but not GEMMs. Prior PIM designs fill the idle beats at a cost:
 densely than an ASIC, or one command per token, which lets a column read serve at most two tokens. DRAM timing, however,
 bounds how often a column is read, not how many MACs may consume it, and an all-bank column already spans four
 command-clock cycles. Based on this characterization, we propose CoDe (Command-Decoupled PIM), which spends those cycles
-instead of adding multipliers, with two techniques: row reuse lets a tile of tokens share one row sweep and pay its
-row-switch commands once, and beat filling computes the tile's tokens in the four PU beats of each column period from
-one latched column. On a mobile platform, CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$
+instead of adding multipliers, with two techniques: row reuse lets a tile of tokens share one row sweep, reading each weight column once for the tile rather than once
+per token, and pay its row-switch commands once, and beat filling computes the tile's tokens in the four PU beats of
+each column period from that latched column. On a mobile platform, CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$
 and decodes 1.60$\times$ faster at about the same logic area. On an HBM2 edge server, CoDe decodes a batch of 8
 1.41$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only.
 \end{abstract}
