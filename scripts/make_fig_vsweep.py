@@ -24,8 +24,8 @@ from svgchart import COLUMNWIDTH, FL, I, Fig, Panel, row, width
 STYLE.update({
     "sp_m": dict(color="#505050", marker="diamond", label="Mobile, speed-up"),
     "sp_h": dict(color="#505050", marker="diamond", label="HBM2, speed-up", dash="2.4 1.4"),
-    "pa_m": dict(color="#E03127", marker="diamond", label="Mobile, per mm²"),
-    "pa_h": dict(color="#E03127", marker="diamond", label="HBM2, per mm²", dash="2.4 1.4"),
+    "pa_m": dict(color="#3D85C6", marker="diamond", label="Mobile, per mm²"),
+    "pa_h": dict(color="#3D85C6", marker="diamond", label="HBM2, per mm²", dash="2.4 1.4"),
 })
 VS = [1, 2, 4, 8, 16, 32, 64]
 D = 4

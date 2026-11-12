@@ -53,7 +53,7 @@ refresh then takes 7.0\,\% of stock AiM's time at $M = 1$ (Section~\ref{sec:bg:c
 
 % P:meth-area-model
 Logic area comes from synthesis of each PU's arithmetic and registers with Synopsys Design Compiler (compile\_ultra
-with DesignWare) on Synopsys' SAED14 educational 14\,nm library (RVT cells, typical corner at 0.8\,V and 25\,$^\circ$C),
+with DesignWare) on Synopsys' SAED14 educational 14\,nm library~\cite{saed14} (RVT cells, typical corner at 0.8\,V and 25\,$^\circ$C),
 multiplied by ten for the tenfold density penalty UPMEM~\cite{devaux} reports for logic in a DRAM
 process\ASSUMPTION. Registers are priced per bit from synthesized register blocks, each PU adds a fixed control area,
 and the GB is priced as DRAM-process SRAM\ASSUMPTION. PrimeTime confirms that each synthesized PU meets timing at its
