@@ -108,6 +108,10 @@ def check_prose_numbers(d):
     assert all(hb["sp"][s] < 1 for s in ("stock", "p3"))
     assert r2(ht["isca.e2e.hbm2.core4_over_p3own.speed"]) == 1.41
     assert abs(hb["tok"]["code"] / hb["tok"]["p3"] - ht["isca.e2e.hbm2.core4_over_p3own.speed"]) < 1e-9
+    # eval-e2e-p3 cause (microarch 1bf7e10, evaluation 2d12a3b): under P3-LLM's placement P3-LLM-style's attention takes
+    # 1.30x the NPU's time, CoDe's 0.92x (LP-Spec-style equal); gmean5 mean-share rule, never the .gm_of_ratios ids
+    a = {d: ht[f"hyb.p3a.hbm2.b8.gmean5.{d}.attn_vs_npu"] for d in ("p3_hyb", "core_hyb", "lps_hyb")}
+    assert (r2(a["p3_hyb"]), r2(a["core_hyb"])) == (1.30, 0.92) and abs(a["core_hyb"] - a["lps_hyb"]) < 1e-12
     assert r2(ht["isca.e2e.hbm2.core4_over_p3_500.speed"]) == 1.68 and r2(ht["isca.e2e.hbm2.p3_500.speedup_vs_npu"]) == 0.76  # history
     # ("NPU only overtakes CoDe from batch 16" cut 2026-11-12, user trim; npu_overtakes ids stay collected)
     # eval-e2e-per-mm2 (SAED14 x 10 areas, evaluation 35c9d06; Nangate45 history 1.99 / 1.79, 1.17 / 1.06, 1.69):

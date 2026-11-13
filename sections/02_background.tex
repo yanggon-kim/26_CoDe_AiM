@@ -16,7 +16,7 @@ paper targets verification on the mobile platform ($M = 2$--32~\cite{sdnpu,lpspe
 ($M = 2$--8~\cite{p3llm}). Attention multiplies the $M$ query rows by the cached keys ($QK^\top$) and the $M$ rows of
 probabilities by the cached values ($PV$). Speculative decoding verifies the $M$ drafted tokens against one shared
 key--value (KV) cache, so its attention is a skinny GEMM as well, whereas a batch reads one cache per request, so batched attention
-stays one GEMV per request.
+is one GEMV per request or, on grouped-query models, a skinny GEMM over the query heads that share a KV head.
 
 \subsection{DRAM and AiM-Style PIM}
 \label{sec:bg:pim}

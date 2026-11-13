@@ -68,7 +68,9 @@ CoDe its speed lead over the per-bank LP-Spec-style, at $M = 8$ and 16, and CoDe
 \runin{Speed against P3-LLM-style}
 CoDe decodes a batch of 8 1.41$\times$ faster than P3-LLM-style on the edge server, where P3-LLM-style runs at
 0.91$\times$ NPU only's speed (Fig.~\ref{fig:e2e}a). P3-LLM-style here follows P3-LLM's own placement, with the linear
-layers on the NPU and attention on PIM, while CoDe keeps every layer on PIM, its fastest placement at this batch. On
+layers on the NPU and attention on PIM, while CoDe keeps every layer on PIM, its fastest placement at this batch. Under
+P3-LLM's placement, P3-LLM-style's two-token read streams each grouped-query KV head twice, so its attention takes
+1.30$\times$ the NPU's time, whereas CoDe's takes 0.92$\times$. On
 the mobile platform P3-LLM-style reaches 2.06$\times$ NPU only's speed, because its two-token read needs four passes
 over the eight token rows. CoDe's speed lead more than repays its larger logic: CoDe returns 1.11$\times$
 P3-LLM-style's decoding throughput per logic mm$^2$ on the mobile platform and 1.05$\times$ on the edge server,
