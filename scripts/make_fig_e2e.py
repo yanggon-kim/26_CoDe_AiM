@@ -109,11 +109,7 @@ def check_prose_numbers(d):
     assert r2(ht["isca.e2e.hbm2.core4_over_p3own.speed"]) == 1.41
     assert abs(hb["tok"]["code"] / hb["tok"]["p3"] - ht["isca.e2e.hbm2.core4_over_p3own.speed"]) < 1e-9
     assert r2(ht["isca.e2e.hbm2.core4_over_p3_500.speed"]) == 1.68 and r2(ht["isca.e2e.hbm2.p3_500.speedup_vs_npu"]) == 0.76  # history
-    # NPU only overtakes CoDe from batch 16 on the gmean (CoDe last ahead at 12)
-    assert ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.first_npu_M"] == 16 and ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.last_pim_M"] == 12
-    # eval-e2e-phone setting: batch 8 = the largest power of two at which CoDe still leads NPU only
-    lead_b = ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.last_pim_M"]
-    assert max(2 ** k for k in range(8) if 2 ** k <= lead_b) == 8 < ht["isca.e2e.hbm2.npu_overtakes.core4.gmean.first_npu_M"]
+    # ("NPU only overtakes CoDe from batch 16" cut 2026-11-12, user trim; npu_overtakes ids stay collected)
     # eval-e2e-per-mm2 (SAED14 x 10 areas, evaluation 35c9d06; Nangate45 history 1.99 / 1.79, 1.17 / 1.06, 1.69):
     # CoDe / LP-Spec-style 1.87x (mobile, M = 8), 1.80x (edge); CoDe / P3-LLM-style 1.11x, 1.05x (edge: own
     # placement, PIM logic only, no NPU area); Fig. 8b P3-LLM-style edge bar = p3own_over_h2.per_mm2 (1.72)
@@ -158,7 +154,7 @@ def check_prose_numbers(d):
     assert ex["p3_500"]["placement"] == "npu_lin_pim_attn" and ex["core4"]["placement"] == "pim_all"
     print("Secs. VI-B/C numbers hold: mobile M = 8 3.22 / 3.00 / 2.06 / 1.27x at 29.9 / 27.9 tok/s, 1.07x (also M = 16), "
           "M = 2-16 vs LP-Spec-style speed >= 1, per mm2 1.75-2.28x; "
-          "edge 1.28 / 1.28 / 0.91 / 0.45x, 1.41x, NPU from batch 16; per mm2 1.87 / 1.80, 1.11 / 1.05; energy 105.8 mJ, "
+          "edge 1.28 / 1.28 / 0.91 / 0.45x, 1.41x; per mm2 1.87 / 1.80, 1.11 / 1.05; energy 105.8 mJ, "
           "6.0 / 1.96 / 1.40 / 1.14x; edge 1.48 / 1.52x (gated 2.08 / 2.46x, weight I/O 76 % of the gap)")
 
 
@@ -169,15 +165,15 @@ def fmt(v):
 def main():
     d = load()
     check_prose_numbers(d)
-    W, H = TEXTWIDTH, 178.0
+    W, H = TEXTWIDTH, 142.0   # 0.8x of 178 pt (user trim, 2026-11-12)
     fig = Fig(W, H)
     fig.o.append(DEFS)
     fig.legend_patches([(LABEL[s],) + colours(s) for s in SYS], 8.5)
-    box_h, rows_y = 62.0, (24.0, 104.0)
+    box_h, rows_y = 48.0, (24.0, 86.0)
     spec = {"phone": [dict(ylim=(0, 3.9), yticks=[0, 1, 2, 3]), dict(ylim=(0, 2.3), yticks=[0, 0.5, 1, 1.5, 2]),
                       dict(ylim=(0, 265), yticks=[0, 50, 100, 150, 200, 250])],
             "hbm2": [dict(ylim=(0, 1.65), yticks=[0, 0.5, 1, 1.5]), dict(ylim=(0, 2.3), yticks=[0, 0.5, 1, 1.5, 2]),
-                     dict(ylim=(0, 470), yticks=[0, 100, 200, 300, 400])]}
+                     dict(ylim=(0, 520), yticks=[0, 100, 200, 300, 400])]}
     titles = ["(a) Speed-up over NPU only", "(b) Tok/s per logic mm², normalized", "(c) Energy per token"]
     ylabs = ["speed-up", "÷ LP-Spec-style", "mJ / token"]
     for (p, rlab), y0 in zip((("phone", ["Mobile", I("M") + " = 8"]), ("hbm2", ["Edge server", "batch 8"])), rows_y):

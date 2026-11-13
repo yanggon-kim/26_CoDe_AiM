@@ -156,15 +156,3 @@ period or more. CoDe's lanes multiply integers, INT8 on the mobile platform and 
 narrower operands than the BF16 of that section's 1\,GHz multipliers.
 Synthesized with Synopsys Design Compiler on a 14\,nm library (Section~\ref{sec:method:models}), the pipelined PU meets
 timing at 0.8\,GHz on the mobile platform and at 1\,GHz on HBM2, as PrimeTime confirms.
-
-\subsection{Mapping Skinny GEMMs and Attention}
-\label{sec:design:map}
-
-% P:des-mapping
-A $K \times N$ weight matrix maps as in stock AiM: the matrix's $N$ output rows spread over the banks, and each row's $K$ weights run along DRAM columns. CoDe cuts the $M$ token rows into tiles of $V$. For each tile the GB holds the tile's
-activations for a chunk of $K$; every weight column of the chunk takes one \emph{tile MAC} command, and the next tile repeats
-the row sweep. Attention runs on the same path
-with the KV cache as the weight matrix: $QK^\top$ streams the cached keys against the $M$ query rows, and $PV$ the
-cached values against the $M$ rows of probabilities. Speculative decoding verifies $M$ drafted tokens against one
-shared KV cache, so speculative-decoding attention is a skinny GEMM as well; a batch reads one cache per request, so batched attention
-stays one GEMV per request. The host computes softmax, RoPE and normalisation between the PIM phases.

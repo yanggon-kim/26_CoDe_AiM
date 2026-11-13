@@ -314,8 +314,6 @@ def umac_table():
     # convergence: formula within 0.33 % (mobile) and 0.59 % (edge server) on the designs it was not fitted on
     assert round(tid["umac.paper.phone.maxres_nonstock_pct"], 2) == 0.33
     assert round(tid["umac.paper.hbm2.maxres_nonstock_pct"], 2) == 0.59
-    # V: P3-LLM-style re-timed on the mobile C/A bus, U 0.355 -> 0.351
-    assert round(tid["umac.p3t.phone.U_timed.min"], 3) == 0.351 == round(tid["umac.p3t.phone.U_timed.max"], 3)
     # III-C: LP-Spec-style's U per multiplier, 0.173-0.174 mobile (M = 4, 8, 16) / 0.185 edge server; below stock AiM's 0.179
     assert (round(tid["umac.phone.h2.U_per_mult.min"], 3), round(tid["umac.phone.h2.U_per_mult.max"], 3)) == (0.173, 0.174)
     assert tid["umac.phone.h2.U_per_mult.max"] < f(row("phone", "stock", 8)["U_sim"])
@@ -382,8 +380,6 @@ def umac_src_table():
         bf = f(ds[(p, 4)]["cumulative_speedup"]) / f(ds[(p, 1)]["cumulative_speedup"])
         assert r2(bf) == {"phone": 3.49, "hbm2": 3.33}[p] == r2(g(p, "core", "step_speedup")), (p, bf)
         assert abs(bf / tid[f"umac.dsteps.{p}.bf_total"] - 1) < 1e-5
-        # "D = 3 runs 2.91 beats" (PU hold rounded to whole simulator cycles), hence U_MAC 0.73, not 0.75
-        assert r2(f(ds[(p, 1)]["t_slot_ns"]) / f(ds[(p, 3)]["t_slot_ns"])) == 2.91 == r2(tid[f"umac.dsteps.{p}.d3_eff_beats"])
         # U_MAC 0.25 -> 0.50 -> 0.73 -> 1.00 ("one beat per column period at each step")
         assert [want[(p, d)][0] for d in ("rs", "d2", "d3", "core")] == ["0.25", "0.50", "0.73", "1.00"]
         # VI-E prose: at D = 2 (half the PU clock) CoDe returns 1.07x / 1.015x the per-bank LP-Spec-style's throughput per
@@ -497,7 +493,7 @@ def headline():
 
 
 def phone_levels():
-    """Printed: the P3-LLM reproduction (V-C, 1.78x vs 1.6x). The Fig. 5-pack bands, the attention-layer energy and the
+    """Printed: the P3-LLM reproduction (V-C, "reproduces, and slightly exceeds"; 1.78x vs 1.6x guard only). The Fig. 5-pack bands, the attention-layer energy and the
     loop-speed range are guard only since the Sec. VI restructure (2026-10-30; Sec. VI prints make_fig_gemm / _e2e ids)."""
     rows = read("dac_fig5_phone.csv")
 
@@ -521,7 +517,8 @@ def phone_levels():
     assert (r2(t["reads/h2/layer/energy/b8+"][0]), r2(t["reads/h2/layer/energy/b8+"][1])) == (1.16, 1.28)
     # P3-LLM reproduction (EV-49, INT8): depth-2 step gain over a depth-1 PIM, mean over models and batch 2 / 4
     rep = {r["row_id"]: r for r in read("hbm2_p3llm_repro.csv", os.path.join(EVAL, "dac_2x2", "raw"))}
-    assert r2(rep["tep_mean/all/2,4"]["ours"]) == 1.78 and float(rep["tep_mean/all/2,4"]["p3llm"]) == 1.6
+    # V-C prints "reproduces, and slightly exceeds" (1.78x vs 1.6x no longer printed, user trim 2026-11-12)
+    assert 1.6 < float(rep["tep_mean/all/2,4"]["ours"]) < 1.9 and float(rep["tep_mean/all/2,4"]["p3llm"]) == 1.6
     # end-to-end loop speed, CoDe / LP-Spec-style over L 128-1024 (dac_sd8g3 x.ev56.loop.*.speed.*): "1.00--1.006"
     tid = {r["id"]: float(r["value"]) for r in read("touched.csv", os.path.join(EVAL, "dac_sd8g3"))}
     lo = min(tid[f"x.ev56.loop.{d}.speed.min"] for d in ("d1b", "eagle"))
@@ -600,14 +597,15 @@ def lpsv_checks():
     assert ps["lpsv.phone.loop.core8_over_h2a8.speed.min"] == 1.0 == ps["lpsv.phone.loop.core8_over_h2a8.speed.max"]
     assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M8plus_no12.min"], 3) == 1.0 == round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M8plus_no12.max"], 3)
     assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M12"], 3) == 1.007
-    assert r2(ps["lpsv.phone.h2a8.pct_of_die"]) == 5.18
+    # VI-B: logic per die from LP-Spec-style's 2.800 (Table IV) to 3.155 mm2 (the 5.18 % share no longer printed)
+    assert round(ps["lpsv.phone.h2a8.logic_mm2_die"], 3) == 3.155
     assert r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.min"]) == 1.96 == r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.max"])
     assert ps["lpsv.phone.loop.core8_over_h2a8.speed_M8"] == 1.0 and r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2_M8"]) == 1.96
     # III-C: LP-Spec's own 16.92 % and its register files per matrix unit, against our 4.60 % (Table IV)
     assert r2(ps["budget.lpspec_own.pct_of_die_1z"]) == 16.92 and ps["budget.lpspec_own.rf_bits_per_mpu"] == 50688
     assert r2(ps["budget.phone.h2.pct_of_die_1z"]) == 4.60
     print("lpsv: shared 0.90x CoDe's logic, CoDe 1.60x faster, 1.44x per mm2 (M = 8); bank column 8 / 5 ns; "
-          "A8 ties (1.007 at M = 12), 5.18 %, CoDe 1.96x per mm2; LP-Spec RF 50,688 b per unit")
+          "A8 ties (1.007 at M = 12), 3.155 mm2, CoDe 1.96x per mm2; LP-Spec RF 50,688 b per unit")
 
 
 def newdram_checks():

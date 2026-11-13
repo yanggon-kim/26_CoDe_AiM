@@ -71,27 +71,15 @@ def checks(d):
             assert abs(q - t[f"aps.{p}.h2.{lv}.ratio_to_core"]) < 1e-9
         a = f(p, "CoRe", "D4", "dA_mm2") / (f(p, "CoRe", "D4", "S_kernel_M8") - 1)
         assert abs(a - t[f"aps.{p}.{core}.kernel_M8.mm2_per_x"]) < 1e-12
-    # P1: arithmetic 83 % of LP-Spec-style's added logic, storage 93 % of CoDe's (mobile)
-    assert round(100 * t["aps.phone.h2.arith_share"]) == 83 and round(100 * t["aps.phone.core8.storage_share"]) == 93
-    # P2: the tile 0.598 mm^2 per die for 1.24x; D 1 -> 4 adds no logic area, speed-up 4.17x (mobile, GEMMs at M = 8)
-    assert r(t["aps.marg.phone.stock_d1.dA"], 3) == 0.598 and r(f("phone", "CoRe", "D1", "S_kernel_M8"), 2) == 1.24
+    # VII-A "pays once, for the tile's storage, and gains its beats from the PU clock": the tile adds no arithmetic,
+    # D 1 -> 4 adds no logic area (mobile, GEMMs at M = 8; the 83 / 93 %, 0.598 mm2, 4.17x, 0.59 / 0.50 mm2 per ALU,
+    # 3.6x and 6.5x / 16.5x (1.29x / 1.34x at 3x) prints were cut 2026-11-12, user trim; ids stay collected)
+    assert r(f("phone", "CoRe", "D1", "S_kernel_M8"), 2) == 1.24     # row reuse alone, also printed in I / VI-E
     assert abs(t["aps.marg.phone.d1_d4.dA"]) < 1e-9 and abs(t["aps.phone.core_per_beat_dA"]) < 1e-9
-    assert r(t["aps.phone.core8.kernel_M8.S"], 2) == 4.17
     assert t["aps.marg.phone.stock_d1.dA_arith"] == 0 and t["aps.marg.phone.d1_d4.dA_storage"] == 0
-    # P2: about 0.59 mm^2 per die per 32-wide ALU (mean of the three steps 0.585-0.587), 0.50 of it arithmetic
-    # (multipliers and adder trees); the eight-token LP-Spec-style at CoDe's speed costs 3.6x CoDe's mm^2 per +1x
-    assert r(t["aps.phone.lp_alu.step_dA.mean"], 2) == 0.59 == r(t["aps.phone.lp_per_beat_dA"], 2)
-    assert t["aps.phone.lp_alu.step_dA.max"] - t["aps.phone.lp_alu.step_dA.min"] < 0.005
-    assert r(t["aps.phone.lp_alu.step_arith"], 2) == 0.50
-    assert r(t["aps.phone.h2a8.kernel_M8.ratio_to_core"], 1) == 3.6
-    assert abs(t["aps.phone.h2a8.kernel_M8.S"] - t["aps.phone.core8.kernel_M8.S"]) < 1e-12
     # P2: peak power stays below LP-Spec-style's on both platforms (0.92x / 0.87x are printed in VI-C only)
     assert s["pupow.phone.gate.core8.over_h2"] < 1 and t["pupow.hbm2.gate.core4.over_h2"] < 1
     assert r(s["pupow.phone.gate.core8.over_h2"], 2) == 0.92 and r(t["pupow.hbm2.gate.core4.over_h2"], 2) == 0.87
-    # P3: the per-mm^2 lead over LP-Spec-style holds until storage costs 6.5x (mobile) / 16.5x (edge server) our estimate;
-    # at 3x, CoDe still returns 1.29x / 1.34x
-    assert r(t["stor.phone.be.all.lp"], 1) == 6.5 and r(t["stor.hbm2.be.all.lp"], 1) == 16.5
-    assert r(t["stor.phone.all.s3.per_mm2_vs_lp"], 2) == 1.29 and r(t["stor.hbm2.all.s3.per_mm2_vs_lp"], 2) == 1.34
     # III-D: the wider-PU family (our LP-Spec-style model) adds about 1.8 mm^2 per die over stock AiM = Table IV 2.800 - 1.009
     assert r(t["aps.phone.h2.dA"], 1) == 1.8
     t4 = {x["design"]: float(x["logic_mm2"]) for x in csv.DictReader(open(os.path.join(PHONE_RAW, "dacp_table4.csv")))}
@@ -100,9 +88,8 @@ def checks(d):
     # HBM2 per-pCH areas tie to Table IV too
     t4h = {x["design"]: float(x["logic_mm2"]) for x in csv.DictReader(open(os.path.join(HBM2_RAW, "dacp_table4.csv")))}
     assert abs(t4h["h2"] - t4h["stock"] - t["aps.hbm2.h2.dA"]) < 1e-6 and abs(t4h["core4"] - t4h["stock"] - t["aps.hbm2.core4.dA"]) < 1e-6
-    print("Secs. I / III-D / VII-A numbers hold: 0.655 / 0.189 (3.5x), 0.405 / 0.130 (3.1x), e2e 3.4x / 3.1x, 83 / 93 %, "
-          "0.598 mm2 -> 1.24x, +0 mm2 -> 4.17x, 0.59 / 0.50 mm2 per ALU, A8 3.6x, break-even 6.5x / 16.5x "
-          "(1.29x / 1.34x at 3x), 1.8 mm2")
+    print("Secs. I / III-D / VII-A numbers hold: 0.655 / 0.189 (3.5x), 0.405 / 0.130 (3.1x), e2e 3.4x / 3.1x, "
+          "D 1 -> 4 adds no logic area, 1.8 mm2")
 
 
 def iso(pn, k):
@@ -147,11 +134,11 @@ def label(pn, x, y, s, dx, dy, anchor="start"):
 def main():
     d = load()
     checks(d)
-    H = 150.0
+    H = 120.0   # 0.8x of 150 pt (user trim, 2026-11-12)
     fig = Fig(COLUMNWIDTH, H)
     top, bottom = 33.0, H - 20.0
-    ax = [dict(ylim=(0.5, 4.7), ylog=False, yticks=[1, 2, 3, 4]),
-          dict(ylim=(0.5, 4.7), ylog=False, yticks=[1, 2, 3, 4])]
+    ax = [dict(ylim=(0.5, 5.2), ylog=False, yticks=[1, 2, 3, 4]),
+          dict(ylim=(0.5, 5.2), ylog=False, yticks=[1, 2, 3, 4])]
     # legend: two rows
     smp, gp, sp = 13.0, 2.0, 9.0
     fig.legend(["st_code", "st_lp"], 7.5, sample=smp, gap=gp, space=sp)
@@ -169,7 +156,7 @@ def main():
             "hbm2": dict(x0=xb, w=wb, lab=lb, xlim=(-0.05, 1.25), xt=[0, 0.4, 0.8, 1.2],
                          title="(b) Edge server", xl="added logic (mm² per pCH)")}
     for p, c in spec.items():
-        pn = Panel(fig, c["x0"], top, c["w"], bottom - top, c["xlim"], c["xt"], (0.5, 4.7), False, [1, 2, 3, 4],
+        pn = Panel(fig, c["x0"], top, c["w"], bottom - top, c["xlim"], c["xt"], (0.5, 5.2), False, [1, 2, 3, 4],
                    xlog=False)
         pn.frame(c["title"], c["xl"], "speed-up over stock AiM", c["lab"])
         for k in ISO_K[p]:
