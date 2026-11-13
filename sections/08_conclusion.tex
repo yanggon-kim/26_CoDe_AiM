@@ -8,6 +8,6 @@ multiply--accumulate (MAC) by a DRAM command and fills its idle beats with multi
 that DRAM timing bounds column accesses, not MACs on a latched column, so a PIM die can fill those beats with clock
 cycles instead of multipliers. CoDe decouples MAC timing from DRAM command timing: one column read feeds many
 processing-unit beats over a tile of tokens, so each weight column is read once per tile instead of once per token. On LPDDR5-6400, CoDe returns 1.87$\times$ LP-Spec-style's tokens per
-second per logic mm$^2$;
+second per logic mm$^2$ and decodes 1.60$\times$ faster than a shared LP-Spec-style design with 0.90$\times$ its logic;
 on HBM2, CoDe decodes a batch of 8 1.41$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only. Since a column's beats follow
 from its period and the clock alone, the decoupling carries over to any DRAM whose column outlasts one beat.

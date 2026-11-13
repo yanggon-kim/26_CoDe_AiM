@@ -3,8 +3,8 @@
 
 % P:eval-modelled
 All results are modelled, and ratios above 1 favour CoDe. Three modelling choices favour the rivals: LP-Spec-style
-keeps only the accumulators its dataflow needs (Section~\ref{sec:bg:walls}) and runs one unit per bank on the mobile platform;
-P3-LLM-style gains more from depth 2 than P3-LLM reports
+keeps only the accumulators its dataflow needs (Section~\ref{sec:bg:walls}) and runs one unit per bank on the mobile platform, faster than
+LP-Spec's shared unit (Section~\ref{sec:eval:ablation}), and P3-LLM-style gains more from depth 2 than P3-LLM reports
 (Section~\ref{sec:method:models}).
 
 \subsection{Skinny GEMM Speedup and Area Efficiency}
@@ -192,3 +192,12 @@ breaks even (0.690--0.915$\times$), and $V = 4$ loses at most 8.9\,\% against $V
   \caption{Tile size: (a)~speed-up and throughput per logic mm$^2$ against $V$; (b)~$(V = 8) / (V = 4)$ per logic mm$^2$ against $M$.}
   \label{fig:vsweep}
 \end{figure}
+
+% P:eval-placement
+\runin{PU placement}
+CoDe keeps its lead when one unit is shared between two banks, the other placement commercial PIM uses
+(Section~\ref{sec:bg:pim}). Sharing costs speed only if a bank delivers a column as often as a unit takes one. On the
+edge server a bank delivers one every 8\,ns and a PU takes one every 4\,ns (Table~\ref{tab:params}), so every design
+there already shares one PU between two banks at full speed. On the mobile platform a bank delivers one every 5\,ns, as
+fast as a unit takes one, so a shared unit halves each bank's rate: shared, LP-Spec-style takes 0.90$\times$ CoDe's
+logic, and CoDe decodes 1.60$\times$ faster at $M = 8$ and returns 1.44$\times$ its tokens per second per logic mm$^2$.

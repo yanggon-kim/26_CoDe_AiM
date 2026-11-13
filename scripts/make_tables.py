@@ -574,9 +574,9 @@ def lpsv_checks():
     unresolved, row 40); LP-Spec's register files are "included" in its 16.92 %, never "mostly"."""
     ps = ids("dac_sd8g3")
     # shared variant: area and loop speed / per mm2 against CoDe (V = 8)
-    # no longer printed (cut from abstract, I and VIII 2026-11-12; eval-placement parked): guards for a possible return
+    # printed in VI-E PU placement (0.90x, 1.60x, 1.44x); abstract, I and VIII print 1.60x (and 0.90x in I, VIII); restored 2026-11-12
     assert r2(ps["lpsv.phone.h2sh_over_core8.logic"]) == 0.90           # SAED14 (Nangate45 0.96)
-    # at the mobile operating point M = 8 (evaluation 7cf79d5): CoDe 1.60x faster, 1.44x per mm2
+    # at the mobile operating point M = 8 (abstract, I, VI-E, VIII; evaluation 7cf79d5): CoDe 1.60x faster, 1.44x per mm2
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M8"]) == 1.60
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M8"]) == 1.44
     # VI-B eval-lpspec-variants: CoDe decodes 1.07x faster than the per-bank LP-Spec-style at M = 8 and 16 (loop, L 1024,
@@ -596,7 +596,7 @@ def lpsv_checks():
     # III-C: LP-Spec's own 16.92 % and its register files per matrix unit, against our 4.60 % (Table IV)
     assert r2(ps["budget.lpspec_own.pct_of_die_1z"]) == 16.92 and ps["budget.lpspec_own.rf_bits_per_mpu"] == 50688
     assert r2(ps["budget.phone.h2.pct_of_die_1z"]) == 4.60
-    print("lpsv: (guards) shared 0.90x CoDe's logic, CoDe 1.60x faster, 1.44x per mm2 (M = 8); bank column 8 / 5 ns; "
+    print("lpsv: shared 0.90x CoDe's logic, CoDe 1.60x faster, 1.44x per mm2 (M = 8); bank column 8 / 5 ns; "
           "A8 ties (1.007 at M = 12), 3.155 mm2, CoDe 1.96x per mm2; LP-Spec RF 50,688 b per unit")
 
 
