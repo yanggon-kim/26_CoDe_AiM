@@ -290,7 +290,7 @@ def umac_table():
     # U = U_MAC x f_MAC per row (simulated columns), and the stock worked example 1/4 x 0.717 = 0.179
     for k, r in rows.items():
         assert abs(f(r["U_MAC"]) * f(r["f_MAC_sim"]) - f(r["U_sim"])) < 1e-5, k
-    # edge server, M = 8 (prose): stock 0.193 (f_MAC 0.771), P3-LLM-style 0.379, LP-Spec-style = CoDe V = 4 0.739;
+    # edge server, M = 8 (prose; III-B prints stock 0.193, IV-A prints stock 0.193 and CoDe 0.739): stock 0.193 (f_MAC 0.771), P3-LLM-style 0.379, LP-Spec-style = CoDe V = 4 0.739;
     # simulated non-MAC ns per token per open row 146.17 / 78.70 / 43.51
     e = {d: cell("hbm2", d, 8) for d in ("stock", "p3", "lpspec", "code")}
     assert [e[d][4] for d in ("stock", "p3", "lpspec", "code")] == ["0.193", "0.379", "0.739", "0.739"], e

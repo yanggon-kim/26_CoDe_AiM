@@ -37,6 +37,16 @@ latches a weight and issues one command per token, so P3-LLM's MACs inherit the 
 column period: at most two tokens share a read. DOTS~\cite{dots} keeps a weight row open across tokens but still reads
 every column once per token.
 
+% float defined in page 1's right column (after Fig. dram_pim is placed there), so it renders at the top of page 2's
+% left column (one float per column); moved from after the contributions 2026-11-13 to close the white space below them
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figs/fig_roofline.pdf}
+  \Description{Two log-log line charts of GEMM throughput against the number of token rows for the host NPU, stock AiM, CoDe and the two rival PIM designs, one for the mobile platform and one for the edge server.}
+  \caption{Skinny-GEMM throughput against the number of token rows $M$: (a)~mobile platform; (b)~edge server.}
+  \label{fig:roofline}
+\end{figure}
+
 % P:intro-timing-insight
 Critically, \textbf{DRAM timing parameters space the column commands} that move data out of the cell array~\cite{hbmpim}, not
 the MACs on a column already latched beside the bank. The column period
@@ -75,11 +85,3 @@ In summary, this paper makes the following contributions:
         P3-LLM-style on HBM2 (Sections~\ref{sec:design:pu} and~\ref{sec:eval}).
 \end{itemize}
 
-% float defined after page 1's right column has closed, so it renders at the top of page 2 (one float per column)
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figs/fig_roofline.pdf}
-  \Description{Two log-log line charts of GEMM throughput against the number of token rows for the host NPU, stock AiM, CoDe and the two rival PIM designs, one for the mobile platform and one for the edge server.}
-  \caption{Skinny-GEMM throughput against the number of token rows $M$: (a)~mobile platform; (b)~edge server.}
-  \label{fig:roofline}
-\end{figure}
