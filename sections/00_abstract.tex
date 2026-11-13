@@ -11,10 +11,11 @@ first conduct a detailed characterization of stock PIM's GEMM time, which shows 
 that suits GEMVs but not GEMMs. Prior PIM designs fill the idle beats at a cost: four times the multipliers, in a die that builds logic ten times less
 densely than an ASIC, or one command per token, which lets a column read serve at most two tokens. DRAM timing, however,
 bounds how often a column is read, not how many MACs may consume it, and an all-bank column already spans four
-command-clock cycles. Based on this characterization, we propose CoDe (Command-Decoupled PIM), which spends those cycles
-instead of adding multipliers, with two techniques: row reuse lets a tile of tokens share one row sweep, reading each weight column once for the tile rather than once
-per token, and pay its row-switch commands once, and beat filling computes the tile's tokens in the four PU beats of
-each column period from that latched column. On a mobile platform, CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$
+command-clock cycles. Based on this characterization, we propose CoDe (Command-Decoupled PIM), which decouples MACs from DRAM
+commands without adding multipliers, with one technique per root cause. Row reuse removes the repeated non-MAC
+commands: a tile of tokens shares one row sweep, so each weight column is read and each row switch is paid once per
+tile rather than once per token. Beat filling removes the idle beats: the PU, clocked at the command clock, computes
+the tile's tokens in all four beats of each column period from the latched column. On a mobile platform, CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$
 and decodes 1.60$\times$ faster at about the same logic area. On an HBM2 edge server, CoDe decodes a batch of 8
 1.41$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only.
 \end{abstract}
