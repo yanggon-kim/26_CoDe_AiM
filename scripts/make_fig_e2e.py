@@ -166,17 +166,17 @@ def fmt(v):
 def main():
     d = load()
     check_prose_numbers(d)
-    W, H = TEXTWIDTH, 113.6   # 0.8x of 142 pt (user trims 2026-11-12, 2026-11-13: 178 -> 142 -> 113.6 pt)
+    W, H = TEXTWIDTH, 142.0   # 0.8x of 178 pt (user trim, 2026-11-12)
     fig = Fig(W, H)
     fig.o.append(DEFS)
     fig.legend_patches([(LABEL[s],) + colours(s) for s in SYS], 8.5)
-    box_h, rows_y = 36.0, (22.0, 70.0)
-    spec = {"phone": [dict(ylim=(0, 4.2), yticks=[0, 1, 2, 3]), dict(ylim=(0, 2.3), yticks=[0, 1, 2]),
-                      dict(ylim=(0, 265), yticks=[0, 100, 200])],
-            "hbm2": [dict(ylim=(0, 1.65), yticks=[0, 0.5, 1, 1.5]), dict(ylim=(0, 2.3), yticks=[0, 1, 2]),
-                     dict(ylim=(0, 570), yticks=[0, 200, 400])]}
-    titles = ["(a) Speed-up over NPU only", "(b) Tok/s per logic mm² ÷ LP-Spec-style", "(c) Energy per token"]
-    ylabs = ["speed-up", "ratio", "mJ / token"]
+    box_h, rows_y = 48.0, (24.0, 86.0)
+    spec = {"phone": [dict(ylim=(0, 3.9), yticks=[0, 1, 2, 3]), dict(ylim=(0, 2.3), yticks=[0, 0.5, 1, 1.5, 2]),
+                      dict(ylim=(0, 265), yticks=[0, 50, 100, 150, 200, 250])],
+            "hbm2": [dict(ylim=(0, 1.65), yticks=[0, 0.5, 1, 1.5]), dict(ylim=(0, 2.3), yticks=[0, 0.5, 1, 1.5, 2]),
+                     dict(ylim=(0, 520), yticks=[0, 100, 200, 300, 400])]}
+    titles = ["(a) Speed-up over NPU only", "(b) Tok/s per logic mm², normalized", "(c) Energy per token"]
+    ylabs = ["speed-up", "÷ LP-Spec-style", "mJ / token"]
     for (p, rlab), y0 in zip((("phone", ["Mobile", I("M") + " = 8"]), ("hbm2", ["Edge server", "batch 8"])), rows_y):
         axes = [dict(a, ylog=False) for a in spec[p]]
         lay = row(fig, axes, y0, y0 + box_h, left=20.0, gap=9.0)
@@ -203,9 +203,9 @@ def main():
                 fig.o.append(f'<rect x="{cx - bw / 2:.2f}" y="{yv:.2f}" width="{bw:.2f}" height="{y0 + box_h - yv:.2f}" '
                              f'fill="{fill}" stroke="{edge}" stroke-width="{BAR_LW}"/>')
                 if v > top:     # clipped bar: break mark, value inside the bar
-                    yb = y0 + 7.0
+                    yb = y0 + 9.0
                     fig.o.append(f'<rect x="{cx - bw / 2 - 1:.2f}" y="{yb:.2f}" width="{bw + 2:.2f}" height="2.2" fill="#FFFFFF"/>')
-                    fig.text(cx, y0 + 16.5, fmt(labs[s]), FT, "middle")
+                    fig.text(cx, y0 + 19.5, fmt(labs[s]), FT, "middle")
                 else:           # white ground under the value, so the dashed 1.0 line never crosses it
                     lw_ = width(fmt(labs[s]), FT)
                     fig.o.append(f'<rect x="{cx - lw_ / 2 - 0.6:.2f}" y="{yv - 1.6 - FT * 0.74:.2f}" width="{lw_ + 1.2:.2f}" '

@@ -150,17 +150,17 @@ def robustness():
 
 def main():
     a, b = gain_by_v(), robustness()
-    H = 128.0
+    H = 102.4   # 0.8x of 128 pt (user, 2026-11-13)
     fig = Fig(COLUMNWIDTH, H)
-    top, bottom = 31.0, H - 19.3
+    top, bottom = 26.5, H - 19.3
     ax = [dict(ylim=(0, 5.2), ylog=False, yticks=[0, 1, 2, 3, 4, 5]),
-          dict(ylim=(0.6, 1.5), ylog=False, yticks=[0.6, 0.8, 1.0, 1.2, 1.4])]
+          dict(ylim=(0.5, 1.5), ylog=False, yticks=[0.6, 0.8, 1.0, 1.2, 1.4])]
     # legend: two rows in two aligned columns (mobile left, HBM2 right)
     smp, gp, sp = 13.0, 2.0, 10.0
     w = lambda k: smp + gp + width(STYLE[k]["label"], FL)   # noqa: E731
     c0 = max(w("sp_m"), w("pa_m"))
     x0 = (COLUMNWIDTH - (c0 + sp + max(w("sp_h"), w("pa_h")))) / 2
-    for y, (km, kh) in ((7.0, ("sp_m", "sp_h")), (17.0, ("pa_m", "pa_h"))):
+    for y, (km, kh) in ((6.0, ("sp_m", "sp_h")), (15.0, ("pa_m", "pa_h"))):
         fig.legend([km], y, x_center=x0 + w(km) / 2, sample=smp, gap=gp)
         fig.legend([kh], y, x_center=x0 + c0 + sp + w(kh) / 2, sample=smp, gap=gp)
     (xa, wa, la), (xb, wb, lb) = row(fig, ax, top, bottom, gap=5.0)
@@ -179,8 +179,8 @@ def main():
     pn.frame("(b) Decode step", "token rows " + I("M"), "(" + I("V") + " = 8) / (" + I("V") + " = 4), per mm²", lb)
     y1 = pn.py(1.0)
     fig.line(xb, y1, xb + wb, y1, sw=0.5, extra=' stroke-dasharray="1 1.5"')
-    pn.note(1.5, 1.40, [I("V") + " = 8 better"], "start")      # above the break-even line
-    pn.note(5.3, 0.625, [I("V") + " = 4 better"], "start")      # below it
+    pn.note(6.4, 1.36, [I("V") + " = 8 better"], "start")      # above the break-even line, clear of the M = 5 peak
+    pn.note(5.3, 0.545, [I("V") + " = 4 better"], "start")      # below it, under the HBM2 curve
     for k in ("pa_h", "pa_m"):
         pn.series(k, b[k])
     pn.finish()
