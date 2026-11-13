@@ -47,11 +47,11 @@ the rank for $t_\mathrm{RFCab}$, the JEDEC values of a 16\,Gb die (Table~\ref{ta
 dies\ASSUMPTION.
 
 % P:meth-area-model
-Logic area comes from synthesis of each PU's arithmetic and registers with Synopsys Design Compiler (compile\_ultra
-with DesignWare) on Synopsys' SAED14 educational 14\,nm library~\cite{saed14} (RVT cells, typical corner at 0.8\,V and 25\,$^\circ$C),
+Logic area comes from synthesis of each PU's arithmetic and registers with Synopsys Design Compiler~\cite{synopsysdc} (compile\_ultra
+with DesignWare~\cite{synopsysdw}) on Synopsys' SAED14 educational 14\,nm library~\cite{saed14} (RVT cells, typical corner at 0.8\,V and 25\,$^\circ$C),
 multiplied by ten for the tenfold density penalty UPMEM~\cite{devaux} reports for logic in a DRAM
 process\ASSUMPTION. Registers are priced per bit from synthesized register blocks, each PU adds a fixed control area,
-and the GB is priced as DRAM-process SRAM\ASSUMPTION. PrimeTime confirms that each synthesized PU meets timing at its
+and the GB is priced as DRAM-process SRAM\ASSUMPTION. PrimeTime~\cite{synopsyspt} confirms that each synthesized PU meets timing at its
 clock of Table~\ref{tab:designs}. Die shares divide the logic area by a 60.92\,mm$^2$ 16\,Gb LPDDR5 die, as
 LP-Spec~\cite{lpspec} reports, and on HBM2 by a stack of eight 84.4\,mm$^2$ dies, the die area of
 HBM-PIM~\cite{hbmpim}, which stands in for a plain HBM2 die\ASSUMPTION.
@@ -69,8 +69,8 @@ HBM-PIM~\cite{hbmpim}, which stands in for a plain HBM2 die\ASSUMPTION.
 \end{table}
 
 % P:meth-power-model
-PrimePower computes PU power and energy from the Design Compiler netlist of each whole PU, placed and
-routed in IC Compiler II and simulated in VCS with back-annotated timing on random operands. Energy and leakage are scaled to the DRAM process so that an AiM-style bf16 PU from the same flow spends
+PrimePower~\cite{synopsyspp} computes PU power and energy from the Design Compiler netlist of each whole PU, placed and
+routed in IC Compiler II~\cite{synopsysicc2} and simulated in VCS~\cite{synopsysvcs} with back-annotated timing on random operands. Energy and leakage are scaled to the DRAM process so that an AiM-style bf16 PU from the same flow spends
 the compute share of CENT's~\cite{cent} AiM MAC-command energy, and to the 1.05\,V VDD2H supply with the
 square of the voltage\ASSUMPTION. Energy per token charges each MAC its PU's energy, leakage over
 the step time, GB reads priced by SRAM size~\cite{horowitz}, and CENT's per-command DRAM energies; in
