@@ -82,7 +82,7 @@ EXPECT = {"stock": (8, 8, 8), "p3": (4, 8, 4), "lpspec": (2, 2, 2), "core": (2, 
 W = 240
 FS, FN = 8, 8.5            # body text, design names
 X0, PER_T = 20.0, 26.625   # grid origin and width of one column period T (8T = 213 pt; ACM column)
-HEAD_H, LANE_H, NOTE_H, UNIT_GAP = 11.0, 10.0, 10.0, 4.0
+HEAD_H, LANE_H, NOTE_H, UNIT_GAP = 10.0, 9.0, 9.0, 3.0   # 0.9x height (user, 2026-11-13)
 I = lambda s: f'<tspan font-style="italic">{s}</tspan>'                       # a variable
 SUB = lambda s: f'<tspan dy="1.8" font-size="6">{s}</tspan><tspan dy="-1.8"> </tspan>'
 FONT = "/usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf"   # the face the PDF embeds

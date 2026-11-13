@@ -34,15 +34,16 @@ shared by all PUs, that holds the input vector~\cite{aimjssc,hbmpim}; Fig.~\ref{
 its PU. Commercial PIM places its units at the banks in two ways: Samsung's LPDDR5X-PIM~\cite{lp5xpim} gives each bank a
 unit, HBM-PIM~\cite{hbmpim} shares one between two banks, and Samsung's LPDDR-PIM design~\cite{hc35pim} offers either,
 one per bank for maximum performance or one per two banks for less area. An all-bank MAC command reads one column from every open bank at once and starts one MAC
-beat in each PU; on the mobile platform, one beat is 32 INT8 multiplies of the column against 32 GB elements,
-accumulated into the PU's output register. The all-bank command repeats every \tccdl~\cite{hbmpim}, the spacing of the
-MAC commands in Fig.~\ref{fig:dram_pim}b. This column period \tcol spans $D = 4$ cycles \tck of the command clock CK on
-both platforms (Table~\ref{tab:params}). We call $D$, the number of CK cycles in one column period, the \emph{depth}.
+beat in each PU; on the mobile platform, one beat is 32 INT8 multiplies of the column against 32 GB elements~\cite{lpspec},
+accumulated into the PU's output register. The all-bank command repeats every \tccdl~\cite{hbmpim}
+(Fig.~\ref{fig:dram_pim}b). This column period \tcol spans $D = 5\,\text{ns} / 1.25\,\text{ns} = 4$ cycles \tck of
+the command clock CK on LPDDR5-6400 and $4\,\text{ns} / 1\,\text{ns} = 4$ on HBM2 (Table~\ref{tab:params}). We call
+$D$, the number of CK cycles in one column period, the \emph{depth}. JEDEC sets \tccdl{} at four CK cycles on
+LPDDR5~\cite{jedeclpddr5}, not at a fixed time, so the column period shortens as CK rises.
 
 % P:bg-mac-sequence
 MAC commands need non-MAC commands before and after them (Fig.~\ref{fig:dram_pim}c). The all-bank MAC command is the
-only MAC command; every other command is a non-MAC command. In the AiM command set~\cite{aimjssc}, as our simulator
-issues it (Section~\ref{sec:method}), the non-MAC commands follow a fixed order: WRGB writes one token's input chunk into the GB once, and the MAC commands of every row that multiplies that chunk
+only MAC command; every other command is a non-MAC command. In the AiM command set~\cite{aimjssc}, the non-MAC commands follow a fixed order: WRGB writes one token's input chunk into the GB once, and the MAC commands of every row that multiplies that chunk
 read it from the GB. WRMAC16 sets the output registers to the bias. A mode switch (TMOD) moves the controller from
 register commands to MAC commands, and PREA and ACT16 close the previous row and open the next one in all banks. After
 the MAC commands, a second TMOD returns the controller to register commands, and RDMAC16 drains each token's sums.

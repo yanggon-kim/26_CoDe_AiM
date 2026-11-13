@@ -653,7 +653,7 @@ def dots_checks():
 
 
 def colread_checks():
-    """Intro contribution 2 / Sec. VI-E: CoDe (V = 8) and the row-reuse-only design (CoDe's trace at D = 1) read each
+    """Sec. VI-E: CoDe (V = 8) and the row-reuse-only design (CoDe's trace at D = 1) read each
     weight column of one decoder layer once per tile: one eighth as often as stock AiM, a quarter as often as
     P3-LLM-style and half as often as LP-Spec-style (mobile platform, M = 8). Ids cr.phone.gemm.M8.layer.* (evaluation
     dac_sd8g3, microarch row 120, acf9e18; h2 = LP-Spec-like, h3 = P3-LLM-like)."""
@@ -665,7 +665,7 @@ def colread_checks():
         assert abs(ps[k + i] - v) < 1e-9, (i, ps[k + i])
     phrase = ("one eighth as often as stock AiM, a quarter as often as P3-LLM-style and half as often as "
               "LP-Spec-style")
-    for sec in ("01_introduction", "06_evaluation"):
+    for sec in ("06_evaluation",):   # the introduction dropped it with the four-item contribution list (2026-11-13)
         with open(os.path.join(REPO, "sections", sec + ".tex")) as fh:
             assert phrase in " ".join(fh.read().split()), sec
     print("colread: CoDe / row reuse only read each column 1/8 of stock, 1/4 of P3-LLM-style, 1/2 of LP-Spec-style")

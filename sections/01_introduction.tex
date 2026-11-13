@@ -3,7 +3,7 @@
 
 % P:intro-skinny-gemm
 Large language models (LLMs) now decode on mobile platforms and on edge servers, where the decode step is set by how many tokens share one pass over the weights. A mobile platform such as a smartphone runs speculative decoding: a small draft model proposes tokens and the target model verifies the drafted tokens in one pass~\cite{leviathan2023,sdnpu,lpspec}. An edge server batches a few requests per
-step~\cite{p3llm}. Either way, each linear layer runs a skinny GEMM~\cite{flashdecodingpp}: the layer multiplies a weight matrix whose
+step~\cite{newton,h2llm,p3llm}. Either way, each linear layer runs a skinny GEMM~\cite{flashdecodingpp}: the layer multiplies a weight matrix whose
 dimensions are in the thousands by $M$ token vectors, with $M$ from 2 to about 32.
 
 % P:intro-host-memory-bound
@@ -12,8 +12,8 @@ operations per weight, so the host stays memory-bound until $M$ reaches its ridg
 NPU reading LPDDR5-6400 at 42\,GB/s (Section~\ref{sec:bg:roofline}).
 
 % P:intro-pim-gemv-ceiling
-DRAM processing-in-memory (PIM) removes the bandwidth limit but adds a compute ceiling built for GEMV. AiM-style PIM (Fig.~\ref{fig:dram_pim}a)
-places a processing unit (PU) beside each bank and reads all banks with one column command~\cite{aimjssc,hbmpim}, for 9.75$\times$ the host's bandwidth on the mobile platform and 4$\times$ on HBM2. Each column command, however, drives one
+DRAM processing-in-memory (PIM) removes the bandwidth limit but adds a compute ceiling built for GEMV. AiM-style PIM~\cite{aimisscc,aimjssc,aimhc34} (Fig.~\ref{fig:dram_pim}a)
+places a processing unit (PU) beside each bank and reads all banks with one column command~\cite{hbmpim}, for 9.75$\times$ the host's bandwidth on the mobile platform and 4$\times$ on HBM2. Each column command, however, drives one
 multiply--accumulate (MAC) beat per PU (Fig.~\ref{fig:dram_pim}b), so a skinny GEMM costs $M$ GEMVs. Stock AiM-style PIM therefore wins a whole
 decode step against the host only up to $M = 6$ on the mobile platform and $M = 2$--3 on HBM2 (Fig.~\ref{fig:roofline}).
 Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,p3llm}.
@@ -35,8 +35,7 @@ read to four 32-wide ALUs. The four ALUs carry four times the multipliers, and L
 compute units and buffers take 16.92\,\% of an LPDDR5 die. The faster-PU family spends commands: P3-LLM~\cite{p3llm}
 latches a weight and issues one command per token, so P3-LLM's MACs inherit the minimum command spacing \tccds, half the
 column period: at most two tokens share a read. DOTS~\cite{dots} keeps a weight row open across tokens but still reads
-every column once per token, and SAL-PIM~\cite{salpim}, the Precision-Flexible PU~\cite{pfpu} and CD-PIM~\cite{cdpim}
-run several beats per column read for one input vector.
+every column once per token.
 
 % P:intro-timing-insight
 Critically, \textbf{DRAM timing parameters space the column commands} that move data out of the cell array~\cite{hbmpim}, not
@@ -46,46 +45,34 @@ clock $f_\mathrm{PU}$ sets how often the PU computes, so one column can feed $D 
 beats. An all-bank column lasts 5\,ns on LPDDR5-6400~\cite{lpspec} and 4\,ns on HBM2~\cite{hbmpim}, and a PU built in a
 DRAM process runs at 1\,GHz in silicon~\cite{aimjssc}. Our pipelined PU meets timing in synthesis at 0.8\,GHz on LPDDR5-6400 and at 1\,GHz on
 HBM2 (Section~\ref{sec:design:pu}) and at these clocks fits $D = 4$ beats into each column period, of which a
-stock PU uses one. A DRAM die builds logic ten times less
+stock PU uses only one. A DRAM die builds logic ten times less
 densely than an ASIC~\cite{devaux}, so multipliers are the costliest way to fill idle beats, whereas the beats themselves
 come with the column period.
 
 % P:intro-code-proposal
-To this end, this paper proposes \textbf{CoDe (Command-Decoupled PIM)}. One column command reads a weight column once; the PU holds the
-column and runs $D$ beats per column period over a tile of $V$ token vectors, at its own clock and the stock
-multiplier count. CoDe thus spends clock cycles that every column period already holds and adds only the storage for
+To this end, this paper proposes \textbf{CoDe (Command-Decoupled PIM)}. One column command reads a weight column once; the PU latches the
+column and reuses the latched column data for all $V$ token vectors of a tile, $D$ beats per column period, at its own
+clock and the stock multiplier count. CoDe thus spends clock cycles that every column period already holds and adds only the storage for
 the tile. We evaluate CoDe against each rival on that rival's own memory, workload and precision. On a mobile
 platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe takes 0.574$\times$
 LP-Spec-style's logic area with the stock multiplier count clocked at 0.8\,GHz and returns 1.87$\times$ its tokens per
-second per logic mm$^2$. Built as LP-Spec publishes it, with one unit shared between two banks, LP-Spec-style takes
-0.90$\times$ CoDe's logic, and CoDe decodes 1.60$\times$ faster than this shared design. On an edge server with HBM2
+second per logic mm$^2$. On an edge server with HBM2
 at W4A8, CoDe decodes a batch of 8 1.41$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only, with
 1.52$\times$ P3-LLM-style's system energy efficiency.
 
 % P:intro-contributions
 In summary, this paper makes the following contributions:
 \begin{itemize}
-  \item We identify that prior PIM ties MAC timing to DRAM command timing and derive the depth a column allows once
-        MAC timing is separated from command timing: 4 beats on LPDDR5-6400 and HBM2 (Section~\ref{sec:bg:depth}).
-  \item We propose CoDe, a PU and command extension that runs $D$ MAC beats per column command over a tile of tokens
-        at the stock multiplier count, reading each weight column once per tile: on the mobile platform, one eighth as
-        often as stock AiM, a quarter as often as P3-LLM-style and half as often as LP-Spec-style
-        (Sections~\ref{sec:design} and~\ref{sec:eval:ablation}).
-  \item We show, under one area model with one tenfold DRAM-process factor for every design, that CoDe reaches the
-        wider-PU family's 4$\times$ MAC ceiling with the stock multiplier count: on 0.574$\times$ LP-Spec-style's logic,
-        CoDe returns 1.87$\times$ (mobile platform) and 1.80$\times$ (HBM2) its tokens per second per logic mm$^2$,
-        decodes 1.60$\times$ faster than a shared LP-Spec-style design with 0.90$\times$ its logic (mobile platform
-        only), and takes 2.64\,\% of the die on the mobile platform and 2.28\,\% of the HBM2 stack (Sections~\ref{sec:eval:e2e}, \ref{sec:eval:area}
-        and~\ref{sec:eval:ablation}).
-  \item We show, on one DRAM timing per platform, that CoDe decodes a batch of 8 1.41$\times$ faster than
-        P3-LLM-style on HBM2 (Section~\ref{sec:eval:e2e}).
-  \item We show that filling idle beats with storage costs 3.5$\times$ (mobile platform) and 3.1$\times$ (HBM2) less
-        added logic per unit of speed-up than filling them with arithmetic (Section~\ref{sec:disc:storage}).
-  \item We show that CoDe spends the least energy per token on the mobile platform, 105.8\,mJ, and ties LP-Spec-style
-        for the least on the edge server with a 55\,W idle NPU (Section~\ref{sec:eval:energy}).
-  \item We separate CoDe's gain over stock AiM into its two sources: on one decoder layer at $M = 8$ on the mobile
-        platform, row reuse alone speeds the layer up 1.24$\times$, and beat filling then adds 3.49$\times$
-        (Section~\ref{sec:eval:ablation}).
+  \item We quantify stock PIM's inefficiency on skinny GEMMs: useful MACs fill only 14.1--19.1\,\% of stock AiM's
+        GEMM time on LPDDR5-6400 and HBM2 (Section~\ref{sec:bg:cmd}).
+  \item We trace the loss to two root causes: non-MAC commands, chiefly the row-switch commands that stock AiM repeats
+        for every token, and idle beats, three of the four beats in every column period (Section~\ref{sec:bg:cmd}).
+  \item We propose CoDe, whose two mechanisms answer the two causes one to one: row reuse lets a tile of tokens share
+        one row sweep and its row-switch commands, and beat filling spends all four beats of a column period on one
+        latched column at the stock multiplier count (Section~\ref{sec:design}).
+  \item We show in synthesis that CoDe's PU meets 0.8 and 1\,GHz, and in simulation that CoDe returns 1.87$\times$
+        LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and decodes 1.41$\times$ faster than
+        P3-LLM-style on HBM2 (Sections~\ref{sec:design:pu} and~\ref{sec:eval}).
 \end{itemize}
 
 % float defined after page 1's right column has closed, so it renders at the top of page 2 (one float per column)
