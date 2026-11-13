@@ -111,8 +111,8 @@ delivers its weights. HBM-PIM~\cite{hbmpim} executes one instruction per column 
 its PU at its interface's $t_\mathrm{CCD}$. Each column command reads one column, and DRAM timing lets the next column
 command follow only after \tccds{} or \tccdl. Command pacing suits a GEMV, the target of these
 PUs~\cite{aimjssc,p3llm}: in a GEMV each weight column meets one input vector, so one beat per column is enough.
-Replacing stock AiM's PU, which runs one beat per column period, with a PU four times faster, clocked at CK, leaves
-every stock GEMM at the same number of cycles.
+A PU four times faster, clocked at CK, does not speed stock AiM up: each column command still brings one column for
+one token, so the faster PU computes one beat and idles for three, and every stock GEMM takes the same number of cycles.
 
 % P:mot-utilization
 The two losses multiply. The useful-MAC utilization $U$ is the MAC-useful share of each bar in

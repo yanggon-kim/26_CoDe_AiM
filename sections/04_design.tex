@@ -148,8 +148,8 @@ $V = 2D = 8$ on the mobile platform and $V = D = 4$ on HBM2; Section~\ref{sec:ev
 
 % P:des-pu-clock
 \runin{PU clock}
-CoDe needs a PU clock above the column rate, not one equal to CK, and the tile keeps that clock within the reach of
-the DRAM silicon of Section~\ref{sec:bg:depth}. Registered stages pipeline each beat (latch and staging
+CoDe clocks its PU at CK, $D$ times the column rate; beat filling needs only a PU clock above the column rate
+(Table~\ref{tab:umac_src}), and the tile keeps CK within the reach of the DRAM silicon of Section~\ref{sec:bg:depth}. Registered stages pipeline each beat (latch and staging
 operands, multiply, adder tree, accumulate); only the accumulate feeds back, and beat $k$ writes accumulator slot $k$, so each slot takes one update per tile of $V \ge D$ beats, and the add loop of each slot spans a column
 period or more. CoDe's lanes multiply integers, INT8 on the mobile platform and INT4\,$\times$\,INT8 on HBM2,
 narrower operands than the BF16 of that section's 1\,GHz multipliers.

@@ -3,9 +3,9 @@
 
 (a) mobile platform (mm^2 per die), (b) edge server (mm^2 per pseudo-channel). x = dA_mm2, y = S_kernel_M8 (the Fig. 7
 GEMM geometric mean at M = 8). CoDe: stock -> D = 1 -> 2 -> 3 -> 4, every point simulated. LP-Spec-style: a dashed
-segment from stock to its four ALUs; one to three ALUs are priced but not simulated, so they carry no marker. The
-eight-token LP-Spec-style (phone only) is one marker. Faint iso-lines of constant mm^2 per +1x of speed-up are guides.
-No shared LP-Spec-style and no P3-LLM-style (brief, 2026-11-11).
+segment from stock to its four ALUs; one to three ALUs are priced but not simulated, so they carry no marker.
+No shared LP-Spec-style and no P3-LLM-style (brief, 2026-11-11). The eight-token LP-Spec-style marker and the
+mm^2-per-+1x iso-lines were removed 2026-11-13 (user: simplify); height = Fig. 9's 102.4 pt, its facing float.
 Sources (read only): evaluation/dac_2x2/figures/fig_area_speedup.csv (the paper file of rows 114-115, evaluation 8949a24)
 and the touched ids stor.* / aps.* (dac_2x2 Sec. 2u), pupow / budget (dac_sd8g3, dac_2x2), dacp_table4 (Table IV areas).
 Internal records say CoRe / LP-Spec-like; the paper says CoDe / LP-Spec-style.
@@ -21,15 +21,12 @@ from svgchart import COLUMNWIDTH, FL, FT, I, LW, Fig, Panel, marker, row, width
 
 # CoDe's tint is Fig. 8's light blue #CFE2F3 (hue 208 deg); lines and markers use a darker shade of that hue (#3D85C6,
 # hue 208 deg) so they read on white; rivals stay gray, stock AiM black (skill 02 Sec. 3 / G6).
-CODE, GRAY, ISO = "#3D85C6", "#606060", "#A8A8A8"
+CODE, GRAY = "#3D85C6", "#606060"
 STYLE.update({
     "st_code": dict(color=CODE, marker="diamond", label="CoDe, " + I("D") + " = 1 to 4"),
-    "st_lp": dict(color=GRAY, marker="tri_up", label="LP-Spec-style, 1 to 4 ALUs", dash="2.4 1.4"),
-    "st_lp8": dict(color=GRAY, marker="square", label="Eight-token LP-Spec-style"),
+    "st_lp": dict(color=GRAY, marker="tri_up", label="LP-Spec-style", dash="2.4 1.4"),
     "st_stock": dict(color="#000000", marker="circle", label="Stock AiM"),
 })
-ISO_K = {"phone": (0.15, 0.6), "hbm2": (0.1, 0.35)}      # mm^2 per +1x guides (brief)
-ISO_AT = {0.6: 1.25, 0.35: 0.62}                          # gentle guides: label below the line at this x
 
 
 def r(x, n):
@@ -96,19 +93,6 @@ def checks(d):
           "D 1 -> 4 adds no logic area, 1.8 mm2")
 
 
-def iso(pn, k):
-    """The guide y = 1 + x / k, clipped to the box and labelled with k (top edge, or below the line at ISO_AT)."""
-    (x0, x1), (y0, y1) = pn.xlim, pn.ylim
-    xa, xb = max(x0, 0.0), min(x1, k * (y1 - 1))
-    pn.f.line(pn.px(xa), pn.py(1 + xa / k), pn.px(xb), pn.py(1 + xb / k), ISO, 0.5, ' stroke-dasharray="1 1.4"')
-    lab = f"{k:g}"
-    if k in ISO_AT:
-        x = ISO_AT[k]
-        pn.f.text(pn.px(x) + 2.0, pn.py(1 + x / k) + FT + 1.5, lab, FT, "start", f' fill="{GRAY}"')
-    else:
-        pn.f.text(pn.px(xb) + 1.0, pn.py(y1) + FT + 0.5, lab, FT, "start", f' fill="{GRAY}"')
-
-
 def path(pn, key, pts):
     """A series drawn in the order given (HBM2's D = 3 sits 5e-5 mm^2 left of D = 2: synthesis noise), first point
     unmarked (stock AiM, drawn on its own)."""
@@ -138,22 +122,12 @@ def label(pn, x, y, s, dx, dy, anchor="start"):
 def main():
     d = load()
     checks(d)
-    H = 120.0   # 0.8x of 150 pt (user trim, 2026-11-12)
+    H = 102.4   # = Fig. 9's height: the two figures face each other at the top of one page (user, 2026-11-13)
     fig = Fig(COLUMNWIDTH, H)
-    top, bottom = 33.0, H - 20.0
+    top, bottom = 19.0, H - 19.3   # one legend row; x axis band as in Fig. 9
     ax = [dict(ylim=(0.5, 5.2), ylog=False, yticks=[1, 2, 3, 4]),
           dict(ylim=(0.5, 5.2), ylog=False, yticks=[1, 2, 3, 4])]
-    # legend: two rows
-    smp, gp, sp = 13.0, 2.0, 9.0
-    fig.legend(["st_code", "st_lp"], 7.5, sample=smp, gap=gp, space=sp)
-    w_iso = smp + gp + width("mm² per +1×", FL)
-    w2 = sum(smp + gp + width(STYLE[k]["label"], FL) for k in ("st_lp8", "st_stock")) + 2 * sp + w_iso
-    xs = (COLUMNWIDTH - w2) / 2
-    w_l = sum(smp + gp + width(STYLE[k]["label"], FL) for k in ("st_lp8", "st_stock")) + sp
-    fig.legend(["st_lp8", "st_stock"], 18.5, x_center=xs + w_l / 2, sample=smp, gap=gp, space=sp)
-    xi = xs + w_l + sp
-    fig.line(xi, 18.5 - 2.9, xi + smp, 18.5 - 2.9, ISO, 0.6, ' stroke-dasharray="1 1.4"')
-    fig.text(xi + smp + gp, 18.5, "mm² per +1×")
+    fig.legend(["st_code", "st_lp", "st_stock"], 6.0, sample=13.0, gap=2.0, space=10.0)
     (xa, wa, la), (xb, wb, lb) = row(fig, ax, top, bottom, gap=6.0)
     spec = {"phone": dict(x0=xa, w=wa, lab=la, xlim=(-0.1, 2.35), xt=[0, 0.5, 1, 1.5, 2],
                           title="(a) Mobile platform", xl="added logic (mm² per die)"),
@@ -162,9 +136,7 @@ def main():
     for p, c in spec.items():
         pn = Panel(fig, c["x0"], top, c["w"], bottom - top, c["xlim"], c["xt"], (0.5, 5.2), False, [1, 2, 3, 4],
                    xlog=False)
-        pn.frame(c["title"], c["xl"], "speed-up over stock AiM", c["lab"])
-        for k in ISO_K[p]:
-            iso(pn, k)
+        pn.frame(c["title"], c["xl"], "× stock AiM", c["lab"])
         g = lambda se, pt: (float(d[(p, se, pt)]["dA_mm2"]), float(d[(p, se, pt)]["S_kernel_M8"]))   # noqa: E731
         code = [g("CoRe", f"D{i}") for i in range(1, 5)]
         path(pn, "st_lp", [(0.0, 1.0), g("LP-Spec-like", "A4")])
@@ -174,10 +146,6 @@ def main():
             label(pn, x, y, I("D") + f" = {i}" if i in (1, 4) else f"{i}", 3.8, FT * 0.34)
         x4, y4 = g("LP-Spec-like", "A4")
         label(pn, x4, y4, "4 ALUs", -4.0, FT * 0.34 - 2.0, "end")
-        if p == "phone":
-            x8, y8 = g("LP-Spec-like-A8", "A8")
-            pn.series("st_lp8", [(x8, y8)])
-            label(pn, x8, y8, "eight-token", -0.8, -3.6, "end")   # above its marker, clear of "4 ALUs" below-left
         pn.finish()
     fig.write("fig_storage", "scripts/make_fig_storage.py")
 
