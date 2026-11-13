@@ -550,11 +550,10 @@ def table_power():
                    round(f(r["total_mW"]), 1), r2(r["ratio_to_lps"]), round(f(r["edge_pJ"])))
             assert got == exp[(sub, d)], (sub, d, got)
             peak[(sub, d)] = (got[0], got[4])
-    # prose: per-edge charge ratio, the clock penalty of the arithmetic, gating (a CoDe option), idle fractions
+    # prose: the clock penalty of the arithmetic, gating (a CoDe option), idle fractions
     tid = {}
     for sub in ("dac_sd8g3", "dac_2x2"):
         tid.update({r["id"]: float(r["value"]) for r in read("touched.csv", os.path.join(EVAL, sub))})
-    assert round(tid["pupow.phone.edge.h2_over_core.pC"], 1) == 3.3 and round(tid["pupow.hbm2.edge.h2_over_core.pC"], 1) == 3.3
     assert f(pk["phone"]["h2/synth"]["edge_ns"]) == 5.0 and f(pk["phone"]["core8/synth"]["edge_ns"]) == 1.25
     assert r2(f(pk["phone"]["h2/synth"]["leak_mW"]) / f(pk["phone"]["core8/synth"]["leak_mW"])) == 2.61   # not printed
     assert r2(f(pk["hbm2"]["h2/synth"]["leak_mW"]) / f(pk["hbm2"]["core4/synth"]["leak_mW"])) == 2.34    # not printed

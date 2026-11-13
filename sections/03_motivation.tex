@@ -187,10 +187,9 @@ only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 
 Faster-PU designs speed up the PU but still start every MAC with a command, so DRAM command timing, not the PU clock,
 caps them at two beats per column read. P3-LLM~\cite{p3llm} keeps the weight of a column read latched in its PU,
 issues one further command per token, clocks its PU at one beat per HBM2 \tccds{} (Table~\ref{tab:designs}) and shares
-one PU between two banks (Table~\ref{tab:params}). Each
-MAC thus still waits for its own command, as in stock AiM and LP-Spec-style (Fig.~\ref{fig:timeline}). Commands issue
+one PU between two banks (Table~\ref{tab:params}). Commands issue
 only every \tccds, ``typically a half of \tccdl{}''~\cite{p3llm}, while the all-bank column runs at
-\tccdl~\cite{hbmpim}, so at most two tokens share a read: the 8 tokens take 4 column periods, 8 commands and 4 reads.
+\tccdl~\cite{hbmpim}, so at most two tokens share a read: the 8 tokens of Fig.~\ref{fig:timeline} take 4 column periods, 8 commands and 4 reads.
 On every memory family whose \tccdl{} is twice \tccds{}, the faster-PU family's \UMAC therefore stops at 1/2 however
 fast its PU runs. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
 server (Fig.~\ref{fig:roofline}b). P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we

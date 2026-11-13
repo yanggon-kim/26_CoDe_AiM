@@ -83,8 +83,7 @@ although the metric charges P3-LLM-style no area for the linear layers it runs o
 \runin{Energy per token}
 CoDe spends the least energy per token of the five systems on the mobile platform and ties for the least on the edge
 server. On the mobile platform CoDe spends 106.0\,mJ per token at $M = 8$, while NPU only spends 6.0$\times$, stock AiM 1.93$\times$,
-P3-LLM-style 1.38$\times$ and LP-Spec-style 1.12$\times$ CoDe's energy (Fig.~\ref{fig:e2e}c). On the edge server,
-with the NPU idling at 55\,W while the PIM works, CoDe spends 145\,mJ per token. NPU only spends
+P3-LLM-style 1.38$\times$ and LP-Spec-style 1.12$\times$ CoDe's energy (Fig.~\ref{fig:e2e}c). On the edge server, CoDe spends 145\,mJ per token. NPU only spends
 1.48$\times$, stock AiM 2.73$\times$ and P3-LLM-style 1.52$\times$ CoDe's energy, and CoDe matches LP-Spec-style's energy. With the idle NPU
 power-gated, P3-LLM-style's ratio grows to 2.07$\times$: CoDe is fast enough to keep the linear layers in the banks,
 while P3-LLM-style's NPU must read every linear-layer weight over the HBM pins, which accounts for 76\,\% of the gap.
@@ -106,8 +105,7 @@ LP-Spec-style's. CoDe draws 0.51\,W per die at its full MAC rate, 1.14$\times$ t
 rate (Section~\ref{sec:method:models}), below the threefold read current of AiM's MACs. On HBM2, CoDe draws
 5.76\,W per stack, 0.72$\times$ the stack's full-rate read power; HBM-PIM~\cite{hbmpim} likewise keeps its PIM mode within the thermal design power of the original
 HBM system. CoDe draws 0.92$\times$ LP-Spec-style's peak power on the mobile platform and 0.87$\times$ on HBM2, and
-1.09$\times$ and 1.00$\times$ with neither design gated (Table~\ref{tab:designs}). CoDe spreads its MAC rate over four times as many clock edges as LP-Spec-style,
-so each CoDe edge draws 3.3$\times$ less charge on both platforms.
+1.09$\times$ and 1.00$\times$ with neither design gated (Table~\ref{tab:designs}).
 
 \subsection{Area Against Silicon Budgets}
 \label{sec:eval:area}
@@ -115,7 +113,7 @@ so each CoDe edge draws 3.3$\times$ less charge on both platforms.
 % P:eval-area-budget
 Fabricated PIM dies set the scale for a PIM design's logic area, which a DRAM die pays for in memory capacity
 (Section~\ref{sec:bg:walls}). Samsung's HBM-PIM~\cite{hbmpim} places 32 PIM units
-of 0.712\,mm$^2$ each on an 84.4\,mm$^2$ die, 27\,\% of the die by our division; GDDR6-AiM's~\cite{aimjssc} compute circuits take 20--25\,\% of its chip (Section~\ref{sec:bg:walls}). CoDe's logic (Table~\ref{tab:designs}) takes
+of 0.712\,mm$^2$ each on an 84.4\,mm$^2$ die, 27\,\% of the die by our division. CoDe's logic (Table~\ref{tab:designs}) takes
 2.64\,\% of the LPDDR5 die and 2.28\,\% of the HBM2 stack, against AiM's 20--25\,\%. Like AiM, CoDe keeps every cell array and places its PUs in the bank
 periphery.
 
@@ -123,8 +121,7 @@ periphery.
 \runin{Logic against LP-Spec-style}
 CoDe matches LP-Spec-style's peak throughput on the mobile platform with 0.574$\times$ its logic area per die: arithmetic takes
 0.71 of LP-Spec-style's logic and 0.31 of CoDe's, while storage, the staging queue, accumulator file and weight latch,
-takes 0.39 of CoDe's logic and 0.14 of LP-Spec-style's. CoDe does not pay for the saved area with power: its peak power
-stays below LP-Spec-style's on both platforms when both gate their clocks (Section~\ref{sec:eval:energy}). On HBM2, CoDe's logic is 0.554$\times$ LP-Spec-style's and
+takes 0.39 of CoDe's logic and 0.14 of LP-Spec-style's. On HBM2, CoDe's logic is 0.554$\times$ LP-Spec-style's and
 1.35$\times$ P3-LLM-style's, an area that buys twice P3-LLM-style's beats per column period.
 
 \subsection{Ablation Study}

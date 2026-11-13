@@ -98,10 +98,8 @@ against stock AiM's 3,250\,ns, 4.40$\times$ shorter, the speedup gap of Fig.~\re
 
 % P:des-beat-novelty
 Beat filling differs from the two families of Section~\ref{sec:bg:walls} in what fills the beats of a column period.
-LP-Spec~\cite{lpspec} keeps one MAC step per column command and widens the step: one column command feeds four 32-wide
-ALUs with four tokens, so LP-Spec fills the beats with four times the multipliers. P3-LLM~\cite{p3llm} reuses a latched
-column for two tokens, but each MAC still waits for its own command, issued only every \tccds, so one column read feeds
-at most two tokens and the 8 tokens of Fig.~\ref{fig:timeline} read the column four times. CoDe starts its beats from
+LP-Spec~\cite{lpspec} fills them with four times the multipliers, and P3-LLM~\cite{p3llm} with one command per token,
+so one of its column reads feeds at most two tokens (Section~\ref{sec:bg:walls}). CoDe starts its beats from
 the PU clock instead: one \emph{tile MAC} command and one column read feed all $D$ beats of each column period over the
 tile at the stock multiplier count, so the beats per column period follow $t_\mathrm{col} \times f_\mathrm{PU}$ rather
 than the ratio of \tccdl{} to \tccds. Per token and weight column, CoDe therefore issues $1/V$ MAC commands, against

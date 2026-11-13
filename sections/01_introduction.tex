@@ -31,8 +31,7 @@ Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,
 % P:intro-prior-families
 \textbf{Prior PIM designs} raise the ceiling in two families, and each family keeps every MAC paced by a DRAM command. The wider-PU
 family spends multipliers: LP-Spec~\cite{lpspec} keeps one MAC step per column command and widens the step, feeding one
-read to four 32-wide ALUs. The four ALUs carry four times the multipliers, and LP-Spec~\cite{lpspec} estimates that its
-compute units and buffers take 16.92\,\% of an LPDDR5 die. The faster-PU family spends commands: P3-LLM~\cite{p3llm}
+read to four 32-wide ALUs. The four ALUs carry four times the multipliers. The faster-PU family spends commands: P3-LLM~\cite{p3llm}
 latches a weight and issues one command per token, so P3-LLM's MACs inherit the minimum command spacing \tccds, half the
 column period: at most two tokens share a read. DOTS~\cite{dots} keeps a weight row open across tokens but still reads
 every column once per token.
@@ -65,7 +64,7 @@ column and reuses the latched column data for all $V$ token vectors of a tile, $
 clock and the stock multiplier count. CoDe thus spends clock cycles that every column period already holds and adds only the storage for
 the tile. We evaluate CoDe against each rival on that rival's own memory, workload and precision. On a mobile
 platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64 LPDDR5-6400, INT8), CoDe takes 0.574$\times$
-LP-Spec-style's logic area with the stock multiplier count clocked at 0.8\,GHz and returns 1.87$\times$ its tokens per
+LP-Spec-style's logic area and returns 1.87$\times$ its tokens per
 second per logic mm$^2$. On an edge server with HBM2
 at W4A8, CoDe decodes a batch of 8 1.41$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only, with
 1.52$\times$ P3-LLM-style's system energy efficiency.
