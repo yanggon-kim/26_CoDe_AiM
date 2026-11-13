@@ -319,12 +319,11 @@ def draw(row_ns, split, tab):
 
 
 def table():
-    """Table cmds: CoDe's commands, count per token against stock AiM (symbolic in V; the V = 8 trace checks it)."""
+    """Table cmds (WRGB row dropped, user 2026-11-12; prose keeps WRGB): CoDe's commands, count per token against stock AiM (symbolic in V; the V = 8 trace checks it)."""
     rows = [
         (r"\emph{tile MAC} (col, $V$)", r"One column read at the stock MAC timing; $V$ beats on it", "column", r"$1/V$", "1"),
         (r"\emph{burst drain}", r"A tile's $V$ sums out in one burst", "row sweep", "1", "1"),
         ("row switch", r"TMOD$\times$2, PREA, ACT16 pair, WRMAC16; unchanged", "row sweep", r"$1/V$", "1"),
-        ("WRGB", "GB fill; unchanged", "32\\,B of input", "1", "1"),
     ]
     out = os.path.join(REPO, "tables", "tab_cmds.tex")
     with open(out, "w") as fh:
