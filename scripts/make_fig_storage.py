@@ -80,6 +80,9 @@ def checks(d):
     # P2: peak power stays below LP-Spec-style's on both platforms (0.92x / 0.87x are printed in VI-C only)
     assert s["pupow.phone.gate.core8.over_h2"] < 1 and t["pupow.hbm2.gate.core4.over_h2"] < 1
     assert r(s["pupow.phone.gate.core8.over_h2"], 2) == 0.92 and r(t["pupow.hbm2.gate.core4.over_h2"], 2) == 0.87
+    # VI-B eval-e2e-lpspec: the per-mm^2 lead over LP-Spec-style holds until storage costs 6.5x (mobile) / 16.5x
+    # (edge server) our estimate (restored 2026-11-12 from the cut VII-A sentence; 1.29x / 1.34x at 3x not printed)
+    assert r(t["stor.phone.be.all.lp"], 1) == 6.5 and r(t["stor.hbm2.be.all.lp"], 1) == 16.5
     # III-D: the wider-PU family (our LP-Spec-style model) adds about 1.8 mm^2 per die over stock AiM = Table IV 2.800 - 1.009
     assert r(t["aps.phone.h2.dA"], 1) == 1.8
     t4 = {x["design"]: float(x["logic_mm2"]) for x in csv.DictReader(open(os.path.join(PHONE_RAW, "dacp_table4.csv")))}

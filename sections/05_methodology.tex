@@ -117,7 +117,9 @@ eight-token tile of CoDe.
 
 % P:meth-systems
 NPU only runs the whole model on the NPU; in NPU + $X$, PIM design $X$ runs every weight GEMM and attention layer and
-the NPU runs the element-wise work. The one exception is NPU + P3-LLM-style on the edge server, which follows the
+the NPU runs the element-wise work (softmax, RoPE and normalisation). Every PIM design maps a $K \times N$ weight
+matrix as stock AiM does: the matrix's $N$ output rows spread over the banks, and each row's $K$ weights run along DRAM
+columns; attention maps the same way, with the KV cache as the weight matrix. The one exception is NPU + P3-LLM-style on the edge server, which follows the
 placement of P3-LLM~\cite{p3llm} at batch 8: the NPU runs the linear layers and P3-LLM-style the attention layers.
 
 \subsection{Metrics}

@@ -124,7 +124,6 @@ def budget_checks():
     I/O power; AiM's 3x is a GDDR6 current ratio (framing); only CoDe has a gated value."""
     ps, hs = ids("dac_sd8g3"), ids("dac_2x2")
     # V-C area model: silicon factor (AiM PU 0.19 mm2 / our model of it), die and stack denominators
-    assert r2(ps["budget.silicon_factor.aim"]) == 1.98 == r2(hs["budget.silicon_factor.aim"])
     assert ps["budget.cite.lpddr5_die_mm2_1z"] == 60.92 and hs["budget.cite.hbmpim_die_mm2"] == 84.4
     assert hs["budget.cite.hbmpim_dies_per_stack"] == 8
     # V-C power yardsticks: one x16 LPDDR5X channel's full-rate read (Micron Y52Q) and an HBM2 stack at 3.92 pJ/bit
@@ -143,15 +142,8 @@ def budget_checks():
     assert hs["budget.cite.hbmpim_units_per_die"] == 32 and hs["budget.cite.hbmpim_unit_mm2"] == 0.712
     assert round(hs["budget.hbmpim.area_share_pct"]) == 27
     assert (hs["budget.cite.aim_area_overhead_pct_lo"], hs["budget.cite.aim_area_overhead_pct_hi"]) == (20.0, 25.0)
-    # CoDe / LP-Spec-style share of the die / stack at AiM's silicon scale (x1.98 on logic and registers, GB unscaled)
-    assert (r2(ps["budget.phone.core8.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.core4.pct_of_stack_anch_aim"])) == (5.06, 4.24)
-    # LP-Spec-style at silicon scale: no longer printed (VI-D sentence cut 2026-11-10), guard only
-    assert (r2(ps["budget.phone.h2.pct_of_die_anch_aim"]), r2(hs["budget.hbm2.h2.pct_of_stack_anch_aim"])) == (9.00, 7.90)
-    # VI-D prints CoDe at silicon scale beside AiM's 20-25 % (the former "at most a quarter" no longer holds: 5.06 > 5)
-    assert max(ps["budget.phone.core8.pct_of_die_anch_aim"], hs["budget.hbm2.core4.pct_of_stack_anch_aim"]) < 20.0
-    # VI-D paragraph 2: the CoDe / LP-Spec-style logic ratio at silicon scale
-    assert (r3(ps["budget.phone.anch_aim.core8_over_h2"]), r3(hs["budget.hbm2.anch_aim.core4_over_h2"])) == (0.562, 0.537)
-    print("budget: die 60.92 mm2, stack 8 x 84.4 mm2, x1.98; CoDe 2.64 / 2.28 % (5.06 / 4.24 % at silicon scale); "
+    # VI-D prints CoDe's die / stack share beside AiM's 20-25 % (the silicon-scale 1.98x / 5.06 / 4.24 % cut 2026-11-12)
+    print("budget: die 60.92 mm2, stack 8 x 84.4 mm2, CoDe 2.64 / 2.28 %; "
           "gated 0.54 W per die = 1.20x read, 5.98 W per stack = 0.75x read; 0.92 / 0.87x LP-Spec-style")
 
 
@@ -582,9 +574,9 @@ def lpsv_checks():
     unresolved, row 40); LP-Spec's register files are "included" in its 16.92 %, never "mostly"."""
     ps = ids("dac_sd8g3")
     # shared variant: area and loop speed / per mm2 against CoDe (V = 8)
-    # (VI-E PU placement since 2026-11-10; 2.21 %, 1.60x and 1.45x are no longer printed)
+    # no longer printed (cut from abstract, I and VIII 2026-11-12; eval-placement parked): guards for a possible return
     assert r2(ps["lpsv.phone.h2sh_over_core8.logic"]) == 0.90           # SAED14 (Nangate45 0.96)
-    # at the mobile operating point M = 8 (abstract, I, VI-E; evaluation 7cf79d5): CoDe 1.60x faster, 1.44x per mm2
+    # at the mobile operating point M = 8 (evaluation 7cf79d5): CoDe 1.60x faster, 1.44x per mm2
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M8"]) == 1.60
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M8"]) == 1.44
     # VI-B eval-lpspec-variants: CoDe decodes 1.07x faster than the per-bank LP-Spec-style at M = 8 and 16 (loop, L 1024,
@@ -604,7 +596,7 @@ def lpsv_checks():
     # III-C: LP-Spec's own 16.92 % and its register files per matrix unit, against our 4.60 % (Table IV)
     assert r2(ps["budget.lpspec_own.pct_of_die_1z"]) == 16.92 and ps["budget.lpspec_own.rf_bits_per_mpu"] == 50688
     assert r2(ps["budget.phone.h2.pct_of_die_1z"]) == 4.60
-    print("lpsv: shared 0.90x CoDe's logic, CoDe 1.60x faster, 1.44x per mm2 (M = 8); bank column 8 / 5 ns; "
+    print("lpsv: (guards) shared 0.90x CoDe's logic, CoDe 1.60x faster, 1.44x per mm2 (M = 8); bank column 8 / 5 ns; "
           "A8 ties (1.007 at M = 12), 3.155 mm2, CoDe 1.96x per mm2; LP-Spec RF 50,688 b per unit")
 
 

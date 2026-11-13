@@ -53,10 +53,12 @@ CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on 
 the edge server (Fig.~\ref{fig:e2e}b), because CoDe decodes at least as fast on less logic. On the mobile
 platform LP-Spec-style reaches 3.00$\times$ NPU only's speed, at 27.9 tokens/s, so CoDe decodes 1.07$\times$ faster on
 0.574$\times$ its logic. The lead holds at every $M$: across $M = 2$--16, CoDe decodes at least as fast as
-LP-Spec-style and returns 1.75--2.28$\times$ its tokens per second per logic mm$^2$. On the edge server, CoDe matches LP-Spec-style's speed on 0.554$\times$ its logic.
+LP-Spec-style and returns 1.75--2.28$\times$ its tokens per second per logic mm$^2$. On the edge server, CoDe matches LP-Spec-style's speed on 0.554$\times$ its logic. CoDe keeps its lead per logic
+mm$^2$ over LP-Spec-style until storage costs 6.5$\times$ our estimate on the mobile platform and 16.5$\times$ on the
+edge server.
 
 % P:eval-lpspec-variants
-\runin{Speedup against LP-Spec-style}
+\runin{Cost of a faster LP-Spec-style}
 The eight-token tile is what decoupling makes affordable. An eight-token LP-Spec-style design matches CoDe's loop speed
 at every $M$ we run (2--4, 8 and 16) and its GEMM speed from $M = 8$ (CoDe 1.007$\times$ at $M = 12$), but grows its
 logic per die from LP-Spec-style's 2.800 to 3.155\,mm$^2$ (Table~\ref{tab:designs}), so CoDe returns 1.96$\times$ its tokens per second per logic mm$^2$. The tile thus gives
@@ -113,8 +115,7 @@ so each CoDe edge draws 3.4$\times$ less charge on the mobile platform and 3.1$\
 Fabricated PIM dies set the scale for a PIM design's logic area, which a DRAM die pays for in memory capacity
 (Section~\ref{sec:bg:walls}). Samsung's HBM-PIM~\cite{hbmpim} places 32 PIM units
 of 0.712\,mm$^2$ each on an 84.4\,mm$^2$ die, 27\,\% of the die by our division; GDDR6-AiM's~\cite{aimjssc} compute circuits take 20--25\,\% of its chip (Section~\ref{sec:bg:walls}). CoDe's logic (Table~\ref{tab:designs}) takes
-2.64\,\% of the LPDDR5 die and 2.28\,\% of the HBM2 stack, and 5.06\,\% and 4.24\,\% at AiM's
-silicon scale, where the fabricated PU is 1.98$\times$ our model of it, against AiM's 20--25\,\%. Like AiM, CoDe keeps every cell array and places its PUs in the bank
+2.64\,\% of the LPDDR5 die and 2.28\,\% of the HBM2 stack, against AiM's 20--25\,\%. Like AiM, CoDe keeps every cell array and places its PUs in the bank
 periphery.
 
 % P:eval-area-split

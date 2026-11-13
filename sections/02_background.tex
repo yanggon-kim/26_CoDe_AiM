@@ -13,7 +13,10 @@ pass of the target model, as a chain or as a token tree~\cite{eagle2}; a batched
 Published mobile decoders verify 2--8 drafted tokens padded to at most 32~\cite{sdnpu}, 1--32 on LPDDR-PIM~\cite{lpspec}
 and token trees of 4--64~\cite{lever}, and edge-server batches hold 1--8 requests~\cite{p3llm}. This
 paper targets verification on the mobile platform ($M = 2$--32~\cite{sdnpu,lpspec}) and batches on the edge server
-($M = 2$--8~\cite{p3llm}).
+($M = 2$--8~\cite{p3llm}). Attention multiplies the $M$ query rows by the cached keys ($QK^\top$) and the $M$ rows of
+probabilities by the cached values ($PV$). Speculative decoding verifies the $M$ drafted tokens against one shared
+key--value (KV) cache, so its attention is a skinny GEMM as well, whereas a batch reads one cache per request, so batched attention
+stays one GEMV per request.
 
 \subsection{DRAM and AiM-Style PIM}
 \label{sec:bg:pim}
