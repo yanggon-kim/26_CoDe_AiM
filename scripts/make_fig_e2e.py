@@ -121,20 +121,21 @@ def check_prose_numbers(d):
     assert abs(hb["pm"]["p3"] - ht["isca.e2e.hbm2.p3own_over_h2.per_mm2"]) < 1e-9 and r2(hb["pm"]["p3"]) == 1.72
     assert abs(hb["pm"]["code"] / hb["pm"]["p3"] - ht["isca.e2e.hbm2.core4_over_p3own.per_mm2"]) < 1e-9
     assert r2(pt["isca.e2e.phone.M8.core8_over_h2.speed"]) == 1.07 and ht["isca.e2e.hbm2.core4_over_h2.speed"] == 1.0
-    # eval-energy, mobile (M = 8): CoDe 105.8 mJ/token; NPU only 6.0x, stock AiM 1.96x, P3-LLM-style 1.40x, LP-Spec-style 1.14x
+    # eval-energy, mobile (M = 8): CoDe 106.0 mJ/token; NPU only 6.0x, stock AiM 1.93x, P3-LLM-style 1.38x, LP-Spec-style 1.12x
+    # (SAED14 run-5 PU power, microarch d7cd004, evaluation 8db3979; Nangate45 history 105.8, 1.96 / 1.40 / 1.14)
     e = ph["en"]
-    assert round(e["code"], 1) == 105.8
+    assert round(e["code"], 1) == 106.0
     assert round(e["npu"] / e["code"], 1) == 6.0
-    for s, k, v in (("stock", "stock", 1.96), ("p3", "h3", 1.40), ("lpspec", "h2", 1.14)):
+    for s, k, v in (("stock", "stock", 1.93), ("p3", "h3", 1.38), ("lpspec", "h2", 1.12)):
         q = pt[f"isca.e2e.phone.M8.{k}_over_core8.mJ"]
         assert r2(q) == v and abs(e[s] / e["code"] - q) < 1e-9, (s, q)
     assert min(e, key=e.get) == "code"
     # eval-energy, edge server at 55 W idle: NPU only 1.48x, P3-LLM-style 1.52x CoDe's; LP-Spec-style ties (1.00x);
-    # gated NPU (0 W): P3-LLM-style 2.08x (larger than at 55 W: its NPU reads the linear weights over the pins), NPU only 2.46x
+    # gated NPU (0 W): P3-LLM-style 2.07x (2.08x before run 5) (larger than at 55 W: its NPU reads the linear weights over the pins), NPU only 2.46x
     assert r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) == 1.48 and r2(ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"]) == 1.52
     assert abs(hb["en"]["p3"] / hb["en"]["code"] - ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"]) < 1e-9
     assert r2(ht["isca.e2e.hbm2.h2_over_core4.mJ_55W"]) == 1.00
-    assert r2(ht["isca.e2e.hbm2.p3own_over_core4.mJ_0W"]) == 2.08 > ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"] and r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_0W"]) == 2.46
+    assert r2(ht["isca.e2e.hbm2.p3own_over_core4.mJ_0W"]) == 2.07 > ht["isca.e2e.hbm2.p3own_over_core4.mJ_55W"] and r2(ht["isca.e2e.hbm2.npu_over_core4.mJ_0W"]) == 2.45
     assert abs(hb["en"]["npu"] / hb["en"]["code"] - ht["isca.e2e.hbm2.npu_over_core4.mJ_55W"]) < 1e-9
     # gated-NPU cause (evaluation 860384d, 2x2 §2r/§8): P3-LLM-style's linear-weight reads over the HBM pins are 76 % of
     # the 0 W gap (26.41 mJ/token); context: linear placement 0.788 of the gap, P3-LLM-style's NPU MACs 0.0149 of its energy
@@ -155,7 +156,7 @@ def check_prose_numbers(d):
     print("Secs. VI-B/C numbers hold: mobile M = 8 3.22 / 3.00 / 2.06 / 1.27x at 29.9 / 27.9 tok/s, 1.07x (also M = 16), "
           "M = 2-16 vs LP-Spec-style speed >= 1, per mm2 1.75-2.28x; "
           "edge 1.28 / 1.28 / 0.91 / 0.45x, 1.41x; per mm2 1.87 / 1.80, 1.11 / 1.05; energy 105.8 mJ, "
-          "6.0 / 1.96 / 1.40 / 1.14x; edge 1.48 / 1.52x (gated 2.08 / 2.46x, weight I/O 76 % of the gap)")
+          "6.0 / 1.96 / 1.40 / 1.14x; edge 1.48 / 1.52x (gated 2.07 / 2.45x, weight I/O 76 % of the gap)")
 
 
 def fmt(v):

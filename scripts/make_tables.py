@@ -113,7 +113,7 @@ def budget_cells():
     gated = {sub: f(cuts[sub]["a1b"]["total_mW"]) for sub in cuts}
     assert abs(gated["phone"] - 1e3 * ps["budget.phone.core8_gated.peak_W_per_die"]) < 1e-6
     assert abs(gated["hbm2"] * 16 - 1e3 * hs["budget.hbm2.core4_gated.peak_W_per_stack"]) < 1e-6
-    assert (round(gated["phone"], 1), round(gated["hbm2"], 1)) == (537.6, 373.8), gated
+    assert (round(gated["phone"], 1), round(gated["hbm2"], 1)) == (512.0, 360.3), gated
     return pct, gated
 
 
@@ -121,7 +121,7 @@ def budget_checks():
     """Every Sec. V-C / VI-C / VI-D number of the area and power budget argument, from the budget.* ids (evaluation
     a0cf52c; dac_sd8g3 Sec. 2g, dac_2x2 Sec. 2q). Wording traps (context Sec. 8): the die area is "as LP-Spec reports";
     27 % is our division of HBM-PIM's areas; 8 x 84.4 mm2 is [A-XC4]; peak excludes activation, refresh, background and
-    I/O power; AiM's 3x is a GDDR6 current ratio (framing); only CoDe has a gated value."""
+    I/O power; AiM's 3x is a GDDR6 current ratio (framing); CoDe, LP-Spec-style and P3-LLM-style have gated values."""
     ps, hs = ids("dac_sd8g3"), ids("dac_2x2")
     # V-C area model: silicon factor (AiM PU 0.19 mm2 / our model of it), die and stack denominators
     assert ps["budget.cite.lpddr5_die_mm2_1z"] == 60.92 and hs["budget.cite.hbmpim_die_mm2"] == 84.4
@@ -132,12 +132,13 @@ def budget_checks():
     # VI-C headroom framings (cited)
     assert ps["budget.cite.aim_mac_current_x_read"] == 3.0 == hs["budget.cite.aim_mac_current_x_read"]
     assert hs["budget.cite.newton_power_x_dram"] == 2.8 and hs["budget.cite.newton_comp_x_peak_read"] == 4.0
-    # VI-C peak power: gated CoDe against the read yardsticks and against ungated LP-Spec-style
-    assert r2(ps["budget.phone.core8_gated.peak_W_per_die"]) == 0.54
-    assert r2(ps["budget.phone.core8_gated.peak_over_read_ch"]) == 1.20
-    assert r2(hs["budget.hbm2.core4_gated.peak_W_per_stack"]) == 5.98
-    assert r2(hs["budget.hbm2.core4_gated.peak_over_stack_read"]) == 0.75
-    assert r2(ps["budget.phone.core8_gated.over_h2_ungated"]) == 0.92 and r2(hs["budget.hbm2.core4_gated.over_h2_ungated"]) == 0.87
+    # VI-C peak power: gated CoDe against the read yardsticks (SAED14 run 5; Nangate45 history 0.54 W, 1.20x, 5.98 W, 0.75x)
+    assert r2(ps["budget.phone.core8_gated.peak_W_per_die"]) == 0.51
+    assert r2(ps["budget.phone.core8_gated.peak_over_read_ch"]) == 1.14
+    assert r2(hs["budget.hbm2.core4_gated.peak_W_per_stack"]) == 5.76
+    assert r2(hs["budget.hbm2.core4_gated.peak_over_stack_read"]) == 0.72
+    # gated CoDe / ungated LP-Spec-style: guard only, never printed (VI-C compares gated with gated, table_power)
+    assert r2(ps["budget.phone.core8_gated.over_h2_ungated"]) == 0.90 and r2(hs["budget.hbm2.core4_gated.over_h2_ungated"]) == 0.81
     # VI-D paragraph 1: HBM-PIM's units (our division, never stated by Samsung), AiM 20-25 % (printed in III-C only)
     assert hs["budget.cite.hbmpim_units_per_die"] == 32 and hs["budget.cite.hbmpim_unit_mm2"] == 0.712
     assert round(hs["budget.hbmpim.area_share_pct"]) == 27
@@ -149,6 +150,10 @@ def budget_checks():
 
 def table4(peak):
     pct, gated = budget_cells()
+    rgated = {sub: {r["row_id"]: f(r["total_mW"]) for r in read(f"pupow_gate_{sub}.csv", os.path.join(EVAL, t, "raw"))}
+              for sub, t in (("phone", "dac_sd8g3"), ("hbm2", "dac_2x2"))}
+    assert {k: round(v, 1) for k, v in rgated["phone"].items()} == {"h2": 556.1, "h3": 279.9}
+    assert {k: round(v, 1) for k, v in rgated["hbm2"].items()} == {"h2": 415.0, "p3_500": 206.3}
     t = read("dac_table4.csv")
     by = {(r["substrate"][:5], r["design"]): r for r in t}
     exp = {  # frozen: lanes x ALUs, MHz, D, V, accumulator slots, staging bits, GB KB, logic mm2 (V prose)
@@ -174,10 +179,14 @@ def table4(peak):
             nm = r"\textbf{CoDe}" if name == "CoDe" else name
             mm = f"\\textbf{{{got[8]:.3f}}}" if name == "CoDe" else f"{got[8]:.3f}"
             mw = f"{pw[1]:.1f}"
-            if name == "CoDe":                                        # gated value leads, ungated in parentheses (CoDe only)
+            if name == "CoDe":                                        # gated value leads, ungated in parentheses
                 g = gated["phone" if sub == "phone" else "hbm2"]
                 assert g < pw[1]                                      # the clock gates only remove power
                 mw = f"\\textbf{{{g:.1f}}} ({mw})"
+            elif d != "stock":                                        # rivals' gated values (pupow_gate_<sub>.csv)
+                g = rgated["phone" if sub == "phone" else "hbm2"][d]
+                assert g < pw[1]
+                mw = f"{g:.1f} ({mw})"
             lines.append(f"{nm} & {lanes} & {got[2]} & {got[3]} & {got[4]} & {got[5]} & {got[7]} & {mm} & {mw} \\\\")
     # ratios the prose prints
     p = {d: f(by[("phone", d)]["logic_mm2"]) for d, _ in PHONE}
@@ -196,7 +205,7 @@ def table4(peak):
     out = os.path.join(REPO, "tables", "tab_designs.tex")
     with open(out, "w") as fh:
         fh.write("% generated by scripts/make_tables.py: design table (EV-58 pack dac_table4.csv, pupow pupow_peak_*.csv; "
-                 "gated mW: budget ids, pupow_cuts_*.csv a1b); do not edit\n")
+                 "gated mW: budget ids, pupow_cuts_*.csv a1b, pupow_gate_*.csv); do not edit\n")
         fh.write("\\begin{tabular}{@{}lcccccccc@{}}\n\\toprule\n"
                  "Design & Lanes & MHz & $D$ & $V$ & Acc. & GB KB & mm$^2$ & mW \\\\\n")
         fh.write("\n".join(lines) + "\n\\bottomrule\n\\end{tabular}\n")
@@ -453,7 +462,7 @@ def headline():
     assert round(g(("1B draft", "NPU speculative loop"), "tok_s"), 1) == 10.6
     # energy per token: synthesised PU (pupow @ microarch 6074fea, evaluation 88dad76); the pack's mJ columns are the K_E reserve
     pe = {r["row_id"]: f(r["mJ_per_tok_reads"]) for r in read("pupow_e2e.csv", os.path.join(EVAL, "dac_sd8g3", "raw"))}
-    assert round(pe["d1b/all_core"], 1) == 66.2 and round(pe["eagle/all_core"], 1) == 49.8
+    assert round(pe["d1b/all_core"], 1) == 66.3 and round(pe["eagle/all_core"], 1) == 50.0   # guard; SAED14 run 5 (66.2 / 49.8 before)
     assert round(pe["plain/plain_npu"]) == 971 and round(pe["d1b/all_npu"]) == 558
     assert r2(g(("1B draft", "all CoRe V = 8"), "gain_vs_plain_npu")) == 7.71
     assert r2(g(("EAGLE head", "all CoRe V = 8"), "gain_vs_plain_npu")) == 11.14
@@ -505,8 +514,8 @@ def phone_levels():
     # attention-layer energy, LP-Spec-style / CoDe, synthesised PU (pupow_ev56_table, reads priced; the mux is inside the PU)
     t = {r["row_id"]: (f(r["lo"]), f(r["hi"])) for r in read("pupow_ev56_table.csv", os.path.join(EVAL, "dac_sd8g3", "raw"))}
     le4 = [t["reads/h2/layer/energy/b1-2"], t["reads/h2/layer/energy/b3-6"]]
-    assert (r2(min(x[0] for x in le4)), r2(max(x[1] for x in le4))) == (1.05, 1.16)
-    assert (r2(t["reads/h2/layer/energy/b8+"][0]), r2(t["reads/h2/layer/energy/b8+"][1])) == (1.16, 1.28)
+    assert (r2(min(x[0] for x in le4)), r2(max(x[1] for x in le4))) == (1.03, 1.14)   # guard; SAED14 run 5 (1.05 / 1.16 before)
+    assert (r2(t["reads/h2/layer/energy/b8+"][0]), r2(t["reads/h2/layer/energy/b8+"][1])) == (1.13, 1.25)
     # P3-LLM reproduction (EV-49, INT8): depth-2 step gain over a depth-1 PIM, mean over models and batch 2 / 4
     rep = {r["row_id"]: r for r in read("hbm2_p3llm_repro.csv", os.path.join(EVAL, "dac_2x2", "raw"))}
     # V-C prints "reproduces, and slightly exceeds" (1.78x vs 1.6x no longer printed, user trim 2026-11-12)
@@ -525,10 +534,11 @@ def table_power():
     raw = {"phone": os.path.join(EVAL, "dac_sd8g3", "raw"), "hbm2": os.path.join(EVAL, "dac_2x2", "raw")}
     pk = {sub: {r["row_id"]: r for r in read(f"pupow_peak_{sub}.csv", raw[sub])} for sub in raw}
     exp = {  # MHz, PU dynamic, leakage, GB reads, total mW, / LP-Spec-style, pJ per edge (pupow_peak_<sub>.<d>/synth)
-        ("phone", "stock"): (200, 87.6, 22.2, 6.4, 203.9, 0.35, 438), ("phone", "h3"): (400, 178.9, 24.2, 18.2, 308.9, 0.53, 447),
-        ("phone", "h2"): (200, 355.2, 89.6, 51.5, 583.9, 1.00, 1776), ("phone", "core8"): (800, 417.3, 30.7, 72.9, 608.5, 1.04, 522),
-        ("hbm2", "stock"): (250, 57.1, 11.7, 11.4, 134.9, 0.32, 228), ("hbm2", "p3_500"): (500, 128.7, 13.4, 32.2, 229.1, 0.53, 257),
-        ("hbm2", "h2"): (250, 235.2, 47.2, 91.1, 428.3, 1.00, 941), ("hbm2", "core4"): (1000, 304.5, 16.8, 64.4, 440.4, 1.03, 304),
+        # SAED14 run 5 (microarch d7cd004, evaluation 8db3979); old -> new per cell: evaluation/dac_2x2/pupow_saed14_paper.csv
+        ("phone", "stock"): (200, 77.2, 19.2, 6.4, 190.4, 0.34, 386), ("phone", "h3"): (400, 171.7, 21.8, 18.2, 299.3, 0.53, 429),
+        ("phone", "h2"): (200, 355.8, 72.8, 51.5, 567.7, 1.00, 1779), ("phone", "core8"): (800, 429.8, 28.0, 72.9, 618.2, 1.09, 537),
+        ("hbm2", "stock"): (250, 57.5, 11.3, 11.4, 135.0, 0.31, 230), ("hbm2", "p3_500"): (500, 127.1, 13.9, 32.2, 228.1, 0.52, 254),
+        ("hbm2", "h2"): (250, 253.5, 43.0, 91.1, 442.4, 1.00, 1014), ("hbm2", "core4"): (1000, 305.3, 18.4, 64.4, 442.9, 1.00, 305),
     }
     fetch = {"phone": 87.6, "hbm2": 54.8}
     peak = {}
@@ -544,21 +554,24 @@ def table_power():
     tid = {}
     for sub in ("dac_sd8g3", "dac_2x2"):
         tid.update({r["id"]: float(r["value"]) for r in read("touched.csv", os.path.join(EVAL, sub))})
-    assert round(tid["pupow.phone.edge.h2_over_core.pC"], 1) == 3.4 and round(tid["pupow.hbm2.edge.h2_over_core.pC"], 1) == 3.1
+    assert round(tid["pupow.phone.edge.h2_over_core.pC"], 1) == 3.3 and round(tid["pupow.hbm2.edge.h2_over_core.pC"], 1) == 3.3
     assert f(pk["phone"]["h2/synth"]["edge_ns"]) == 5.0 and f(pk["phone"]["core8/synth"]["edge_ns"]) == 1.25
-    assert r2(f(pk["phone"]["h2/synth"]["leak_mW"]) / f(pk["phone"]["core8/synth"]["leak_mW"])) == 2.92   # "2.9x"
-    assert r2(f(pk["hbm2"]["h2/synth"]["leak_mW"]) / f(pk["hbm2"]["core4/synth"]["leak_mW"])) == 2.81    # "2.8x"
+    assert r2(f(pk["phone"]["h2/synth"]["leak_mW"]) / f(pk["phone"]["core8/synth"]["leak_mW"])) == 2.61   # not printed
+    assert r2(f(pk["hbm2"]["h2/synth"]["leak_mW"]) / f(pk["hbm2"]["core4/synth"]["leak_mW"])) == 2.34    # not printed
     cuts = {r["row_id"]: r for r in read("pupow_cuts_phone.csv", raw["phone"])}
     assert f(cuts["base"]["v_pu"]) == 1.05                                                              # VDD2H, V
-    # 800 vs 200 MHz, same INT8 32-lane arithmetic (not collected: microarch 04_data/d1/pu_power, read through this script)
-    cp = [r for r in read("pu_peak_power.csv", os.path.join(WS, "microarch", "04_data", "d1", "pu_power"))
-          if r["table"] == "clock_penalty" and r["design"] == "int8_32" and r["clk_MHz"] == "800"]
-    assert len(cp) == 1 and round((f(cp[0]["rel_synth"]) - 1) * 100, 1) == 2.4
+    # the 2.4 % clock-penalty guard (Nangate45 pu_power clock_penalty table) was retired with run 5: no SAED14 source
     g = {k: tid[k] for k in tid if k.startswith(("pupow.phone.gate", "pupow.hbm2.gate"))}
-    assert round(-g["pupow.phone.gate.core8.d_total_pct"], 1) == 11.6 and round(-g["pupow.hbm2.gate.core4.d_total_pct"], 1) == 15.1
-    assert round(-g["pupow.phone.gate.h2.d_total_pct"], 1) == 0.5 and round(-g["pupow.hbm2.gate.h2.d_total_pct"], 1) == 3.6
-    assert r2(g["pupow.phone.gate.core8.over_h2"]) == 0.92 and r2(g["pupow.hbm2.gate.core4.over_h2"]) == 0.87
-    assert r2(g["pupow.phone.gate.core8_over_gated_h2"]) == 0.93 and r2(g["pupow.hbm2.gate.core4_over_gated_h2"]) == 0.91
+    assert round(-g["pupow.phone.gate.core8.d_total_pct"], 1) == 17.2 and round(-g["pupow.hbm2.gate.core4.d_total_pct"], 1) == 18.6
+    assert round(-g["pupow.phone.gate.h2.d_total_pct"], 1) == 2.1 and round(-g["pupow.hbm2.gate.h2.d_total_pct"], 1) == 6.2
+    # gated CoDe / ungated LP-Spec-style: guard only, never printed (user 2026-11-13: compare gated with gated)
+    assert r2(g["pupow.phone.gate.core8.over_h2"]) == 0.90 and r2(g["pupow.hbm2.gate.core4.over_h2"]) == 0.81
+    # VI-C prints gated CoDe / gated LP-Spec-style 0.92x / 0.87x and ungated 1.09x / 1.00x (Table IV ratios)
+    assert r2(g["pupow.phone.gate.core8_over_gated_h2"]) == 0.92 and r2(g["pupow.hbm2.gate.core4_over_gated_h2"]) == 0.87
+    gr = {sub: {r["row_id"]: f(r["total_mW"]) for r in read(f"pupow_gate_{sub}.csv", raw[sub])} for sub in raw}
+    gc = {sub: {r["row_id"]: f(r["total_mW"]) for r in read(f"pupow_cuts_{sub}.csv", raw[sub])}["a1b"] for sub in raw}
+    assert abs(gc["phone"] / gr["phone"]["h2"] - g["pupow.phone.gate.core8_over_gated_h2"]) < 1e-6
+    assert abs(gc["hbm2"] / gr["hbm2"]["h2"] - g["pupow.hbm2.gate.core4_over_gated_h2"]) < 1e-6
     assert tid["pupow.phone.idle.core8.acc_slot_cycles_per_write"] == 16 == tid["pupow.hbm2.idle.core4.acc_slot_cycles_per_write"]
     assert round(tid["pupow.phone.idle.core8.staging_cycles_per_write"]) == 6 and tid["pupow.hbm2.idle.core4.staging_cycles_per_write"] == 8
     assert tid["pupow.phone.idle.h2.max_idle"] == 0.0

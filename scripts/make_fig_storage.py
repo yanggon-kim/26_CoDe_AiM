@@ -77,9 +77,10 @@ def checks(d):
     assert r(f("phone", "CoRe", "D1", "S_kernel_M8"), 2) == 1.24     # row reuse alone, also printed in I / VI-E
     assert abs(t["aps.marg.phone.d1_d4.dA"]) < 1e-9 and abs(t["aps.phone.core_per_beat_dA"]) < 1e-9
     assert t["aps.marg.phone.stock_d1.dA_arith"] == 0 and t["aps.marg.phone.d1_d4.dA_storage"] == 0
-    # P2: peak power stays below LP-Spec-style's on both platforms (0.92x / 0.87x are printed in VI-C only)
-    assert s["pupow.phone.gate.core8.over_h2"] < 1 and t["pupow.hbm2.gate.core4.over_h2"] < 1
-    assert r(s["pupow.phone.gate.core8.over_h2"], 2) == 0.92 and r(t["pupow.hbm2.gate.core4.over_h2"], 2) == 0.87
+    # P2: with clock gates in both designs, CoDe's peak power stays below LP-Spec-style's on both platforms
+    # (0.92x / 0.87x printed in VI-C only; SAED14 run 5; gated CoDe / ungated LP-Spec-style 0.90 / 0.81 never printed)
+    assert s["pupow.phone.gate.core8_over_gated_h2"] < 1 and t["pupow.hbm2.gate.core4_over_gated_h2"] < 1
+    assert r(s["pupow.phone.gate.core8_over_gated_h2"], 2) == 0.92 and r(t["pupow.hbm2.gate.core4_over_gated_h2"], 2) == 0.87
     # VI-B eval-e2e-lpspec: the per-mm^2 lead over LP-Spec-style holds until storage costs 6.5x (mobile) / 16.5x
     # (edge server) our estimate (restored 2026-11-12 from the cut VII-A sentence; 1.29x / 1.34x at 3x not printed)
     assert r(t["stor.phone.be.all.lp"], 1) == 6.5 and r(t["stor.hbm2.be.all.lp"], 1) == 16.5
