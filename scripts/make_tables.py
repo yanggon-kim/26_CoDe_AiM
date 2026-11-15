@@ -719,6 +719,25 @@ def ptg_checks():
     print("ptg: slack 64 / 50 ps (5 %), anchor 42 ps; GB 25.6 / 32 GB/s per PU, AiM 32; drain 1.6 / 3.1 %; D = 2 per mm2 1.39 / 1.26x")
 
 
+def p3r_checks():
+    """Sec. VI-B eval-e2e-p3 (user-approved 2026-11-15; dac_2x2 Sec. 2z, microarch row 131, evaluation 0dee2ba): why
+    P3-LLM-style runs at 0.91x NPU only. P3-LLM reports 1.24x over Ecco (W4A8KV4 NPU) at batch 8 vs 4.8x over an FP16
+    NPU (its Fig. 9 bar reads, gmean5); per-class best placement moves P3-LLM-style's attention to the NPU on 3 of 5
+    models and lifts it to 1.03x NPU only; CoDe 1.24x faster at 1.39x less system energy (55 W idle). Sec. VI opener:
+    the linear-layer kernel gains more from depth 2 than P3-LLM reports (ours 1.78x, EV-49)."""
+    h = ids("dac_2x2")
+    assert r2(h["p3r.pub.bs8.gmean5.p3_over_ecco"]) == 1.24
+    assert f"{h['p3r.pub.bs8.gmean5.p3_over_npu16']:.1f}" == "4.8"
+    assert r2(h["p3r.gmean5.p3best.over_npu"]) == 1.03
+    assert h["hyb.hbm2.b8.p3_500.per_class_best.models_attn_on_npu"] == 3
+    assert r2(h["p3r.gmean5.core_over_p3best.speed"]) == 1.24
+    assert abs(h["p3r.gmean5.core_over_p3best.speed"] - h["hyb.hbm2.b8.core4_over_p3_500.per_class_best.speed"]) < 1e-9
+    assert r2(h["p3r.gmean5.p3best_over_core.energy_55W"]) == 1.39
+    assert r2(h["p3r.gmean5.p3own.over_npu"]) == 0.91 == r2(h["isca.e2e.hbm2.p3own.speedup_vs_npu"])
+    assert h["p3r.ours.tep_step_amean"] > h["p3r.pub.tep_step_amean"]   # 1.78 > 1.56: kernel gains more from depth 2
+    print("p3r: P3-LLM 1.24x over W4A8KV4 NPU (4.8x over FP16); per-class best 1.03x NPU only; CoDe 1.24x faster, 1.39x less energy")
+
+
 if __name__ == "__main__":
     os.makedirs(os.path.join(REPO, "tables"), exist_ok=True)
     table4(table_power())
@@ -736,4 +755,5 @@ if __name__ == "__main__":
     colread_checks()
     timing_checks()
     ptg_checks()
+    p3r_checks()
     print("checks: all frozen values hold")

@@ -2,7 +2,7 @@
 """Fig. mapping (Sec. IV-B, IV-C) and Table cmds (Sec. IV-D): a skinny GEMM on CoDe at M = 8, mobile platform.
 
 (a) The skinny GEMM X (M = 8 tokens x K) . W (K x N) = Y (M x N), each token row in its own blue shade (light token 1
-to dark token 8); red boxes mark one bank's work in one row sweep: the 8 tokens' K chunk (in the GB), one matrix
+to dark token 8), one curly brace "8" over X's token rows (rows drawn 4.2 pt, 0.7x the former 6 pt; 2026-11-15); red boxes mark one bank's work in one row sweep: the 8 tokens' K chunk (in the GB), one matrix
 column of W over that chunk (one bank's 2 KB DRAM row = one output's weights), and that output's 8 sums.
 (b) One weight row of one bank (Llama-2-7B q_proj, steady state). Both lanes start at the same x; lane length is
 proportional to time with two drawing allowances (the paper needs only the impression of the gap): RS and D boxes are
@@ -171,7 +171,7 @@ def draw(row_ns, split, tab):
     g = S()
     # ---------------- (a) the skinny GEMM, M = 8; one bank's work in one row sweep in red ----------------
     g.t(1, 8.5, f"(a) skinny GEMM, {I('M')} = 8", 8.5, bold=True)
-    top, rh = 25.0, 6.0
+    top, rh = 25.0, 4.2             # row height 0.7 x the former 6.0 pt (user 2026-11-15: shorter panel (a))
     X0, XW = 12.0, 70.0
     W0, WW = 98.0, 56.0
     Y0, YW = 178.0, 56.0
@@ -182,8 +182,15 @@ def draw(row_ns, split, tab):
     g.t(Y0, top - 4, f"Y: {I('M')} = 8 &#215; {I('N')}")
     for k in range(8):
         g.r(X0, top + k * rh, XW, rh, TOK[k], "#FFFFFF", 0.4)
-        g.t(X0 - 2.5, top + k * rh + rh - 0.4, f"{k + 1}", 8.0, "end", TOK[max(k, 3)])
     g.r(X0, top, XW, H, "none", INK, 0.6)
+    # one curly brace over the eight token rows with a single "8" (user 2026-11-15: replaces the row numbers 1..8)
+    bxr, bxm, bxl, q, ym = X0 - 1.5, X0 - 3.5, X0 - 5.5, 2.5, top + H / 2
+    g.o.append(f'<path d="M{bxr:.2f} {top:.2f} Q{bxm:.2f} {top:.2f} {bxm:.2f} {top + q:.2f} L{bxm:.2f} {ym - q:.2f} '
+               f'Q{bxm:.2f} {ym:.2f} {bxl:.2f} {ym:.2f} Q{bxm:.2f} {ym:.2f} {bxm:.2f} {ym + q:.2f} '
+               f'L{bxm:.2f} {top + H - q:.2f} Q{bxm:.2f} {top + H:.2f} {bxr:.2f} {top + H:.2f}" fill="none" '
+               f'stroke="{INK}" stroke-width="0.6"/>')
+    assert bxl - 0.8 - width("8", 8.5) > 0                                      # the "8" stays on the canvas
+    g.t(bxl - 0.8, ym + 3.0, "8", 8.5, "end")
     g.r(X0, top, XW / 2, H, "none", RED, 1.2)
     g.t((X0 + XW + W0) / 2, top + H / 2 + 3.5, "&#215;", 10.0, "middle")
     g.r(W0, top, WW, H, "#FFFFFF", INK, 0.6)
