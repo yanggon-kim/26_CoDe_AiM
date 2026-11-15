@@ -216,16 +216,18 @@ def draw(row_ns, split, tab):
     # ---------------- (b) one weight row of one bank: stock AiM against CoDe ----------------
     # Lane names sit above their lanes, so the lanes span the width and each stock unit gets about 30 pt. RS and D
     # carry their labels inside at 7 pt and stock AiM's "x64" sits at 6.5 pt: the user's explicit decision (2026-10-29).
-    yb = ya + 15.0
+    # panel (b) drawn at 0.8 of its former height (user 2026-11-15): lanes 11 pt, CoDe's name on the line of the stock
+    # bracket's label (that label right-aligned), "speedup" set inside its arrow, and a tighter zoom box and table
+    yb = ya + 12.0
     g.t(1, yb, "(b) one weight row of one bank", 8.5, bold=True)
     lx, lend = 1.5, W - 1.5
     T = row_ns["stock"]
     sx = (lend - lx) / T                                                        # pt per ns
-    lh = 14.0
+    lh = 11.0
     # stock AiM: 8 adjacent units RS | MAC x64 | D; the lane length is the data (3,250 ns), and RS and D are widened
     # to hold their labels, the MAC block taking the rest of each unit
-    yn = yb + 12.0                                                              # lane name
-    ys = yn + 13.0                                                              # lane top (token numbers between)
+    yn = yb + 10.0                                                              # lane name
+    ys = yn + 11.5                                                              # lane top (token numbers between)
     uw = (lend - lx) / SWEEPS
     rs_w = max(split["stock"]["row"] * sx, width("RS", 7.0) + 1.8)          # 0.9 pt pad a side (ACM column)
     d_w = max(split["stock"]["drain"] * sx, width("D", 7.0) + 1.8)
@@ -244,15 +246,19 @@ def draw(row_ns, split, tab):
         g.t(x + rs_w + mac_w + d_w / 2, ys + lh / 2 + 2.5, "D", 7.0, "middle")
         g.t(x + rs_w + mac_w / 2, ys - 2.5, f"{k + 1}", 8.0, "middle")
     assert yn + 2.5 < ys - 2.5 - 6.0                                            # lane name clear of the token numbers
-    yk = ys + lh + 2.0
-    g.bracket(lx, lend, yk, "8 row sweeps, one per token")
+    yk = ys + lh + 1.5
+    g.o.append(f'<path d="M{lx:.2f} {yk:.2f} v3 H{lend:.2f} v-3" fill="none" stroke="{INK}" stroke-width="0.6"/>')
+    blab = "8 row sweeps, one per token"
+    bl_y, bl_x = yk + 3 + 8.0 + 1.0, lend - 4.0
+    g.t(bl_x, bl_y, blab, 8.0, "end")
     # CoDe: RS | tile MAC x64 | D (burst drain), one row sweep; RS and D as wide as stock AiM's, the tile-MAC block
     # widened to hold its label, so the drawn lanes keep about 3:1 of the 4.40x
-    yc = yk + 3 + 9.5 + 14.0
+    yc = bl_y + 3.0
     g.t(lx, yc - 3.0, "CoDe", 8.0, fill=EDGE, bold=True)
     sub = "1 row sweep, tokens 1&#8211;8"
     sub_x = lx + width("CoDe", 8.0) * 1.06 + 5.0
     g.t(sub_x, yc - 3.0, sub, 8.0, fill=EDGE)
+    assert sub_x + width("1 row sweep, tokens 1-8", 8.0) + 6 < bl_x - width(blab, 8.0)  # shared line, no touch
     c_rs, c_d = rs_w, d_w
     c_mac = max(split["core8"]["mac"] * sx, width("tile MAC &#215;64".replace("&#215;", "x"), 8.0) + 3.0)
     cend = lx + c_rs + c_mac + c_d
@@ -264,40 +270,42 @@ def draw(row_ns, split, tab):
     g.t(lx + c_rs + c_mac / 2, yc + lh / 2 + 2.8, "tile MAC &#215;64", 8.0, "middle", EDGE)
     g.r(lx + c_rs + c_mac, yc, c_d, lh, GRAY_D, INK, 0.5)
     g.t(lx + c_rs + c_mac + c_d / 2, yc + lh / 2 + 2.5, "D", 7.0, "middle")
-    # speedup: from CoDe's end to stock AiM's end
+    # speedup: from CoDe's end to stock AiM's end, the label inside a break in the arrow
     ay = yc + lh / 2
     g.l(cend, yc, cend, yc + lh + 1.5, "#808080", 0.5, "2 1.5")
     g.l(lend, ys + lh, lend, yc + lh + 1.5, "#808080", 0.5, "2 1.5")
-    g.l(cend + 1.0, ay, lend - 1.0, ay, RED, 0.9, extra=' marker-start="url(#ar)" marker-end="url(#ar)"')
-    g.t((cend + lend) / 2, ay - 3.0, "speedup", 8.5, "middle", RED, True)
-    assert sub_x + width("1 row sweep, tokens 1-8", 8.0) + 4 < (cend + lend) / 2 - width("speedup", 8.5) * 0.55
+    sm, sw2 = (cend + lend) / 2, width("speedup", 8.5) * 0.55 + 3.0
+    g.l(cend + 1.0, ay, sm - sw2, ay, RED, 0.9, extra=' marker-start="url(#ar)"')
+    g.l(sm + sw2, ay, lend - 1.0, ay, RED, 0.9, extra=' marker-end="url(#ar)"')
+    g.t(sm, ay + 3.0, "speedup", 8.5, "middle", RED, True)
+    assert sm - sw2 - (cend + 1.0) > 12 and lend - 1.0 - (sm + sw2) > 12                  # both arrow halves visible
     # zoom of the whole tile-MAC block: one tile MAC = one column read, 8 beats over two column periods, x64
-    zw, zh = 199.0, 47.0
-    zx, zy = (W - zw) / 2, yc + lh + 9.0
+    zw, zh = 199.0, 41.0
+    zx, zy = (W - zw) / 2, yc + lh + 5.0
     g.l(lx + c_rs, yc + lh, zx, zy, EDGE, 0.5, "2 1.5")
     g.l(lx + c_rs + c_mac, yc + lh, zx + zw, zy, EDGE, 0.5, "2 1.5")
     g.r(zx, zy, zw, zh, "#FFFFFF", EDGE, 0.7)
     head1, head2 = "tile MAC: one column read (", "), 8 beats"
-    g.t(zx + 5, zy + 10.0, head1, 8.0, fill=EDGE)
+    g.t(zx + 5, zy + 9.5, head1, 8.0, fill=EDGE)
     xt = zx + 5 + width(head1, 8.0)
-    g.tri(xt + 3.0, zy + 4.6, RED, 4.6)
-    g.t(xt + 6.0, zy + 10.0, head2, 8.0, fill=EDGE)
+    g.tri(xt + 3.0, zy + 4.1, RED, 4.6)
+    g.t(xt + 6.0, zy + 9.5, head2, 8.0, fill=EDGE)
     pitch = 19.0
     assert 4 * pitch - 2 > width("column period (4 CK)", 8.0)
-    bx0, by = zx + 14.0, zy + 15.0
-    g.tri(bx0 - 6.5, by + 3.7, RED, 4.6)
-    g.r(bx0 - 2.5, by - 2.0, 8 * pitch + 3.0, 16.0, "none", EDGE, 0.5, "2 1.2")
+    bx0, by = zx + 14.0, zy + 13.0
+    g.tri(bx0 - 6.5, by + 3.2, RED, 4.6)
+    g.r(bx0 - 2.5, by - 1.5, 8 * pitch + 3.0, 14.0, "none", EDGE, 0.5, "2 1.2")
     for k in range(8):
-        g.r(bx0 + k * pitch, by, pitch - 2.0, 12.0, TOK[k], INK, 0.5)
-        g.t(bx0 + k * pitch + (pitch - 2.0) / 2, by + 8.9, f"{k + 1}", 8.0, "middle", TOKT[k], True)
-    g.bracket(bx0, bx0 + 4 * pitch - 2.0, by + 16.5, "column period (4 CK)", EDGE)
-    g.bracket(bx0 + 4 * pitch, bx0 + 8 * pitch - 2.0, by + 16.5, "column period (4 CK)", EDGE)
+        g.r(bx0 + k * pitch, by, pitch - 2.0, 11.0, TOK[k], INK, 0.5)
+        g.t(bx0 + k * pitch + (pitch - 2.0) / 2, by + 8.4, f"{k + 1}", 8.0, "middle", TOKT[k], True)
+    g.bracket(bx0, bx0 + 4 * pitch - 2.0, by + 13.5, "column period (4 CK)", EDGE)
+    g.bracket(bx0 + 4 * pitch, bx0 + 8 * pitch - 2.0, by + 13.5, "column period (4 CK)", EDGE)
     gx = bx0 + 8 * pitch + 6.0
-    g.t(gx, by + 9.5, "&#215;64", 9.0, fill=EDGE, bold=True)
+    g.t(gx, by + 9.0, "&#215;64", 9.0, fill=EDGE, bold=True)
     assert gx + width("x64", 9.0) * 1.06 < zx + zw - 3
-    assert by + 16.5 + 3 + 9.5 + 2.0 < zy + zh
+    assert by + 13.5 + 3 + 9.5 + 1.5 < zy + zh
     # the count table: equal MAC beats; what each lever removes
-    ty = zy + zh + 12.0
+    ty = zy + zh + 9.0
     cols = [(74.0, "MAC beats"), (121.0, "row opens"), (168.0, "column reads"), (214.0, "MAC time")]
     for (c0, h0), (c1, h1) in zip(cols, cols[1:]):
         assert c0 + width(h0, 8.0) / 2 + 4 < c1 - width(h1, 8.0) / 2
@@ -307,14 +315,15 @@ def draw(row_ns, split, tab):
     tcol = f"{I('t')}<tspan font-size=\"6\" baseline-shift=\"sub\">col</tspan>"
     rows = [("stock AiM", INK, tab["stock"]), ("CoDe", EDGE, tab["core8"])]
     for i, (name, c, v) in enumerate(rows):
-        yy = ty + 13.0 + i * 10.5
+        yy = ty + 11.5 + i * 9.5
         g.t(1, yy, name, 8.0, fill=c, bold=True)
         vals = (f"{V} &#215; {COLS}", f"{v['opens']}", f"{v['reads']}", f"{v['periods']:g} {tcol}")
         for (cx, _), s in zip(cols, vals):
             g.t(cx, yy, s, 8.0, "middle", c)
-    yr = ty + 13.0 + 10.5 + 4.0
+    yr = ty + 11.5 + 9.5 + 3.5
     g.l(1, yr, W - 1, yr, RULE, 0.6)
-    Hh = round(yr + 1.5, 1)
+    Hh = round(yr + 1.0, 1)
+    print(f"panel (b) height {Hh - ya:.1f} pt (from (a)'s tag line)")
     fig = Fig(W, Hh)
     marker = ('<marker id="ar" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="4.5" markerHeight="4.5" '
               f'orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="{RED}"/></marker>')
