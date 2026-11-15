@@ -72,7 +72,10 @@ HBM-PIM~\cite{hbmpim}, which stands in for a plain HBM2 die\ASSUMPTION.
 PrimePower~\cite{synopsyspp} computes PU power and energy from the Design Compiler netlist of each whole PU, placed and
 routed in IC Compiler II~\cite{synopsysicc2} and simulated in VCS~\cite{synopsysvcs} with back-annotated timing on random operands. Energy and leakage are scaled to the DRAM process so that an AiM-style bf16 PU from the same flow spends
 the compute share of CENT's~\cite{cent} AiM MAC-command energy, and to the 1.05\,V VDD2H supply with the
-square of the voltage\ASSUMPTION. Energy per token charges each MAC its PU's energy, leakage over
+square of the voltage\ASSUMPTION. At PrimeTime~\cite{synopsyspt} sign-off at the typical corner, CoDe's routed PU keeps
+64\,ps of setup slack at 0.8\,GHz on the mobile platform and 50\,ps at 1\,GHz on HBM2, a 5\,\% guard band for clock
+jitter and on-chip variation; at 1\,GHz, the HBM2 PU keeps more slack than the AiM-style bf16 PU, 50 against 42\,ps.
+Section~\ref{sec:eval:ablation} gives CoDe's gain at half the PU clock. Energy per token charges each MAC its PU's energy, leakage over
 the step time, GB reads priced by SRAM size~\cite{horowitz}, and CENT's per-command DRAM energies; in
 every design a PU's clock runs only on its MAC beats, so an idle PU cycle costs leakage only\ASSUMPTION. Peak power
 runs every PU at its full MAC rate and includes leakage, GB reads and the column fetch, which adds 87.6\,mW per die on

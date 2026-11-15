@@ -150,9 +150,8 @@ the layer up 1.24$\times$ on the mobile platform and 1.15$\times$ on the edge se
 0.50, 0.73 and 1.00, and its three steps
 speed the layer up 3.49$\times$ on the mobile platform and 3.33$\times$ on the edge server, while CoDe's \fMAC of 0.779 and 0.739 stays
 near stock AiM's 0.717 and 0.771. End to end, beat filling makes CoDe decode 2.03$\times$ faster than row reuse alone
-in the speculative loop at $M = 8$ on the mobile platform and 2.29$\times$ faster at a batch of 8 on the edge server. At $D = 2$, half its PU clock, CoDe already returns 1.07$\times$
-LP-Spec-style's throughput per logic mm$^2$ on this layer on the mobile platform and 1.015$\times$ on the edge server,
-because its logic is the same at every $D$.
+in the speculative loop at $M = 8$ on the mobile platform and 2.29$\times$ faster at a batch of 8 on the edge server. If DRAM silicon reaches only half of CK, CoDe at $D = 2$ still
+returns 1.39$\times$ and 1.26$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and the edge server.
 Beat filling pays off only after row reuse. Applied alone, it would shorten every MAC slot to a quarter but keep every
 row-switch command, which would then take about half of the time or more (\fMAC 0.425 on the mobile platform and 0.506
 on the edge server).

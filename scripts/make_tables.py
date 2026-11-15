@@ -383,10 +383,8 @@ def umac_src_table():
         assert abs(bf / tid[f"umac.dsteps.{p}.bf_total"] - 1) < 1e-5
         # U_MAC 0.25 -> 0.50 -> 0.73 -> 1.00 ("one beat per column period at each step")
         assert [want[(p, d)][0] for d in ("rs", "d2", "d3", "core")] == ["0.25", "0.50", "0.73", "1.00"]
-        # VI-E prose: at D = 2 (half the PU clock) CoDe returns 1.07x / 1.015x the per-bank LP-Spec-style's throughput per
-        # logic mm2 (layer basis, M = 8; SAED14 x 10 areas, evaluation 35c9d06; Nangate45 history 1.14 / 1.02); CoDe's
-        # logic is the same at every D (x.saed.core_logic_change_across_D_maxabs_pct = 0)
-        assert (r2(f(ds[(p, 2)]["per_mm2_vs_lp"])), r3(f(ds[(p, 2)]["per_mm2_vs_lp"]))) == {"phone": (1.07, 1.067), "hbm2": (1.02, 1.015)}[p]
+        # layer-basis D = 2 per mm2 vs LP-Spec-style (1.067 / 1.015) no longer printed (VI-E prints the e2e D = 2 ratios,
+        # asserted in ptg_checks, 2026-11-15); CoDe's logic is the same at every D (x.saed.core_logic_change_across_D_maxabs_pct = 0)
         assert f(ds[(p, 1)]["per_mm2_vs_lp"]) < 1 < f(ds[(p, 2)]["per_mm2_vs_lp"])
         a = [f(ds[(p, D)]["core_logic_mm2"]) for D in (1, 2, 3, 4)]
         assert max(a) / min(a) - 1 < 1e-9, (p, a)                       # printed "its logic is the same at every D"
@@ -687,12 +685,38 @@ def timing_checks():
     """Intro / Sec. IV-D / V-C: the pipelined CoDe PU meets timing at 0.8 GHz (mobile, INT8 lanes) and 1 GHz (HBM2,
     INT4 x INT8 lanes) on Synopsys DC / SAED14 with PrimeTime confirming; all six paper PUs meet their Table IV clocks.
     Ids timing.saed.* (evaluation dac_2x2 51e9688, dc_units r2 @ 2af7ebc), never the old Nangate timing.phone/hbm2.*.
-    No slack, f_max or pipeline depth is printed (user rule; no id carries the SAED14 depth)."""
+    No f_max or pipeline depth is printed (user rule); V-C setup slack is asserted in ptg_checks."""
     hs = ids("dac_2x2")
     assert hs["timing.saed.phone.core.met"] == 1 and hs["timing.saed.hbm2.core.met"] == 1
     assert hs["timing.saed.phone.core.clk_MHz"] == 800 and hs["timing.saed.hbm2.core.clk_MHz"] == 1000
     assert hs["timing.saed.paper_units_met_n"] == 6
     print("timing: SAED14 CoDe PU meets 800 MHz (phone) / 1000 MHz (HBM2); 6 of 6 paper PUs met")
+
+
+def ptg_checks():
+    """Sec. II-C / IV-D / V-C / VI-E PU feasibility prints (dac_2x2 Sec. 2y, evaluation f208f39; user-approved 2026-11-15).
+    V-C: PrimeTime typical-corner setup slack 64 / 50 ps at 0.8 / 1 GHz (~5 % of the period), AiM-style anchor 42 ps
+    (4.18 %, never called 5 %). IV-D: GB broadcast 512 b x 400 MHz to 16 PUs = 25.6 GB/s, 1,024 b x 250 MHz to 8 PUs =
+    32 GB/s (fetch = need; HBM2 lanes consume 64, each slice serves two banks: "needs", never "consumes"); AiM 32 GB/s to 16
+    bank PUs at 1 GHz; drain 1.6 / 3.1 % of a tile's row sweep, two sets. VI-E: D = 2 e2e per logic mm2 vs LP-Spec-style
+    1.39 / 1.26 (sd8g3 Sec. 2i, 2x2)."""
+    h, s = ids("dac_2x2"), ids("dac_sd8g3")
+    assert round(h["ptg.phone.core.setup_ps"]) == 64 and round(h["ptg.hbm2.core.setup_ps"]) == 50
+    assert round(h["ptg.anchor.setup_ps"]) == 42 and h["ptg.hbm2.core.setup_ps"] > h["ptg.anchor.setup_ps"]
+    assert round(h["ptg.phone.core.setup_pct"]) == 5 == round(h["ptg.hbm2.core.setup_pct"])
+    assert h["ptg.phone.core.clk_MHz"] == 800 and h["ptg.hbm2.core.clk_MHz"] == 1000 == h["ptg.anchor.clk_MHz"]
+    for p, bits, mhz, n, gbps in (("phone", 512, 400, 16, 25.6), ("hbm2", 1024, 250, 8, 32.0)):
+        g = f"ptg.{p}.gb."
+        assert (h[g + "gb_port_bits"], h[g + "gb_port_MHz"], h[g + "PUs_per_GB"]) == (bits, mhz, n), p
+        assert h[g + "fetch_GBps_per_PU"] == gbps and abs(bits * mhz / 8e3 - gbps) < 1e-9, p
+        assert h[g + "supply_over_need"] == 1.0, p
+    assert h["ptg.hbm2.gb.fetch_over_consume"] == 0.5          # why the prose says "needs", not "consumes"
+    assert (h["ptg.aim.gb_GBps"], h["ptg.aim.pus_per_channel"], h["ptg.aim.pu_GHz"]) == (32, 16, 1)
+    assert (f"{h['ptg.phone.drain.occupancy_pct']:.1f}", f"{h['ptg.hbm2.drain.occupancy_pct']:.1f}") == ("1.6", "3.1")
+    assert h["ptg.phone.drain.acc_sets"] == 2 == h["ptg.hbm2.drain.acc_sets"]
+    assert r2(s["pclk.phone.D2.e2e.M8.core8_over_h2.per_mm2"]) == 1.39
+    assert r2(h["pclk.hbm2.c500.b8.core4_over_h2.per_mm2"]) == 1.26
+    print("ptg: slack 64 / 50 ps (5 %), anchor 42 ps; GB 25.6 / 32 GB/s per PU, AiM 32; drain 1.6 / 3.1 %; D = 2 per mm2 1.39 / 1.26x")
 
 
 if __name__ == "__main__":
@@ -711,4 +735,5 @@ if __name__ == "__main__":
     dots_checks()
     colread_checks()
     timing_checks()
+    ptg_checks()
     print("checks: all frozen values hold")

@@ -132,9 +132,13 @@ $V$ sums out through the drain port (\ding{176}).
 The global buffer holds the tile's $V$ tokens for one chunk of $K$. On the mobile platform a $K$ chunk holds 2,048 INT8
 inputs, 2\,KB per token, so the GB of an eight-token tile holds 16\,KB (Table~\ref{tab:designs}); one WRGB burst of 512
 writes of 32\,B fills it. The staging buffer next to the lanes is a three-entry queue of 512-bit GB words, each word
-packing two tokens' slices, and a register of $V$ slices on HBM2. The accumulator file holds two sets of $V$ slots per bank, so
+packing two tokens' slices, and a register of $V$ slices on HBM2. The GB broadcasts one 512-bit word at 400\,MHz to the
+16 PUs of a die, 25.6\,GB/s per PU, and on HBM2 one 1,024-bit word at 250\,MHz to the 8 PUs of a pseudo-channel,
+32\,GB/s per PU, the rate each PU needs at its clock; GDDR6-AiM's buffer~\cite{aimjssc} already broadcasts 32\,GB/s to its
+16 bank PUs in DRAM silicon. The accumulator file holds two sets of $V$ slots per bank, so
 one tile's sums drain from one set while the next tile accumulates into the other; an HBM2 PU, which serves two banks,
-holds four sets (Table~\ref{tab:designs}).
+holds four sets (Table~\ref{tab:designs}). The burst drain reads the accumulator file for 1.6\,\% and 3.1\,\% of a tile's
+row sweep, inside the PU and alongside the next tile, which accumulates into the other set.
 
 % P:des-tile-size
 \runin{Tile size}

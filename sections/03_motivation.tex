@@ -223,7 +223,7 @@ the 1.0--1.2\,GHz bus clock, and Samsung's HBM-PIM~\cite{hbmpim} sets its FP16 P
 250--300\,MHz, in a 20\,nm DRAM process. Logic in later DRAM processes runs faster: UPMEM's processor~\cite{devaux}
 is designed to execute 32-bit integer instructions at 500\,MHz in a 2x-nm DRAM process, a deployed UPMEM system
 runs the processor at 350\,MHz~\cite{prim}, and GDDR6-AiM~\cite{aimjssc} runs BF16
-multipliers and adder trees at 1\,GHz in a 1y-nm DRAM process. The 1y-nm process also builds HBM: Samsung's
+multipliers and adder trees at 1\,GHz, one PU in each of its 16 banks, in a 1y-nm DRAM process. The 1y-nm process also builds HBM: Samsung's
 HBM2E~\cite{flashbolt} stacks eight 1y-nm DRAM dies. The Precision-Flexible PU~\cite{pfpu} also clocks an
 HBM-PIM-style PU at CK on HBM2, but spends the four phases of each 4-\tck column interval on the low-bit weights
 packed in one column for one input vector, so its gain is set by how many weights the column packs. DRAM periphery has gained logic-process
