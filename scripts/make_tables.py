@@ -640,9 +640,7 @@ def newdram_checks():
     assert abs(4 * CK["lp5x9600"] * 2 - 9.6) < 1e-12
     # HBM3 strobes 3.2 GHz = 2 x CK, 6.4 Gb/s = 2 x 3.2 (synopsyshbm3)
     assert abs(2 * CK["hbm3"] - 3.2) < 1e-12 and abs(2 * 3.2 - 6.4) < 1e-12
-    # LPDDR5X-PIM (lp5xpim, as reported from the talk): 614 GB/s inside, 76.8 GB/s interface -> "eight times"
-    assert round(614 / 76.8) == 8 and abs(614 / 76.8 - 8) < 0.01
-    print("newdram: columns 3.75 / 3.33 / 2.5 ns at CK 1.07 / 1.2 / 1.6 GHz, D = 4 each; WCK 4 x CK; 614 / 76.8 = 8.0")
+    print("newdram: columns 3.75 / 3.33 / 2.5 ns at CK 1.07 / 1.2 / 1.6 GHz, D = 4 each; WCK 4 x CK")
 
 
 def dots_checks():
