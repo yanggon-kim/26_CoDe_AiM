@@ -35,7 +35,7 @@ NeuPIMs~\cite{neupims} maps the GEMMs to the NPU, IANUS~\cite{ianus} chooses NPU
 P3-LLM~\cite{p3llm} offloads its linear layers to the NPU from batch 8, where its PIM becomes compute-bound.
 
 % P:mot-a-summary
-Skinny GEMMs are memory-bound on the host and thus belong on PIM, which reads the weights inside the DRAM, yet stock
+Skinny GEMMs are memory-bound on the host, so their low arithmetic intensity suits PIM, which reads the weights inside the DRAM, yet stock
 PIM's GEMM throughput stays flat at its GEMV ceiling. Section~\ref{sec:bg:cmd} splits a stock GEMM's time to locate the
 cause.
 
@@ -194,8 +194,8 @@ On every memory family whose \tccdl{} is twice \tccds{}, the faster-PU family's 
 fast its PU runs. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
 server (Fig.~\ref{fig:roofline}b). P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we
 take P3-LLM as the representative of the faster-PU family and model it as a \textbf{P3-LLM-style} design, the rival on
-the edge server (Section~\ref{sec:eval}). With the stock multiplier count, P3-LLM-style's ceiling per logic
-mm$^2$, 361\,GOPS on the mobile platform and 718 on the edge server, lies above LP-Spec-style's.
+the edge server (Section~\ref{sec:eval}). P3-LLM-style thus keeps the stock multiplier count and a small
+logic footprint, but command timing caps its speed at two beats per column read.
 
 % P:mot-other-pim
 \runin{Other related work}
@@ -231,7 +231,8 @@ features: Samsung, SK hynix and Micron build periphery transistors with high-k m
 1a-nm dies route in five to six metal layers~\cite{tid1a16,tid1a24}.
 
 % P:mot-two-levers
-We therefore keep the stock multiplier count, run it at CK, and answer each root cause of Section~\ref{sec:bg:cmd}
+We therefore keep the stock multiplier count, which spares the wider PU's multipliers, run the PU at CK, which lifts
+the faster PU's two-token cap, and answer each root cause of Section~\ref{sec:bg:cmd}
 with one mechanism. \emph{Row reuse} (Section~\ref{sec:design:reuse}) answers the non-MAC commands: the tokens of a
 tile share one row sweep and its row-switch commands. \emph{Beat filling} (Section~\ref{sec:design:beat}) answers the
 idle beats: the PU spends all $D$ beats of a column period on one latched column.

@@ -105,7 +105,7 @@ the PU clock instead: one \emph{tile MAC} command and one column read feed all $
 tile at the stock multiplier count, so the beats per column period follow $t_\mathrm{col} \times f_\mathrm{PU}$ rather
 than the ratio of \tccdl{} to \tccds. Per token and weight column, CoDe therefore issues $1/V$ MAC commands, against
 one for stock AiM and P3-LLM-style and $1/4$ for LP-Spec-style (Fig.~\ref{fig:timeline}). The idle beats thus
-disappear without added multipliers, which gives CoDe 1.87$\times$ LP-Spec-style's tokens per second per logic
+disappear without added multipliers, which, with row reuse, gives CoDe 1.87$\times$ LP-Spec-style's tokens per second per logic
 mm$^2$ on the mobile platform (Section~\ref{sec:eval:e2e}), and without per-token MAC commands, which gives CoDe its speed lead over
 P3-LLM-style.
 

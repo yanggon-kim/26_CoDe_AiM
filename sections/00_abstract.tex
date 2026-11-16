@@ -8,14 +8,15 @@ they need. However, stock PIM was designed for GEMVs, so its MAC throughput fall
 first conduct a detailed characterization of stock PIM's GEMM time, which shows that useful MACs fill only
 14.1--19.1\,\% of that time. Two root causes take the rest: non-MAC DRAM commands that stall every MAC
 (23.4--43.7\,\%) and idle MAC beats (42.2--57.4\,\%). Both causes arise because a DRAM command paces every MAC, a choice
-that suits GEMVs but not GEMMs. Prior PIM designs fill the idle beats at a cost: four times the multipliers, in a die that builds logic ten times less
-densely than an ASIC, or one command per token, which lets a column read serve at most two tokens. DRAM timing, however,
+that suits GEMVs but not GEMMs. Prior PIM designs fill the idle beats at a cost: the wider PU spends four times the multipliers, in a die that builds
+logic ten times less densely than an ASIC, and the faster PU keeps the stock multiplier count but issues one command per
+token, so a column read serves at most two tokens. DRAM timing, however,
 bounds how often a column is read, not how many MACs may consume it, and an all-bank column already spans four
 command-clock cycles. Based on this characterization, we propose CoDe (Command-Decoupled PIM), which decouples MACs from DRAM
 commands without adding multipliers, with one technique per root cause. Row reuse removes the repeated non-MAC
 commands: a tile of tokens shares one row sweep, so each weight column is read and each row switch is paid once per
 tile rather than once per token. Beat filling removes the idle beats: the PU, clocked at the command clock, computes
-the tile's tokens in all four beats of each column period from the latched column. On a mobile platform, CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$
-and decodes 1.60$\times$ faster at about the same logic area. On an HBM2 edge server, CoDe decodes a batch of 8
-1.41$\times$ faster than P3-LLM-style and 1.28$\times$ faster than NPU only.
+the tile's tokens in all four beats of each column period from the latched column. CoDe answers each family where it pays. On a mobile platform, CoDe returns
+1.87$\times$ the wider-PU LP-Spec-style's tokens per second per logic mm$^2$. On an HBM2 edge server, CoDe decodes a
+batch of 8 1.24$\times$ faster than the faster-PU P3-LLM-style, for 0.59\,\% more of the stack's area.
 \end{abstract}

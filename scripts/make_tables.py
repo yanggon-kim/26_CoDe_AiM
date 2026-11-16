@@ -108,6 +108,13 @@ def budget_cells():
     # 4.11 and the rest guard only. History guard (Nangate45, never printed): 1.55 / 1.72 / 4.28 / 2.31, 1.23 / 1.46 / 3.48 / 1.95
     assert [pct[("phone", d)] for d, _ in PHONE] == ["1.66", "1.86", "4.60", "2.64"], pct
     assert [pct[("serve", d)] for d, _ in HBM2] == ["1.41", "1.69", "4.11", "2.28"], pct
+    # abstract, I, VI-B, VI-D, VIII (user, 2026-11-16): CoDe's logic minus P3-LLM-style's, as a share of the HBM2 stack,
+    # "0.59 %" (two decimals, as the 2.28 %); = 2.28 x (1 - 1 / 1.35) from the same Table IV logic and stack denominator
+    extra = hs["budget.hbm2.core4.pct_of_stack_model"] - hs["budget.hbm2.p3_500.pct_of_stack_model"]
+    lg = {d: f(t4[("serve", d)]["logic_mm2_total"]) for d in ("core4", "p3_500")}
+    assert abs(extra - 100 * (lg["core4"] - lg["p3_500"]) / stack) < 1e-9
+    assert abs(extra - hs["budget.hbm2.core4.pct_of_stack_model"] * (1 - lg["p3_500"] / lg["core4"])) < 1e-9
+    assert f"{extra:.2f}" == "0.59", extra
     cuts = {"phone": {r["row_id"]: r for r in read("pupow_cuts_phone.csv", os.path.join(EVAL, "dac_sd8g3", "raw"))},
             "hbm2": {r["row_id"]: r for r in read("pupow_cuts_hbm2.csv", os.path.join(EVAL, "dac_2x2", "raw"))}}
     gated = {sub: f(cuts[sub]["a1b"]["total_mW"]) for sub in cuts}
@@ -584,22 +591,23 @@ def lpsv_checks():
     unresolved, row 40); LP-Spec's register files are "included" in its 16.92 %, never "mostly"."""
     ps = ids("dac_sd8g3")
     # shared variant: area and loop speed / per mm2 against CoDe (V = 8)
-    # printed in VI-E PU placement (0.90x, 1.60x, 1.44x); abstract, I and VIII print 1.60x (and 0.90x in I, VIII); restored 2026-11-12
+    # printed in VI-E PU placement only (0.90x, 1.60x, 1.44x; the abstract and VIII dropped 1.60x / 0.90x, user 2026-11-16)
     assert r2(ps["lpsv.phone.h2sh_over_core8.logic"]) == 0.90           # SAED14 (Nangate45 0.96)
-    # at the mobile operating point M = 8 (abstract, I, VI-E, VIII; evaluation 7cf79d5): CoDe 1.60x faster, 1.44x per mm2
+    # at the mobile operating point M = 8 (VI-E; evaluation 7cf79d5): CoDe 1.60x faster, 1.44x per mm2
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.speed_M8"]) == 1.60
     assert r2(ps["lpsv.phone.loop.core8_over_h2sh.per_mm2_M8"]) == 1.44
-    # VI-B eval-lpspec-variants: CoDe decodes 1.07x faster than the per-bank LP-Spec-style at M = 8 and 16 (loop, L 1024,
+    # VI-B eval-e2e-lpspec: CoDe decodes 1.07x faster than the per-bank LP-Spec-style at M = 8 and 16 (loop, L 1024,
     # alpha 0.7, 1B draft, 42 GB/s; sd8g3 Sec. 2g); make_fig_e2e recomputes the same ratio from ev56_chain rows
     assert r2(ps["isca.e2e.phone.core8_over_h2.speed_M8"]) == 1.07 == r2(ps["isca.e2e.phone.core8_over_h2.speed_M16"])
     # VI-E: a bank's column period = 32 B over the internal bandwidth per bank (Table III): 8 ns on HBM2 (1,024 GB/s,
     # 16 pCH x 16 banks), 5 ns on the mobile platform (409.6 GB/s, 4 dies x 16 banks); a PU takes one every t_CCD_L = 4 ns
     assert abs(32 / (1024.0 / 256) - 8.0) < 1e-12 and abs(32 / (409.6 / 64) - 5.0) < 1e-12
-    # A8: loop ties at every M run (2-4, 8, 16), GEMM ties from M = 8 except M = 12; area and per mm2
+    # A8 (VI-B eval-e2e-lpspec: 3.155 mm2, 1.96x; VII-A disc-storage-claim: ties, 1.007x, 2.800 -> 3.155 mm2):
+    # loop ties at every M run (2-4, 8, 16), GEMM ties from M = 8 except M = 12; area and per mm2
     assert ps["lpsv.phone.loop.core8_over_h2a8.speed.min"] == 1.0 == ps["lpsv.phone.loop.core8_over_h2a8.speed.max"]
     assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M8plus_no12.min"], 3) == 1.0 == round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M8plus_no12.max"], 3)
     assert round(ps["lpsv.phone.gemm.core8_over_h2a8.speed_M12"], 3) == 1.007
-    # VI-B: logic per die from LP-Spec-style's 2.800 (Table IV) to 3.155 mm2 (the 5.18 % share no longer printed)
+    # VII-A: logic per die from LP-Spec-style's 2.800 (Table IV) to 3.155 mm2 (the 5.18 % share no longer printed)
     assert round(ps["lpsv.phone.h2a8.logic_mm2_die"], 3) == 3.155
     assert r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.min"]) == 1.96 == r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.max"])
     assert ps["lpsv.phone.loop.core8_over_h2a8.speed_M8"] == 1.0 and r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2_M8"]) == 1.96
@@ -718,22 +726,37 @@ def ptg_checks():
 
 
 def p3r_checks():
-    """Sec. VI-B eval-e2e-p3 (user-approved 2026-11-15; dac_2x2 Sec. 2z, microarch row 131, evaluation 0dee2ba): why
-    P3-LLM-style runs at 0.91x NPU only. P3-LLM reports 1.24x over Ecco (W4A8KV4 NPU) at batch 8 vs 4.8x over an FP16
-    NPU (its Fig. 9 bar reads, gmean5); per-class best placement moves P3-LLM-style's attention to the NPU on 3 of 5
-    models and lifts it to 1.03x NPU only; CoDe 1.24x faster at 1.39x less system energy (55 W idle). Sec. VI opener:
-    the linear-layer kernel gains more from depth 2 than P3-LLM reports (ours 1.78x, EV-49)."""
-    h = ids("dac_2x2")
-    assert r2(h["p3r.pub.bs8.gmean5.p3_over_ecco"]) == 1.24
-    assert f"{h['p3r.pub.bs8.gmean5.p3_over_npu16']:.1f}" == "4.8"
-    assert r2(h["p3r.gmean5.p3best.over_npu"]) == 1.03
-    assert h["hyb.hbm2.b8.p3_500.per_class_best.models_attn_on_npu"] == 3
-    assert r2(h["p3r.gmean5.core_over_p3best.speed"]) == 1.24
-    assert abs(h["p3r.gmean5.core_over_p3best.speed"] - h["hyb.hbm2.b8.core4_over_p3_500.per_class_best.speed"]) < 1e-9
-    assert r2(h["p3r.gmean5.p3best_over_core.energy_55W"]) == 1.39
-    assert r2(h["p3r.gmean5.p3own.over_npu"]) == 0.91 == r2(h["isca.e2e.hbm2.p3own.speedup_vs_npu"])
-    assert h["p3r.ours.tep_step_amean"] > h["p3r.pub.tep_step_amean"]   # 1.78 > 1.56: kernel gains more from depth 2
-    print("p3r: P3-LLM 1.24x over W4A8KV4 NPU (4.8x over FP16); per-class best 1.03x NPU only; CoDe 1.24x faster, 1.39x less energy")
+    """Sec. VI-B eval-e2e-p3 and V-C meth-simulator (user-approved frame, 2026-11-16; dac_2x2 Sec. 2z, microarch row 131,
+    hyb @ 51b933b): NPU + P3-LLM-style on the edge server places each layer class on whichever unit runs it faster at
+    batch 8 (per_class_best, the only placement printed): linear layers on the NPU on 5 / 5 models, attention on the 3
+    grouped-query models; 1.03x NPU only, equal to stock AiM's per-class best. CoDe 1.24x faster, P3-LLM-style 1.39x
+    (55 W) / 2.11x (0 W) CoDe's energy, CoDe 0.92x per PIM logic mm2 on 1.35x the logic (Table IV). P3-LLM reports about
+    1.24x over a W4A8KV4 NPU (its own attention dataflow). Mobile (all-PIM): CoDe 1.56x P3-LLM-style's speed, 1.11x per
+    mm2 (make_fig_e2e). V-C: the linear-layer kernel gains 1.78x from depth 2, P3-LLM prints 1.6x (Fig. 15 text; bar
+    read 1.56). Never printed: P3-LLM's own placement (0.91x, 1.41x, 1.52x, 2.07x), 4.8x, 1.30x / 0.92x, 1.155x."""
+    h, s = ids("dac_2x2"), ids("dac_sd8g3")
+    hyb = {r["row_id"]: r for r in read("hyb_sum.csv", os.path.join(EVAL, "dac_2x2", "raw"))}
+    p3, st, co, npu = (hyb[k] for k in ("p3_500/per_class_best/8", "stock/per_class_best/8", "core4/per_class_best/8",
+                                        "npu/npu_only/8"))
+    assert f(p3["tok_s"]) == f(st["tok_s"])                                   # stock AiM = P3-LLM-style, same placement
+    assert (int(p3["models_fc_on_npu"]), int(p3["models_attn_on_npu"])) == (5, 3)
+    assert abs(f(p3["tok_s"]) - h["hyb.hbm2.b8.p3_500.per_class_best.tok_s"]) < 1e-9
+    assert abs(f(co["tok_s"]) - h["isca.e2e.hbm2.core4.tok_s"]) < 1e-9 and abs(f(npu["tok_s"]) - h["hyb.hbm2.b8.npu_only.tok_s"]) < 1e-9
+    assert r2(f(p3["tok_s"]) / f(npu["tok_s"])) == 1.03 == r2(h["p3r.gmean5.p3best.over_npu"])
+    sp = f(co["tok_s"]) / f(p3["tok_s"])
+    assert r2(sp) == 1.24 and abs(sp - h["p3r.gmean5.core_over_p3best.speed"]) < 1e-9
+    assert abs(sp - h["hyb.hbm2.b8.core4_over_p3_500.per_class_best.speed"]) < 1e-9
+    e55, e0 = f(p3["mJ_per_tok_55W"]) / f(co["mJ_per_tok_55W"]), f(p3["mJ_per_tok_0W"]) / f(co["mJ_per_tok_0W"])
+    assert r2(e55) == 1.39 and abs(e55 - h["p3r.gmean5.p3best_over_core.energy_55W"]) < 1e-9
+    assert r2(e0) == 2.11 and abs(e0 - h["hyb.hbm2.b8.p3_500_over_core4.per_class_best.energy_0W"]) < 1e-9
+    pm = f(co["tok_s_per_logic_mm2"]) / f(p3["tok_s_per_logic_mm2"])
+    assert r2(pm) == 0.92 and abs(pm - h["hyb.hbm2.b8.core4_over_p3_500.per_class_best.per_mm2"]) < 1e-9
+    assert r2(f(co["logic_mm2_stack"]) / f(p3["logic_mm2_stack"])) == 1.35
+    assert r2(h["p3r.pub.bs8.gmean5.p3_over_ecco"]) == 1.24                  # "about 1.24x" over a W4A8KV4 NPU
+    assert r2(s["isca.e2e.phone.M8.core8_over_h3.speed"]) == 1.56            # 1.5647
+    assert r2(h["p3r.ours.tep_step_amean"]) == 1.78 and f"{h['p3r.pub.tep_step_amean']:.1f}" == "1.6"
+    print("p3r: per-class best P3-LLM-style 1.03x NPU only (= stock); CoDe 1.24x faster, 1.39x / 2.11x less energy, "
+          "0.92x per mm2 on 1.35x logic; P3-LLM about 1.24x; mobile 1.56x; depth-2 1.78x vs 1.6x")
 
 
 if __name__ == "__main__":

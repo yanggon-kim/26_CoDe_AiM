@@ -31,8 +31,8 @@ size $V$.
 % P:meth-simulator
 We extend the open-source trace-driven AiM simulator, built on Ramulator~2.0~\cite{ramulator2} and used by
 CENT~\cite{cent}, with each design's commands and a PU model that holds a MAC command until the PU has finished the
-beats of the previous command; every PIM kernel runs at cycle level. Our P3-LLM-style model reproduces, and slightly
-exceeds, P3-LLM's~\cite{p3llm} own step gain of depth 2 over a depth-1 PIM. On the mobile platform the simulator issues an all-bank refresh every $t_\mathrm{REFI}$ and blocks every command to
+beats of the previous command; every PIM kernel runs at cycle level. Our P3-LLM-style linear-layer kernel gains 1.78$\times$ from
+depth 2, against the 1.6$\times$ P3-LLM~\cite{p3llm} reports for its own. On the mobile platform the simulator issues an all-bank refresh every $t_\mathrm{REFI}$ and blocks every command to
 the rank for $t_\mathrm{RFCab}$, the JEDEC values of a 16\,Gb die (Table~\ref{tab:params}), which we assume for our
 dies\ASSUMPTION.
 
@@ -112,8 +112,8 @@ eight-token tile of CoDe.
 NPU only runs the whole model on the NPU; in NPU + $X$, PIM design $X$ runs every weight GEMM and attention layer and
 the NPU runs the element-wise work (softmax, RoPE and normalisation). Every PIM design maps a $K \times N$ weight
 matrix as stock AiM does: the matrix's $N$ output rows spread over the banks, and each row's $K$ weights run along DRAM
-columns; attention maps the same way, with the KV cache as the weight matrix. The one exception is NPU + P3-LLM-style on the edge server, which follows the
-placement of P3-LLM~\cite{p3llm} at batch 8: the NPU runs the linear layers and P3-LLM-style the attention layers.
+columns; attention maps the same way, with the KV cache as the weight matrix. The one exception is NPU + P3-LLM-style on the edge server, which places each
+layer class on whichever unit runs it faster at batch 8.
 
 \subsection{Metrics}
 % P:meth-metrics
