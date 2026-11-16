@@ -97,7 +97,8 @@ time.
 
 % P:mot-idle-beats
 \runin{2) Idle beats}
-An idle beat is a CK cycle in which a PU has nothing to compute. A column period holds $D = 4$ such cycles, or beats
+An idle beat is a CK cycle in which a PU has nothing to compute. We count beats at CK because every DRAM die already
+latches its commands at CK (Section~\ref{sec:bg:depth}). A column period holds $D = 4$ such cycles, or beats
 (Section~\ref{sec:bg:pim}), and a beat is useful when it computes a token's MAC. Stock AiM's MAC slot serves one token,
 so one beat of each column period is useful and three are idle (Fig.~\ref{fig:dram_pim}b). The \emph{slot factor},
 the useful share of a MAC slot, is $\UMAC = A \times b \times \tck / \tslot$, where $b$ is the number of beats per
@@ -194,33 +195,39 @@ banks (Table~\ref{tab:params}). Commands issue
 only every \tccds, ``typically a half of \tccdl{}''~\cite{p3llm}, while the all-bank column runs at
 \tccdl~\cite{hbmpim}, so at most two tokens share a read: the 8 tokens of Fig.~\ref{fig:timeline} take 4 column periods, 8 commands and 4 reads.
 On every memory family whose \tccdl{} is twice \tccds{}, the faster-PU family's \UMAC therefore stops at 1/2 however
-fast its PU runs. The cap is a DRAM timing limit, not an implementation choice of P3-LLM: any PIM that starts each
-token's MAC with a command inherits it. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
+fast its PU runs. The cap is a DRAM timing limit, not an implementation choice of P3-LLM: in AiM-style PIM every MAC
+command is a column command, so any PIM that starts each token's MAC with one inherits it. A command that computed on
+the latch without a column read would be a new command, and it would still occupy the command bus once per token. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
 server (Fig.~\ref{fig:roofline}b). To our knowledge, P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we
 take P3-LLM as the representative of the faster-PU family and model it as a \textbf{P3-LLM-style} design, the rival on
 the edge server (Section~\ref{sec:eval}). P3-LLM-style thus keeps the stock multiplier count and a small
 logic footprint, but command timing caps its speed at two beats per column read.
 
+% prior-design table (cited first in mot-other-pim, III-C; user-approved cells 2026-11-16): static, sources in the
+% comment of tables/tab_prior.tex
+\begin{table}[t]
+  \caption{Prior PIM designs on $M$ tokens of one weight column.}
+  \label{tab:prior}
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{2pt}
+  \input{tables/tab_prior}
+\end{table}
+
 % P:mot-other-pim
 \runin{Other related work}
 Other LLM PIM designs serve one input vector per weight read~\cite{newton,cent} or replace multiplications with table
-lookups~\cite{localut}. SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim} serve
-one input vector per column read. DOTS~\cite{dots} shares a weight row's activation across tokens, but each token's
-command still reads every column. The Precision-Flexible PU~\cite{pfpu} runs at CK on HBM2, but spends its four phases
-on the low-bit weights packed in one column for one input vector, so each token still needs its own command and its own
-read of every column. P3-LLM, DOTS and the Precision-Flexible PU thus keep command-paced token work despite a latched
-column, a shared activation or CK-rate arithmetic, and combining them keeps it too: a column read still feeds at most
-two tokens while commands issue only every \tccds{}. To our knowledge, no prior PIM serves several tokens from one
-command with the stock multiplier count. CoDe changes the command's scope: one tile MAC starts all $V$ tokens' MACs on
-one latched column (Section~\ref{sec:design}).
+lookups~\cite{localut}; SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim} serve one input vector per column read.
+Table~\ref{tab:prior} compares the closest designs by what starts each token's MAC. Every prior design keeps a command
+per token, and combining them keeps it too: a column read still feeds at most two tokens while commands issue every
+\tccds{}. To our knowledge, no prior PIM serves several tokens from one command with the stock multiplier count.
 
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
 
 % P:mot-depth
-The prior designs of Section~\ref{sec:bg:walls} keep the GEMV-era coupling of MACs to DRAM commands: each command
-starts the token work of a column, with added multipliers when one command serves several tokens. Under this coupling,
-\tccds{} and \tccdl{} bound the token MACs however fast the PU runs (Section~\ref{sec:bg:cmd}). DRAM timing itself, however, bounds how often a column is read, not
+The designs of Table~\ref{tab:prior} keep the GEMV-era coupling of MACs to DRAM commands, so \tccds{} and \tccdl{}
+bound their token MACs however fast the PU runs (Section~\ref{sec:bg:cmd}). DRAM timing itself, however, bounds how often a column is read, not
 how many MACs may consume it. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
 boundary~\cite{hbmpim}, so a latch keeps the column after its read, and later token MACs need no further cell
 access or column decoding. The column

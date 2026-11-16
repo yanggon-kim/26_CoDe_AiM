@@ -1,0 +1,19 @@
+% static table (hand-maintained, not generated; user-approved cells 2026-11-16): every cell restates the paper's cited
+% prose or Fig. 4's counts; sources checked: stock AiM one token per read, one row sweep per token (III-B); LP-Spec four
+% 32-wide INT8 ALUs fed by one column command (III-C, lpspec); P3-LLM one command per token at t_CCD_S, two tokens per
+% read (III-C, p3llm p. 7); DOTS shares the row activation, each token's command reads every column, "minimal hardware
+% modifications", result latches only (DOTS DATE'25 p. 2); Precision-Flexible PU four phases per t_CCD_L on the packed
+% low-bit weights of one input vector (PFPU Sec. III-A; multipliers "--": narrow lanes, no single stated count);
+% CoDe idle beats at M < D (VI-A: third and fourth beats idle at M <= 2)
+\begin{tabular*}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.55cm}@{\hspace{3pt}}>{\raggedright\arraybackslash}p{1.45cm}@{\hspace{3pt}}c@{\hspace{3pt}}c@{\hspace{3pt}}>{\raggedright\arraybackslash}p{2.72cm}@{}}
+\toprule
+Design & \shortstack[l]{What starts each\\token's MAC} & \shortstack{Tokens per\\column read} & \shortstack{Multi-\\pliers} & Fundamental limit \\
+\midrule
+Stock AiM~\cite{aimjssc} & a column command & 1 & 1$\times$ & one beat per column period; one row sweep per token \\
+LP-Spec~\cite{lpspec} & a column command & 4 & 4$\times$ & speed costs multipliers (area) \\
+P3-LLM~\cite{p3llm} & a command per token & 2 & 1$\times$ & \tccds{} caps a read at two tokens \\
+DOTS~\cite{dots} & a column command & 1 & 1$\times$ & shares the row activation, not the column read \\
+Precision-Flexible PU~\cite{pfpu} & a column command & 1 & -- & phases serve one vector's packed weight bits \\
+\textbf{CoDe} & one tile MAC & $V$ & 1$\times$ & tile storage; idle beats when $M < D$ \\
+\bottomrule
+\end{tabular*}

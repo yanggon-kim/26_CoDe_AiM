@@ -77,8 +77,10 @@ In summary, this paper makes the following contributions:
         MAC, a GEMV-era coupling that prior GEMM designs keep (Section~\ref{sec:motiv}).
   \item We show that under this coupling DRAM timing caps the MACs however fast the PU runs, while DRAM timing itself
         bounds only column reads (Section~\ref{sec:bg:depth}).
-  \item We propose CoDe, whose tile MAC command decouples MACs from DRAM commands; row reuse and beat filling follow
-        from the decoupling and pay off together (Sections~\ref{sec:design} and~\ref{sec:eval:ablation}).
+  \item We propose CoDe's tile MAC interface and the PU that serves it: one command reads a weight column, a local
+        beat sequencer runs the tile's token MACs, and the PU holds the tile's inputs and sums across the row sweep, at
+        the stock multiplier count and with every DRAM timing parameter unchanged; row reuse and beat filling follow and
+        pay off together (Sections~\ref{sec:design} and~\ref{sec:eval:ablation}).
   \item We show in synthesis that CoDe's PU meets 0.8 and 1\,GHz, and in simulation that CoDe returns 1.87$\times$
         LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and decodes 1.24$\times$ faster than
         P3-LLM-style on HBM2 for 0.59\,\% more of the stack's area (Sections~\ref{sec:design:pu} and~\ref{sec:eval}).
