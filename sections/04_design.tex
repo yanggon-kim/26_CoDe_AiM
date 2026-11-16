@@ -59,8 +59,8 @@ stock AiM sweeps the weight row once per token and pays a row switch and a drain
 CoDe pays only one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64. With $A$ tokens per row sweep, a token pays
 $\trow / A + \ttok$ of non-MAC commands per row sweep, plus its share of refresh. The token load/drain commands stay
 per token: WRGB writes each token's input chunk into the GB, and the \emph{burst drain} (Table~\ref{tab:cmds}) reads each token's sums once per row
-sweep. The two families
-of Section~\ref{sec:bg:walls} tie the tokens of a row sweep to one MAC slot ($A = 2$ and 4 in Table~\ref{tab:umac}),
+sweep. The wider-PU and faster-PU families
+of Section~\ref{sec:bg:gemm} tie the tokens of a row sweep to one MAC slot ($A = 2$ and 4 in Table~\ref{tab:umac}),
 whereas CoDe sets them by $V$ and leaves the PU's lanes unchanged. The non-MAC time per token thus falls
 from stock AiM's 123.39\,ns to CoDe's 22.15\,ns at $V = 8$ on the mobile platform (Table~\ref{tab:umac}) and from
 146.17 to 43.51\,ns at $V = 4$ on the edge server.

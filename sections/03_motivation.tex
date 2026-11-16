@@ -135,13 +135,42 @@ server. Command pacing sets both factors: one MAC command per token leaves three
 and repeats each row sweep for every token. Section~\ref{sec:bg:walls} examines how prior PIM designs answer each root
 cause.
 
-\subsection{Related Work: GEMM Support in PIM}
+\subsection{Related Work: GEMV and GEMM in PIM}
 \label{sec:bg:walls}
 
+\subsubsection{GEMV Acceleration in PIM}
+\label{sec:bg:gemv}
+
+% P:mot-gemv-stock
+Stock PIM products are GEMV engines (Section~\ref{sec:bg:roofline}): SK hynix's Newton~\cite{newton} and
+GDDR6-AiM~\cite{aimjssc} and Samsung's HBM-PIM~\cite{hbmpim} and LPDDR-PIM~\cite{hc35pim} each run one MAC beat per
+column command (Section~\ref{sec:bg:cmd}).
+
+% prior-design table (cited first in mot-gemv-accel, III-C-1; user-approved cells 2026-11-16, re-columned by target):
+% static, sources in the comment of tables/tab_prior.tex
+\begin{table}[t]
+  \caption{Prior PIM designs on $M$ tokens of one weight column; GEMM denotes a skinny GEMM.}
+  \label{tab:prior}
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{2pt}
+  \input{tables/tab_prior}
+\end{table}
+
+% P:mot-gemv-accel
+The Precision-Flexible PU~\cite{pfpu} speeds up GEMV by clocking its PU at CK: in each column interval, narrow lanes
+run four phases over the low-bit weights packed in one column (Table~\ref{tab:prior}). In a GEMV each column meets one
+input vector, so the phases serve that vector's weight bits; applied to a GEMM, the design still needs a command, a
+read of every column and a row sweep for each token. CENT~\cite{cent}, SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim}
+likewise serve one input vector per column read.
+
+\subsubsection{GEMM Support in PIM}
+\label{sec:bg:gemm}
+
 % P:mot-prior-families
-Prior PIM designs fill the idle beats in two families, with more multipliers or with more commands
-(Fig.~\ref{fig:timeline}). Fig.~\ref{fig:timeline} follows one weight column through eight tokens in stock AiM and in
-one design of each family, LP-Spec~\cite{lpspec} for more multipliers and P3-LLM~\cite{p3llm} for more commands.
+Prior PIM designs for skinny GEMMs take three approaches: more multipliers, more commands, or a shared row activation.
+Fig.~\ref{fig:timeline} follows one weight column through eight tokens in stock AiM and in one design of each of the
+first two approaches, LP-Spec~\cite{lpspec} for more multipliers and P3-LLM~\cite{p3llm} for more commands.
 
 % P:mot-wider-pu
 \runin{Wider-PU family}
@@ -173,7 +202,6 @@ is 0.173--0.174 on the mobile platform and 0.185 on the edge server, below stock
 \end{figure}
 
 % P:mot-logic-cost
-\runin{Cost of logic in a DRAM die}
 Logic in a DRAM die costs area: UPMEM~\cite{devaux} reports that a DRAM process builds logic 10$\times$ less dense
 than an ASIC process and routes the logic in three metal layers instead of ten or more. In GDDR6-AiM~\cite{aimjssc} silicon, one PU occupies
 0.19\,mm$^2$. Samsung's HBM-PIM~\cite{hbmpim} halves its DRAM sub-arrays to make room for its PUs and so gives up 50\,\% of
@@ -203,24 +231,14 @@ take P3-LLM as the representative of the faster-PU family and model it as a \tex
 the edge server (Section~\ref{sec:eval}). P3-LLM-style thus keeps the stock multiplier count and a small
 logic footprint, but command timing caps its speed at two beats per column read.
 
-% prior-design table (cited first in mot-other-pim, III-C; user-approved cells 2026-11-16): static, sources in the
-% comment of tables/tab_prior.tex
-\begin{table}[t]
-  \caption{Prior PIM designs on $M$ tokens of one weight column.}
-  \label{tab:prior}
-  \centering
-  \scriptsize
-  \setlength{\tabcolsep}{2pt}
-  \input{tables/tab_prior}
-\end{table}
-
-% P:mot-other-pim
-\runin{Other related work}
-Other LLM PIM designs serve one input vector per weight read~\cite{newton,cent} or replace multiplications with table
-lookups~\cite{localut}; SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim} serve one input vector per column read.
-Table~\ref{tab:prior} compares the closest designs by what starts each token's MAC. Every prior design keeps a command
-per token, and combining them keeps it too: a column read still feeds at most two tokens while commands issue every
-\tccds{}. To our knowledge, no prior PIM serves several tokens from one command with the stock multiplier count.
+% P:mot-other-gemm
+\runin{Other GEMM designs}
+DOTS~\cite{dots} targets the tall and skinny GEMMs of LLM decoding: its weight-stationary dataflow keeps a weight row
+open across a tile of tokens, so the tile shares one row activation, and its hardware changes are minimal, multiple
+result latches per PU and a double-buffered GB. Each token's command still reads every column, so stock AiM's
+per-token column reads, MAC commands and idle beats remain (Table~\ref{tab:prior}). LoCaLUT~\cite{localut} replaces
+multiplications with table lookups. Combining these designs still keeps a command per token: to our knowledge, no
+prior PIM serves several tokens from one command with the stock multiplier count.
 
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
