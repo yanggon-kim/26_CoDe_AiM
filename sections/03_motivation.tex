@@ -203,11 +203,14 @@ logic footprint, but command timing caps its speed at two beats per column read.
 % P:mot-other-pim
 \runin{Other related work}
 Other LLM PIM designs serve one input vector per weight read~\cite{newton,cent} or replace multiplications with table
-lookups~\cite{localut}. Four designs are the closest prior art (Section~\ref{sec:design:overview}): SAL-PIM~\cite{salpim},
-the Precision-Flexible PU~\cite{pfpu} and CD-PIM~\cite{cdpim} serve one input vector per column read, and
-DOTS~\cite{dots} shares a weight row's activation across a tile of tokens but reads every column once per token. To our
-knowledge, none of these designs, P3-LLM's two-token latch included, lets one column read feed several tokens without
-added multipliers or commands.
+lookups~\cite{localut}. Four designs are the closest prior art. SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim} serve
+one input vector per column read, and DOTS~\cite{dots} shares a weight row's activation across a tile of tokens but
+reads every column once per token. The Precision-Flexible PU~\cite{pfpu} clocks an HBM-PIM-style PU at CK on HBM2, but
+spends the four phases of each column interval on the low-bit weights packed in one column for one input vector: its
+gain is set by how many weights a column packs, and each token still needs its own command and its own read of every
+column. To our knowledge, none of these designs, P3-LLM's two-token latch included, lets one column read feed several
+tokens without added multipliers or commands. CoDe spends the beats of a CK-clocked PU on several tokens of one latched
+column (Section~\ref{sec:design}).
 
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
@@ -226,15 +229,15 @@ clocked at CK can spend all $D$ beats of a column period on one latched column, 
 per-token commands.
 
 % P:mot-pu-clock-precedent
-A PU clocked at CK has precedent in DRAM silicon and in a PIM design for HBM2. HBM2's DRAM core runs at a quarter of
-the 1.0--1.2\,GHz bus clock, and Samsung's HBM-PIM~\cite{hbmpim} sets its FP16 PU to the core frequency,
-250--300\,MHz, in a 20\,nm DRAM process. Logic in later DRAM processes runs faster: UPMEM's processor~\cite{devaux}
-is designed to execute 32-bit integer instructions at 500\,MHz in a 2x-nm DRAM process, a deployed UPMEM system
-runs the processor at 350\,MHz~\cite{prim}, and GDDR6-AiM~\cite{aimjssc} runs BF16
-multipliers and adder trees at 1\,GHz, one PU in each of its 16 banks, in a 1y-nm DRAM process. The 1y-nm process also builds HBM: Samsung's
-HBM2E~\cite{flashbolt} stacks eight 1y-nm DRAM dies. The Precision-Flexible PU~\cite{pfpu} also clocks an
-HBM-PIM-style PU at CK on HBM2, but spends the four phases of each 4-\tck column interval on the low-bit weights
-packed in one column for one input vector, so its gain is set by how many weights the column packs. DRAM periphery has gained logic-process
+Logic in a DRAM die already runs at CK, although no PIM PU does: every die latches its commands at
+CK~\cite{jedeclpddr5,jedechbm2}, 0.8\,GHz on LPDDR5-6400 and 1.0--1.2\,GHz on HBM2~\cite{hbmpim}
+(Table~\ref{tab:params}). PIM PUs run slower, paced by commands: Samsung's HBM-PIM~\cite{hbmpim} sets its FP16 PU to
+HBM2's core frequency, a quarter of CK, 250--300\,MHz in a 20\,nm DRAM process. Logic in later DRAM processes runs
+faster: UPMEM's processor~\cite{devaux} is designed to execute 32-bit integer instructions at 500\,MHz in a 2x-nm DRAM
+process, a deployed UPMEM system runs the processor at 350\,MHz~\cite{prim}, and GDDR6-AiM~\cite{aimjssc} runs BF16
+multipliers and adder trees at 1\,GHz, one PU in each of its 16 banks, paced by its interface's $t_\mathrm{CCD}$, in a 1y-nm
+DRAM process. The 1y-nm process also builds HBM: Samsung's HBM2E~\cite{flashbolt} stacks eight 1y-nm DRAM dies.
+DRAM periphery has gained logic-process
 features: Samsung, SK hynix and Micron build periphery transistors with high-k metal gates~\cite{tiroadmap}, and
 1a-nm dies route in five to six metal layers~\cite{tid1a16,tid1a24}.
 
