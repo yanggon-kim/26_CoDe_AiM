@@ -59,7 +59,8 @@ densely than an ASIC~\cite{devaux}, so multipliers are the costliest way to fill
 come with the column period.
 
 % P:intro-code-proposal
-To this end, this paper proposes \textbf{CoDe (Command-Decoupled PIM)}. One column command reads a weight column once; the PU latches the
+To this end, this paper proposes \textbf{CoDe (Command-Decoupled PIM)}. CoDe removes the coupling itself: tiling
+tokens over a stationary weight is standard on a host, but a PIM cannot tile while a DRAM command paces every MAC. One column command reads a weight column once; the PU latches the
 column and reuses the latched column data for all $V$ token vectors of a tile, $D$ beats per column period, at its own
 clock and the stock multiplier count. CoDe thus spends clock cycles that every column period already holds and adds only the storage for
 the tile. We evaluate CoDe against each family on the cost that defines it, on its rival's own memory, workload and
@@ -73,12 +74,12 @@ with 1.39$\times$ P3-LLM-style's system energy efficiency.
 In summary, this paper makes the following contributions:
 \begin{itemize}
   \item We quantify stock PIM's inefficiency on skinny GEMMs: useful MACs fill only 14.1--19.1\,\% of stock AiM's
-        GEMM time on LPDDR5-6400 and HBM2 (Section~\ref{sec:bg:cmd}).
-  \item We trace the loss to two root causes: non-MAC commands, chiefly the row-switch commands that stock AiM repeats
-        for every token, and idle beats, three of the four beats in every column period (Section~\ref{sec:bg:cmd}).
-  \item We propose CoDe, whose two mechanisms answer the two causes one to one: row reuse lets a tile of tokens share
-        one row sweep and its row-switch commands, and beat filling spends all four beats of a column period on one
-        latched column at the stock multiplier count (Section~\ref{sec:design}).
+        GEMM time. We trace both losses, idle beats and repeated row switches, to one cause: a DRAM command paces every
+        MAC, a GEMV-era coupling that prior GEMM designs keep (Section~\ref{sec:motiv}).
+  \item We show that under this coupling DRAM timing caps the MACs however fast the PU runs, while DRAM timing itself
+        bounds only column reads (Section~\ref{sec:bg:depth}).
+  \item We propose CoDe, whose tile MAC command decouples MACs from DRAM commands; row reuse and beat filling follow
+        from the decoupling and pay off together (Sections~\ref{sec:design} and~\ref{sec:eval:ablation}).
   \item We show in synthesis that CoDe's PU meets 0.8 and 1\,GHz, and in simulation that CoDe returns 1.87$\times$
         LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and decodes 1.24$\times$ faster than
         P3-LLM-style on HBM2 for 0.59\,\% more of the stack's area (Sections~\ref{sec:design:pu} and~\ref{sec:eval}).

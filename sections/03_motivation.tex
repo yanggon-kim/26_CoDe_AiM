@@ -73,8 +73,8 @@ segments of Fig.~\ref{fig:breakdown}, row switch, token load, token drain and re
 \emph{row-switch commands}, the two TMODs, the PREA and ACT16 pair of each row opened and the WRMAC16, cost the
 \emph{row-switch overhead} \trow once per row sweep. The \emph{token load/drain commands}, each token's share of WRGB
 (token load) and its RDMAC16 (token drain), cost \ttok once per token. Refresh, the third class, blocks every command
-for $t_\mathrm{RFCab}$ once per $t_\mathrm{REFI}$ (Table~\ref{tab:params}). With one token per stock row sweep, a GEMM
-pays a row's row-switch commands $M$ times, where a GEMV pays them once.
+for $t_\mathrm{RFCab}$ once per $t_\mathrm{REFI}$ (Table~\ref{tab:params}). Because each stock MAC command serves one token,
+each token sweeps the rows again, and a GEMM pays a row's row-switch commands $M$ times, where a GEMV pays them once.
 
 % P:mot-rowswitch-cost
 Row-switch commands are the largest class of non-MAC commands. In Fig.~\ref{fig:breakdown} the row-switch segment
@@ -130,7 +130,9 @@ Fig.~\ref{fig:breakdown} and equals $W \times \tck / T_\mathrm{GEMM}$, where $W$
 and $T_\mathrm{GEMM}$ is the GEMM time; $U$ thus measures a design against a PU that runs one useful beat per CK cycle. $U$ is the product
 of the slot factor and the sweep factor, $U = \UMAC \times \fMAC$.
 Stock AiM's $U$ is $1/4 \times 0.717 = 0.179$ on the mobile platform (Table~\ref{tab:umac}) and 0.193 on the edge
-server. Section~\ref{sec:bg:walls} examines how prior PIM designs answer each root cause.
+server. Command pacing sets both factors: one MAC command per token leaves three beats of each column period idle
+and repeats each row sweep for every token. Section~\ref{sec:bg:walls} examines how prior PIM designs answer each root
+cause.
 
 \subsection{Related Work: GEMM Support in PIM}
 \label{sec:bg:walls}
@@ -191,8 +193,9 @@ one PU between two banks (Table~\ref{tab:params}). Commands issue
 only every \tccds, ``typically a half of \tccdl{}''~\cite{p3llm}, while the all-bank column runs at
 \tccdl~\cite{hbmpim}, so at most two tokens share a read: the 8 tokens of Fig.~\ref{fig:timeline} take 4 column periods, 8 commands and 4 reads.
 On every memory family whose \tccdl{} is twice \tccds{}, the faster-PU family's \UMAC therefore stops at 1/2 however
-fast its PU runs. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
-server (Fig.~\ref{fig:roofline}b). P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we
+fast its PU runs. The cap is a DRAM timing limit, not an implementation choice of P3-LLM: any PIM that starts each
+MAC with a command inherits it. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
+server (Fig.~\ref{fig:roofline}b). To our knowledge, P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we
 take P3-LLM as the representative of the faster-PU family and model it as a \textbf{P3-LLM-style} design, the rival on
 the edge server (Section~\ref{sec:eval}). P3-LLM-style thus keeps the stock multiplier count and a small
 logic footprint, but command timing caps its speed at two beats per column read.
@@ -200,17 +203,22 @@ logic footprint, but command timing caps its speed at two beats per column read.
 % P:mot-other-pim
 \runin{Other related work}
 Other LLM PIM designs serve one input vector per weight read~\cite{newton,cent} or replace multiplications with table
-lookups~\cite{localut}. Four designs are the closest prior art. SAL-PIM~\cite{salpim}, the Precision-Flexible
-PU~\cite{pfpu} and CD-PIM~\cite{cdpim} run several MAC beats per column read for one input vector ($M = 1$).
-DOTS~\cite{dots} shares a weight row's activation across a tile of tokens, yet every token re-reads every column with
-its own MAC command. None of these designs, P3-LLM's two-token latch included, lets one column read feed several tokens
-without added multipliers or commands.
+lookups~\cite{localut}. Four designs are the closest prior art (Section~\ref{sec:design:overview}): SAL-PIM~\cite{salpim},
+the Precision-Flexible PU~\cite{pfpu} and CD-PIM~\cite{cdpim} serve one input vector per column read, and
+DOTS~\cite{dots} shares a weight row's activation across a tile of tokens but reads every column once per token. To our
+knowledge, none of these designs, P3-LLM's two-token latch included, lets one column read feed several tokens without
+added multipliers or commands.
 
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
 
 % P:mot-depth
-DRAM timing bounds how often a column is read, not how many MACs may consume it. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
+The prior PIM designs of Section~\ref{sec:bg:walls} couple their MACs to DRAM commands, a coupling inherited from GEMV
+PIM. Stock AiM~\cite{aimjssc}, DOTS~\cite{dots}, SAL-PIM~\cite{salpim} and the Precision-Flexible PU~\cite{pfpu} start
+one MAC operation per command, P3-LLM~\cite{p3llm} starts one per token at \tccds{}, and LP-Spec~\cite{lpspec} serves
+four tokens per command with four times the multipliers. Under this coupling, DRAM timing caps the MACs, and a faster
+PU alone gains nothing (Section~\ref{sec:bg:cmd}). DRAM timing itself, however, bounds how often a column is read, not
+how many MACs may consume it. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
 boundary~\cite{hbmpim}, so a column the PU has latched stays usable after its command: P3-LLM~\cite{p3llm} reuses a
 latched column for two tokens at unchanged cell-access and column-decoder power. The column
 period thus sets how often weights arrive at a PU, and the PU clock sets how often the PU computes on them, so a PU

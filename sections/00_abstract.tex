@@ -8,7 +8,7 @@ they need. However, stock PIM was designed for GEMVs, so its MAC throughput fall
 first conduct a detailed characterization of stock PIM's GEMM time, which shows that useful MACs fill only
 14.1--19.1\,\% of that time. Two root causes take the rest: non-MAC DRAM commands that stall every MAC
 (23.4--43.7\,\%) and idle MAC beats (42.2--57.4\,\%). Both causes arise because a DRAM command paces every MAC, a choice
-that suits GEMVs but not GEMMs. Prior PIM designs fill the idle beats at a cost: the wider PU spends four times the multipliers, in a die that builds
+that suits GEMVs but not GEMMs. Prior PIM designs keep this coupling and fill the idle beats at a cost: the wider PU spends four times the multipliers, in a die that builds
 logic ten times less densely than an ASIC, and the faster PU keeps the stock multiplier count but issues one command per
 token, so a column read serves at most two tokens. DRAM timing, however,
 bounds how often a column is read, not how many MACs may consume it, and an all-bank column already spans four

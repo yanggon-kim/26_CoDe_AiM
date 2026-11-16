@@ -414,9 +414,16 @@ def umac_src_table():
         fh.write("\n".join(lines) + "\n")
     # the stock and CoDe rows are the rows of tab:umac (mobile) and of the VI-B prose (edge server)
     assert want[("phone", "stock")][2] == "0.179" and want[("phone", "core")][2] == "0.779"
-    # VI-E prose (model-composed beat fill only): f_MAC = U 0.425 / 0.506; the steps 2.37 x 1.83 / 2.62 x 1.46 are no
-    # longer printed (guard only since 2026-11-10)
+    # VI-E prose (model-composed beat fill only): f_MAC = U 0.425 / 0.506; the second-order steps 1.83 / 1.46 are guard
+    # only (since 2026-11-10); beat filling alone over stock AiM = U_alone / U_stock (unrounded) is printed 2.37 / 2.62
+    # in IV-A (des-decouple-novelty) and VI-E (eval-gain-sources), 2026-11-16
     assert (r3(g("phone", "bf", "U")), r3(g("hbm2", "bf", "U"))) == (0.425, 0.506)
+    for p, v in (("phone", 2.37), ("hbm2", 2.62)):
+        bf_alone = g(p, "bf", "U") / g(p, "stock", "U")
+        assert r2(bf_alone) == v and abs(bf_alone / g(p, "bf", "step_speedup") - 1) < 5e-3, (p, bf_alone)
+    for sec in ("04_design", "06_evaluation"):
+        with open(os.path.join(REPO, "sections", sec + ".tex")) as fh:
+            assert "2.37$\\times$ and 2.62$\\times$ stock AiM's speed" in " ".join(fh.read().split()), sec
     assert (r2(g("phone", "bf", "step_speedup")), r2(g("phone", "oo", "step_speedup"))) == (2.37, 1.83)
     assert (r2(g("hbm2", "bf", "step_speedup")), r2(g("hbm2", "oo", "step_speedup"))) == (2.62, 1.46)
     # guard only (III-B prints q_proj shares since 2026-10-29): stock row-switch overhead, layer, M = 8, ns per sweep

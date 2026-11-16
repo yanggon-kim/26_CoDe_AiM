@@ -1,0 +1,16 @@
+% static table (hand-maintained, not generated): every cell restates the paper's cited prose (III-C, III-D, IV-B, IV-C)
+% and Fig. 4's counts (8 tokens: stock 8 reads / 8 commands, LP-Spec 2 / 2, P3-LLM 4 / 8, CoDe 1 / 1 at V = 8), scaled
+% to M tokens; sources checked are listed beside the float in sections/04_design.tex; "--" = no single stated value
+\begin{tabular}{@{}llccc@{}}
+\toprule
+Design & MACs paced by & Col.\ reads & MAC cmds & Mult. \\
+\midrule
+Stock AiM~\cite{aimjssc} & command & $M$ & $M$ & 1$\times$ \\
+DOTS~\cite{dots} & command & $M$ & $M$ & 1$\times$ \\
+SAL-PIM~\cite{salpim}, CD-PIM~\cite{cdpim}, & command & $M$ & $M$ & -- \\
+\quad Prec.-Flex.\ PU~\cite{pfpu} & & & & \\
+P3-LLM~\cite{p3llm} & command at \tccds & $M/2$ & $M$ & 1$\times$ \\
+LP-Spec~\cite{lpspec} & command & $M/4$ & $M/4$ & 4$\times$ \\
+\textbf{CoDe} & PU clock & $M/V$ & $M/V$ & 1$\times$ \\
+\bottomrule
+\end{tabular}
