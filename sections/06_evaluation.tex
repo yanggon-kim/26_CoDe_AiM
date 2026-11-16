@@ -64,15 +64,11 @@ edge server.
 % P:eval-e2e-p3
 \runin{Speed against P3-LLM-style}
 CoDe decodes a batch of 8 1.24$\times$ faster than P3-LLM-style on the edge server, at 1.39$\times$ less system
-energy (Fig.~\ref{fig:e2e}). NPU + P3-LLM-style places each layer class on whichever unit runs it faster. Its two-token
-read cannot outrun the NPU on linear layers at a batch of 8, so P3-LLM-style runs them on the NPU, as it does attention
-for the three grouped-query models, and reaches 1.03$\times$ NPU only's speed. Stock AiM reaches the same speed under
-the same placement, since neither PU outruns the NPU on linear layers. All PIM designs share one attention mapping
-(Section~\ref{sec:method:work}), not P3-LLM's own attention dataflow, with which P3-LLM reports about 1.24$\times$ over
-a W4A8KV4 NPU~\cite{p3llm}. On the mobile platform P3-LLM-style reaches 2.06$\times$ NPU only's speed, and CoDe decodes
-1.56$\times$ faster. CoDe pays for its speed with 0.59\,\% more of the stack's area: on the edge server CoDe takes
-1.35$\times$ P3-LLM-style's logic and returns 0.92$\times$ its tokens per second per logic mm$^2$, and on the mobile
-platform 1.11$\times$.
+energy (Fig.~\ref{fig:e2e}). NPU + P3-LLM-style places each layer class on whichever unit runs it faster and reaches
+1.03$\times$ NPU only's speed. On the mobile platform P3-LLM-style reaches 2.06$\times$ NPU only's speed, and CoDe
+decodes 1.56$\times$ faster. CoDe pays for its speed with 0.59\,\% more of the stack's area: on the edge server CoDe
+takes 1.35$\times$ P3-LLM-style's logic and returns 0.92$\times$ its tokens per second per logic mm$^2$, and on the
+mobile platform 1.11$\times$.
 
 \subsection{Energy and Peak Power}
 \label{sec:eval:energy}

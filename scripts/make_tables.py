@@ -736,17 +736,14 @@ def p3r_checks():
     """Sec. VI-B eval-e2e-p3 and V-C meth-simulator (user-approved frame, 2026-11-16; dac_2x2 Sec. 2z, microarch row 131,
     hyb @ 51b933b): NPU + P3-LLM-style on the edge server places each layer class on whichever unit runs it faster at
     batch 8 (per_class_best, the only placement printed): linear layers on the NPU on 5 / 5 models, attention on the 3
-    grouped-query models; 1.03x NPU only, equal to stock AiM's per-class best. CoDe 1.24x faster, P3-LLM-style 1.39x
-    (55 W) / 2.11x (0 W) CoDe's energy, CoDe 0.92x per PIM logic mm2 on 1.35x the logic (Table IV). P3-LLM reports about
-    1.24x over a W4A8KV4 NPU (its own attention dataflow). Mobile (all-PIM): CoDe 1.56x P3-LLM-style's speed, 1.11x per
+    grouped-query models (not printed); 1.03x NPU only (printed without reasons, 2026-11-16). CoDe 1.24x faster,
+    P3-LLM-style 1.39x (55 W) / 2.11x (0 W) CoDe's energy, CoDe 0.92x per PIM logic mm2 on 1.35x the logic (Table IV).
+    Mobile (all-PIM): CoDe 1.56x P3-LLM-style's speed, 1.11x per
     mm2 (make_fig_e2e). V-C: the linear-layer kernel gains 1.78x from depth 2, P3-LLM prints 1.6x (Fig. 15 text; bar
     read 1.56). Never printed: P3-LLM's own placement (0.91x, 1.41x, 1.52x, 2.07x), 4.8x, 1.30x / 0.92x, 1.155x."""
     h, s = ids("dac_2x2"), ids("dac_sd8g3")
     hyb = {r["row_id"]: r for r in read("hyb_sum.csv", os.path.join(EVAL, "dac_2x2", "raw"))}
-    p3, st, co, npu = (hyb[k] for k in ("p3_500/per_class_best/8", "stock/per_class_best/8", "core4/per_class_best/8",
-                                        "npu/npu_only/8"))
-    assert f(p3["tok_s"]) == f(st["tok_s"])                                   # stock AiM = P3-LLM-style, same placement
-    assert (int(p3["models_fc_on_npu"]), int(p3["models_attn_on_npu"])) == (5, 3)
+    p3, co, npu = (hyb[k] for k in ("p3_500/per_class_best/8", "core4/per_class_best/8", "npu/npu_only/8"))
     assert abs(f(p3["tok_s"]) - h["hyb.hbm2.b8.p3_500.per_class_best.tok_s"]) < 1e-9
     assert abs(f(co["tok_s"]) - h["isca.e2e.hbm2.core4.tok_s"]) < 1e-9 and abs(f(npu["tok_s"]) - h["hyb.hbm2.b8.npu_only.tok_s"]) < 1e-9
     assert r2(f(p3["tok_s"]) / f(npu["tok_s"])) == 1.03 == r2(h["p3r.gmean5.p3best.over_npu"])
@@ -759,11 +756,10 @@ def p3r_checks():
     pm = f(co["tok_s_per_logic_mm2"]) / f(p3["tok_s_per_logic_mm2"])
     assert r2(pm) == 0.92 and abs(pm - h["hyb.hbm2.b8.core4_over_p3_500.per_class_best.per_mm2"]) < 1e-9
     assert r2(f(co["logic_mm2_stack"]) / f(p3["logic_mm2_stack"])) == 1.35
-    assert r2(h["p3r.pub.bs8.gmean5.p3_over_ecco"]) == 1.24                  # "about 1.24x" over a W4A8KV4 NPU
     assert r2(s["isca.e2e.phone.M8.core8_over_h3.speed"]) == 1.56            # 1.5647
     assert r2(h["p3r.ours.tep_step_amean"]) == 1.78 and f"{h['p3r.pub.tep_step_amean']:.1f}" == "1.6"
-    print("p3r: per-class best P3-LLM-style 1.03x NPU only (= stock); CoDe 1.24x faster, 1.39x / 2.11x less energy, "
-          "0.92x per mm2 on 1.35x logic; P3-LLM about 1.24x; mobile 1.56x; depth-2 1.78x vs 1.6x")
+    print("p3r: per-class best P3-LLM-style 1.03x NPU only; CoDe 1.24x faster, 1.39x / 2.11x less energy, "
+          "0.92x per mm2 on 1.35x logic; mobile 1.56x; depth-2 1.78x vs 1.6x")
 
 
 if __name__ == "__main__":
