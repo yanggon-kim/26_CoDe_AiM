@@ -33,8 +33,8 @@ Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,
 family buys speed with area: LP-Spec~\cite{lpspec} keeps one MAC step per column command and widens the step, feeding one
 read to four 32-wide ALUs, four times the multipliers. The faster-PU family keeps the stock multiplier count but caps
 speed: P3-LLM~\cite{p3llm} latches a weight and issues one command per token, so P3-LLM's MACs inherit the minimum command spacing \tccds, half the
-column period: at most two tokens share a read. DOTS~\cite{dots} keeps a weight row open across tokens but still reads
-every column once per token.
+column period: at most two tokens share a read. DOTS~\cite{dots} shares a weight row's activation across tokens, but each
+token's command still reads every column.
 
 % float defined in page 1's right column (after Fig. dram_pim is placed there), so it renders at the top of page 2's
 % left column (one float per column); moved from after the contributions 2026-11-13 to close the white space below them
@@ -59,11 +59,10 @@ densely than an ASIC~\cite{devaux}, so multipliers are the costliest way to fill
 come with the column period.
 
 % P:intro-code-proposal
-To this end, this paper proposes \textbf{CoDe (Command-Decoupled PIM)}. CoDe removes the coupling itself: tiling
-tokens over a stationary weight is standard on a host, but a PIM cannot tile while a DRAM command paces every MAC. One column command reads a weight column once; the PU latches the
-column and reuses the latched column data for all $V$ token vectors of a tile, $D$ beats per column period, at its own
-clock and the stock multiplier count. CoDe thus spends clock cycles that every column period already holds and adds only the storage for
-the tile. We evaluate CoDe against each family on the cost that defines it, on its rival's own memory, workload and
+To this end, this paper proposes \textbf{CoDe (Command-Decoupled PIM)}. CoDe changes the MAC command's scope: one \emph{tile MAC} reads and latches a weight column and starts the MACs of all
+$V$ token vectors of a tile, which the PU then runs at its own clock, without further MAC commands and with the stock
+multiplier count. The tile shares one row sweep, and its MACs fill the $D$ beats of each column period.
+We evaluate CoDe against each family on the cost that defines it, on its rival's own memory, workload and
 precision. Against the wider-PU family, on a mobile platform (Snapdragon 8 Gen 3~\cite{sd8g3} SoC and NPU, PIM on x64
 LPDDR5-6400, INT8), CoDe takes 0.574$\times$ LP-Spec-style's logic area and returns 1.87$\times$ its tokens per second
 per logic mm$^2$. Against the faster-PU family, on an edge server with HBM2 at W4A8, CoDe decodes a batch of 8

@@ -144,7 +144,8 @@ one design of each family, LP-Spec~\cite{lpspec} for more multipliers and P3-LLM
 
 % P:mot-wider-pu
 \runin{Wider-PU family}
-Wider-PU designs trade area for MAC throughput: they fill the idle beats with more multipliers per PU.
+Wider-PU designs trade area for MAC throughput: they keep one MAC step per column command
+and serve more tokens per step with more multipliers per PU.
 LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8 ALUs, clocks the ALUs at one MAC step per column
 period, and shares one unit between two banks; we give LP-Spec-style one unit per bank on the mobile platform (Table~\ref{tab:designs}),
 SK hynix AiM's layout~\cite{aimjssc} and Samsung's maximum-performance option~\cite{hc35pim}, and evaluate the published sharing in
@@ -186,15 +187,15 @@ only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 
 
 % P:mot-faster-pu
 \runin{Faster-PU family}
-Faster-PU designs speed up the PU but still start every MAC with a command, so DRAM command timing, not the PU clock,
-caps them at two beats per column read. P3-LLM~\cite{p3llm} keeps the weight of a column read latched in its PU,
-issues one further command per token, clocks its PU at one beat per HBM2 \tccds{} (Table~\ref{tab:designs}) and shares
-one PU between two banks (Table~\ref{tab:params}). Commands issue
+Faster-PU designs keep one command per token, so DRAM command spacing, not the PU clock, bounds their token MACs.
+P3-LLM~\cite{p3llm} reuses a latched column for two tokens at unchanged cell-access and column-decoder power, but each
+token still needs its own command; its PU runs one beat per HBM2 \tccds{} (Table~\ref{tab:designs}) and serves two
+banks (Table~\ref{tab:params}). Commands issue
 only every \tccds, ``typically a half of \tccdl{}''~\cite{p3llm}, while the all-bank column runs at
 \tccdl~\cite{hbmpim}, so at most two tokens share a read: the 8 tokens of Fig.~\ref{fig:timeline} take 4 column periods, 8 commands and 4 reads.
 On every memory family whose \tccdl{} is twice \tccds{}, the faster-PU family's \UMAC therefore stops at 1/2 however
 fast its PU runs. The cap is a DRAM timing limit, not an implementation choice of P3-LLM: any PIM that starts each
-MAC with a command inherits it. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
+token's MAC with a command inherits it. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
 server (Fig.~\ref{fig:roofline}b). To our knowledge, P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we
 take P3-LLM as the representative of the faster-PU family and model it as a \textbf{P3-LLM-style} design, the rival on
 the edge server (Section~\ref{sec:eval}). P3-LLM-style thus keeps the stock multiplier count and a small
@@ -203,35 +204,34 @@ logic footprint, but command timing caps its speed at two beats per column read.
 % P:mot-other-pim
 \runin{Other related work}
 Other LLM PIM designs serve one input vector per weight read~\cite{newton,cent} or replace multiplications with table
-lookups~\cite{localut}. Four designs are the closest prior art. SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim} serve
-one input vector per column read, and DOTS~\cite{dots} shares a weight row's activation across a tile of tokens but
-reads every column once per token. The Precision-Flexible PU~\cite{pfpu} clocks an HBM-PIM-style PU at CK on HBM2, but
-spends the four phases of each column interval on the low-bit weights packed in one column for one input vector: its
-gain is set by how many weights a column packs, and each token still needs its own command and its own read of every
-column. To our knowledge, none of these designs, P3-LLM's two-token latch included, lets one column read feed several
-tokens without added multipliers or commands. CoDe spends the beats of a CK-clocked PU on several tokens of one latched
-column (Section~\ref{sec:design}).
+lookups~\cite{localut}. SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim} serve
+one input vector per column read. DOTS~\cite{dots} shares a weight row's activation across tokens, but each token's
+command still reads every column. The Precision-Flexible PU~\cite{pfpu} runs at CK on HBM2, but spends its four phases
+on the low-bit weights packed in one column for one input vector, so each token still needs its own command and its own
+read of every column. P3-LLM, DOTS and the Precision-Flexible PU thus keep command-paced token work despite a latched
+column, a shared activation or CK-rate arithmetic, and combining them keeps it too: a column read still feeds at most
+two tokens while commands issue only every \tccds{}. To our knowledge, no prior PIM serves several tokens from one
+command with the stock multiplier count. CoDe changes the command's scope: one tile MAC starts all $V$ tokens' MACs on
+one latched column (Section~\ref{sec:design}).
 
 \subsection{The Opportunity: DRAM Timing Bounds Access, Not MACs}
 \label{sec:bg:depth}
 
 % P:mot-depth
-The prior PIM designs of Section~\ref{sec:bg:walls} couple their MACs to DRAM commands, a coupling inherited from GEMV
-PIM. Stock AiM~\cite{aimjssc}, DOTS~\cite{dots}, SAL-PIM~\cite{salpim} and the Precision-Flexible PU~\cite{pfpu} start
-one MAC operation per command, P3-LLM~\cite{p3llm} starts one per token at \tccds{}, and LP-Spec~\cite{lpspec} serves
-four tokens per command with four times the multipliers. Under this coupling, DRAM timing caps the MACs, and a faster
-PU alone gains nothing (Section~\ref{sec:bg:cmd}). DRAM timing itself, however, bounds how often a column is read, not
+The prior designs of Section~\ref{sec:bg:walls} keep the GEMV-era coupling of MACs to DRAM commands: each command
+starts the token work of a column, with added multipliers when one command serves several tokens. Under this coupling,
+\tccds{} and \tccdl{} bound the token MACs however fast the PU runs (Section~\ref{sec:bg:cmd}). DRAM timing itself, however, bounds how often a column is read, not
 how many MACs may consume it. The PU takes its operands from the I/O sense amplifiers at the bank's I/O
-boundary~\cite{hbmpim}, so a column the PU has latched stays usable after its command: P3-LLM~\cite{p3llm} reuses a
-latched column for two tokens at unchanged cell-access and column-decoder power. The column
+boundary~\cite{hbmpim}, so a latch keeps the column after its read, and later token MACs need no further cell
+access or column decoding. The column
 period thus sets how often weights arrive at a PU, and the PU clock sets how often the PU computes on them, so a PU
 clocked at CK can spend all $D$ beats of a column period on one latched column, as long as its MACs do not wait for
 per-token commands.
 
 % P:mot-pu-clock-precedent
-Logic in a DRAM die already runs at CK, although no PIM PU does: every die latches its commands at
+Logic in a DRAM die already runs at CK, while fabricated PIM PUs run slower, paced by commands: every die latches its commands at
 CK~\cite{jedeclpddr5,jedechbm2}, 0.8\,GHz on LPDDR5-6400 and 1.0--1.2\,GHz on HBM2~\cite{hbmpim}
-(Table~\ref{tab:params}). PIM PUs run slower, paced by commands: Samsung's HBM-PIM~\cite{hbmpim} sets its FP16 PU to
+(Table~\ref{tab:params}). Samsung's HBM-PIM~\cite{hbmpim} sets its FP16 PU to
 HBM2's core frequency, a quarter of CK, 250--300\,MHz in a 20\,nm DRAM process. Logic in later DRAM processes runs
 faster: UPMEM's processor~\cite{devaux} is designed to execute 32-bit integer instructions at 500\,MHz in a 2x-nm DRAM
 process, a deployed UPMEM system runs the processor at 350\,MHz~\cite{prim}, and GDDR6-AiM~\cite{aimjssc} runs BF16
@@ -242,8 +242,7 @@ features: Samsung, SK hynix and Micron build periphery transistors with high-k m
 1a-nm dies route in five to six metal layers~\cite{tid1a16,tid1a24}.
 
 % P:mot-two-levers
-We therefore keep the stock multiplier count, which spares the wider PU's multipliers, run the PU at CK, which lifts
-the faster PU's two-token cap, and answer each root cause of Section~\ref{sec:bg:cmd}
-with one mechanism. \emph{Row reuse} (Section~\ref{sec:design:reuse}) answers the non-MAC commands: the tokens of a
-tile share one row sweep and its row-switch commands. \emph{Beat filling} (Section~\ref{sec:design:beat}) answers the
-idle beats: the PU spends all $D$ beats of a column period on one latched column.
+A command that starts all token MACs of a tile on one latched column removes the per-token MAC commands and answers
+both root causes of Section~\ref{sec:bg:cmd}. The tile shares one row sweep and its row-switch commands (\emph{row
+reuse}, Section~\ref{sec:design:reuse}), and the PU runs the token MACs in all $D$ beats of each column period with the
+stock multiplier count (\emph{beat filling}, Section~\ref{sec:design:beat}).

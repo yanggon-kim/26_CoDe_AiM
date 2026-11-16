@@ -146,7 +146,7 @@ speed the layer up 3.49$\times$ on the mobile platform and 3.33$\times$ on the e
 near stock AiM's 0.717 and 0.771. End to end, beat filling makes CoDe decode 2.03$\times$ faster than row reuse alone
 in the speculative loop at $M = 8$ on the mobile platform and 2.29$\times$ faster at a batch of 8 on the edge server. If DRAM silicon reaches only half of CK, CoDe at $D = 2$ still
 returns 1.39$\times$ and 1.26$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and the edge server.
-Beat filling pays off only after row reuse. Applied alone, it would shorten every MAC slot to a quarter but keep every
+Row reuse raises the speedup that beat filling gives. Applied alone, it would shorten every MAC slot to a quarter but keep every
 row-switch command, which would then take about half of the time or more (\fMAC 0.425 and 0.506), so beat filling
 alone would reach only 2.37$\times$ and 2.62$\times$ stock AiM's speed.
 
