@@ -37,7 +37,7 @@ TCK, TCOL = 1.25, 5.0           # ns, mobile CK (one PU beat) and column period 
 V, D, SWEEPS, COLS = 8, 4, 8, 64
 TRACES = ("stock", "core8")
 INK, GRAY_RS, GRAY_D, RULE, NOTE = "#000000", "#A6A6A6", "#FFFFFF", "#BFBFBF", "#404040"
-TINT, EDGE, RED = "#CFE2F3", "#2B5FA8", "#E03127"
+TINT, RED = "#CFE2F3", "#E03127"
 GREEN = "#1A8F3C"                # speedup and the CoDe highlights (user 2026-11-16)
 HL = 1.3                         # red / green highlight stroke, as thick as (a)'s bold boxes (user 2026-11-16)
 FACE_R, FACE_SW = 4.2, 0.9       # faces enlarged from r 3.0 / 0.6 pt strokes (user 2026-11-16)
@@ -298,8 +298,8 @@ def draw(row_ns, split, tab):
     assert 2.5 < drawn <= row_ns["stock"] / row_ns["core8"], drawn                 # about 3:1, never above 4.40
     g.r(lx, yc, c_rs, lh, GRAY_RS, INK, 0.5)
     g.t(lx + c_rs / 2, yc + lh / 2 + 2.5, "RS", 7.0, "middle")
-    g.r(lx + c_rs, yc, c_mac, lh, TINT, EDGE, 0.7)
-    g.t(lx + c_rs + c_mac / 2, yc + lh / 2 + 2.8, "tile MAC &#215;64", 8.0, "middle", EDGE)
+    g.r(lx + c_rs, yc, c_mac, lh, TINT, INK, 0.7)   # black edge and text like the zoom frame (user 2026-11-16)
+    g.t(lx + c_rs + c_mac / 2, yc + lh / 2 + 2.8, "tile MAC &#215;64", 8.0, "middle", INK)
     g.r(lx + c_rs + c_mac, yc, c_d, lh, GRAY_D, INK, 0.5)
     g.t(lx + c_rs + c_mac + c_d / 2, yc + lh / 2 + 2.5, "D", 7.0, "middle")
     g.r(lx - HL / 2, yc - HL / 2, c_rs + HL, lh + HL, "none", GREEN, HL)          # green: what CoDe pays once

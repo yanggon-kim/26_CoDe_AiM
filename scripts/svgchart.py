@@ -1,4 +1,4 @@
-"""Line and bar charts as inline SVG at final size (Figs. 2, 7, 8, 9), shared by make_fig_{roofline,gemm,e2e,vsweep}.py.
+"""Line and bar charts as inline SVG at final size (Figs. 3, 7, 8, 9), shared by make_fig_{roofline,gemm,e2e,vsweep}.py.
 
 Style (user, 2026-10-17; BTS ISCA'22 Fig. 1 and Centaur ISCA'20 Fig. 7(b) as style references only): every series one
 thin solid line (LW pt) through small hollow markers at its data points, joined by straight segments that stop at the

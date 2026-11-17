@@ -112,7 +112,7 @@ def clip(pts, top):
 def main():
     data = load()
     check_prose_numbers(data)
-    # one column, styled like Fig. 2 (user, 2026-11-06): 2 x 2 half-column panels, two legend rows on top,
+    # one column, styled like Fig. 3 fig:roofline (user, 2026-11-06): 2 x 2 half-column panels, two legend rows on top,
     # x ticks 1, 4, 16, 64 over all seven plotted M, the x label once per column on the bottom row
     W, H = COLUMNWIDTH, 187.0
     fig = Fig(W, H)

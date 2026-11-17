@@ -670,7 +670,7 @@ def dots_checks():
         k = p.split(".")[0]
         assert f"{hs[f'dots.layer.{p}_over_d1.speed']:.2f}" == v
         assert abs(hs[f"dots.layer.{p}_over_d1.speed"] / hs[f"umac.dsteps.{k}.bf_total"] - 1) < 1e-5
-    # Fig. 6b at M = V = 8 (IV-B): DOTS keeps one column read per token per column, 8 x 64 = 512; CoDe 64 reads, 64 commands
+    # Fig. 1b (fig:mapping) at M = V = 8 (IV-B): DOTS keeps one column read per token per column, 8 x 64 = 512; CoDe 64 reads, 64 commands
     assert 8 * 64 == 512
     print("dots: e2e CoDe / row reuse only 2.03x (phone loop M 8) / 2.29x (HBM2 b 8); layer 3.49x / 3.33x")
 
