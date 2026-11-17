@@ -247,7 +247,10 @@ def draw(row_ns, split, tab):
     assert abs(uw * SWEEPS - (split["stock"]["row"] + split["stock"]["mac"] + split["stock"]["drain"]) * SWEEPS * sx) < 1e-9
     # unit floor 29 pt since the ACM column (240 pt; 30 pt on IEEEtran's 252); the label fit is the binding check
     assert uw > 29 and mac_w > width("x64", 6.5) + 2.4, (uw, mac_w)
-    g.t(lx, yn, "stock AiM", 8.0, bold=True)
+    # list bullets before the two lane names, in each name's colour (user 2026-11-16)
+    bul = width("\u2022", 8.0) + 2.0                                          # bullet + 2 pt gap
+    g.t(lx, yn, "&#8226;", 8.0, bold=True)
+    g.t(lx + bul, yn, "stock AiM", 8.0, bold=True)
     for k in range(SWEEPS):
         x = lx + k * uw
         g.r(x, ys, rs_w, lh, GRAY_RS, INK, 0.5)
@@ -276,9 +279,10 @@ def draw(row_ns, split, tab):
     # CoDe: RS | tile MAC x64 | D (burst drain), one row sweep; RS and D as wide as stock AiM's, the tile-MAC block
     # widened to hold its label, so the drawn lanes keep about 3:1 of the 4.40x
     yc = bl_y + 3.0
-    g.t(lx, yc - 3.0, "CoDe", 8.0, fill=EDGE, bold=True)
+    g.t(lx, yc - 3.0, "&#8226;", 8.0, fill=EDGE, bold=True)
+    g.t(lx + bul, yc - 3.0, "CoDe", 8.0, fill=EDGE, bold=True)
     sub = "1 row sweep, tokens 1&#8211;8"
-    sub_x = lx + width("CoDe", 8.0) * 1.06 + 5.0
+    sub_x = lx + bul + width("CoDe", 8.0) * 1.06 + 5.0
     g.t(sub_x, yc - 3.0, sub, 8.0, fill=EDGE)
     assert sub_x + width("1 row sweep, tokens 1-8", 8.0) + 6 < bl_x - width(blab, 8.0)  # shared line, no touch
     c_rs, c_d = rs_w, d_w
@@ -308,17 +312,19 @@ def draw(row_ns, split, tab):
     g.t(tx, ay + 3.0, "speedup", 8.5, "middle", GREEN, True)
     g.face(fcx, ay, GREEN, True)
     assert lb - (cend + 1.0) > 12 and lend - 1.0 - rb > 12                       # both arrow halves visible
-    # time axis under the CoDe lane (user 2026-11-16): the lanes' horizontal direction is time
-    yt = yc + lh + 3.5
+    # time axis under the CoDe lane (user 2026-11-16): the lanes' horizontal direction is time; GAP_T above the axis
+    # and GAP_Z below it added (user 2026-11-16), the canvas taller by exactly GAP_T + GAP_Z
+    GAP_T, GAP_Z = 2.0, 3.0
+    yt = yc + lh + 3.5 + GAP_T
     xe = W - 1.0 - width("time", 8.0) - 2.5                                     # 1.3 pt line, 8 pt label (user 2026-11-16)
     g.l(lx, yt, xe, yt, INK, 1.3, extra=' marker-end="url(#ak)"')
     g.t(xe + 2.0, yt + 2.8, "time", 8.0)
     # two zooms at 6.5 pt (user 2026-11-16): left, CoDe's tile MAC (one column read, 8 beats, all filled); right,
     # stock AiM's MAC of token 8 (one column read, 1 beat of 4 filled, 3 idle); the zoom boxes keep the former
-    # bottom edge (yc + lh + 46), so the canvas height is unchanged
+    # bottom edge (yc + lh + 46) plus the two added gaps
     zs, p, bh = 6.5, 15.0, 9.5                                                  # zoom font, beat pitch, beat height
-    zy, zh = yt + 3.5, 39.0
-    assert abs(zy + zh - (yc + lh + 46.0)) < 1e-9
+    zy, zh = yt + 3.5 + GAP_Z, 39.0
+    assert abs(zy + zh - (yc + lh + 46.0 + GAP_T + GAP_Z)) < 1e-9
     assert 4 * p - 2 > width("column period (4 CK)", zs)
     zx1, zw1 = 1.0, 8 * p - 2.0 + 7.0
     zx2 = zx1 + zw1 + 3.5
