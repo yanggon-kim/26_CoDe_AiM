@@ -41,8 +41,8 @@ third and fourth beats sit idle (0.71$\times$ and 0.74--0.75$\times$).
 \label{sec:eval:e2e}
 
 % P:eval-e2e-overview
-Fig.~\ref{fig:e2e} runs whole decoding on the five systems at the operating points of Section~\ref{sec:method:work}:
-the speculative loop at $M = 8$ on the mobile platform and a batch of 8 on the edge server. CoDe decodes
+Fig.~\ref{fig:e2e} runs whole decoding on the five systems at the operating points of Section~\ref{sec:method:work}.
+CoDe decodes
 3.22$\times$ faster than NPU only on the mobile platform, at 29.9 tokens/s, and 1.28$\times$ faster on the edge server,
 at 456 tokens/s, where stock AiM reaches 1.27$\times$ and 0.45$\times$ (Fig.~\ref{fig:e2e}a).
 
@@ -102,8 +102,7 @@ periphery.
 \runin{Logic against LP-Spec-style}
 CoDe matches LP-Spec-style's peak throughput on the mobile platform with 0.574$\times$ its logic area per die: arithmetic takes
 0.71 of LP-Spec-style's logic and 0.31 of CoDe's, while storage, the staging queue, accumulator file and weight latch,
-takes 0.39 of CoDe's logic and 0.14 of LP-Spec-style's. On HBM2, CoDe's logic is 0.554$\times$ LP-Spec-style's and
-1.35$\times$ P3-LLM-style's, 0.59\,\% more of the stack, an area that buys twice P3-LLM-style's beats per column period.
+takes 0.39 of CoDe's logic and 0.14 of LP-Spec-style's. On HBM2, CoDe's logic is 0.554$\times$ LP-Spec-style's.
 
 \subsection{Ablation Study}
 \label{sec:eval:ablation}

@@ -120,35 +120,37 @@ def checks(data):
 
 
 def draw(data):
+    # 0.8x the former 112-pt canvas (user, 2026-11-16): fonts 8 / 8.5 pt -> 7 / 7.5 pt, thinner bars and gaps
+    FTB, FLB = FT - 1.0, FL - 1.0
     W = COLUMNWIDTH
-    lab_w = max(width(b[2], FT) for b in BARS) + 4.0
-    tot_w = max(width(TOTAL_US[k] + " µs", FT) for k in TOTAL_US) + 4.0
+    lab_w = max(width(b[2], FTB) for b in BARS) + 4.0
+    tot_w = max(width(TOTAL_US[k] + " µs", FTB) for k in TOTAL_US) + 4.0
     x0, x1 = lab_w + 1.0, W - tot_w - 1.0
     # legend: two rows of three swatches, centred over the plot box
-    sw, gap, space = 7.0, 2.5, 9.0
+    sw, gap, space = 6.0, 2.0, 8.0
     rows = [SEGS[:3], SEGS[3:]]
-    col_w = [max(sw + gap + width(rows[r][c][0], FL) for r in range(2)) for c in range(3)]
+    col_w = [max(sw + gap + width(rows[r][c][0], FLB) for r in range(2)) for c in range(3)]
     leg_w = sum(col_w) + space * 2
     leg_x = (x0 + x1) / 2 - leg_w / 2
-    top = 1.0 + FL
-    bar_h, pitch, divider = 10.0, 14.0, 6.0
-    y_box = top + FL + 1.0 + 6.0
-    ys, y = [], y_box + 4.0
+    top = 1.0 + FLB
+    bar_h, pitch, divider = 8.5, 10.5, 4.0
+    y_box = top + FLB + 0.5 + 4.0
+    ys, y = [], y_box + 3.0
     for i in range(len(BARS)):
         if i == 2:
             y += divider
         ys.append(y)
         y += pitch
-    y_bot = y - pitch + bar_h + 4.0
-    H = y_bot + FT + 2.0 + FL + 2.0
+    y_bot = y - pitch + bar_h + 3.0
+    H = y_bot + FTB + 2.0 + FLB + 2.0
     fig = Fig(W, round(H + 0.5))
     for r, items in enumerate(rows):
         x = leg_x
         for c, (lab, _, col) in enumerate(items):
-            yy = top + r * (FL + 1.0)
+            yy = top + r * (FLB + 0.5)
             fig.o.append(f'<rect x="{x:.2f}" y="{yy - sw + 0.6:.2f}" width="{sw}" height="{sw - 0.6:.2f}" fill="{col}" '
                          f'stroke="#000000" stroke-width="0.5"/>')
-            fig.text(x + sw + gap, yy, lab, FL)
+            fig.text(x + sw + gap, yy, lab, FLB)
             x += col_w[c] + space
     sx = lambda pct: x0 + (x1 - x0) * pct / 100.0   # noqa: E731
     for t in (25, 50, 75):
@@ -165,15 +167,15 @@ def draw(data):
             fig.o.append(f'<rect x="{sx(acc):.2f}" y="{yb:.2f}" width="{sx(acc + s) - sx(acc):.3f}" height="{bar_h}" '
                          f'fill="{col}" stroke="#000000" stroke-width="0.4"/>')
             acc += s
-        fig.text(x0 - 3.0, yb + bar_h / 2 + FT * 0.34, lab, FT, "end")
-        fig.text(x1 + 3.0, yb + bar_h / 2 + FT * 0.34, TOTAL_US[(p, w)] + " µs", FT, "start")
+        fig.text(x0 - 3.0, yb + bar_h / 2 + FTB * 0.34, lab, FTB, "end")
+        fig.text(x1 + 3.0, yb + bar_h / 2 + FTB * 0.34, TOTAL_US[(p, w)] + " µs", FTB, "start")
     for t in (0, 25, 50, 75, 100):
         fig.line(sx(t), y_bot, sx(t), y_bot - 2.5, sw=TICK_LW)
         fig.line(sx(t), y_box, sx(t), y_box + 2.5, sw=TICK_LW)
-        fig.text(sx(t), y_bot + FT + 1.0, f"{t}", FT, "middle")
+        fig.text(sx(t), y_bot + FTB + 1.0, f"{t}", FTB, "middle")
     fig.o.append(f'<rect x="{x0:.2f}" y="{y_box:.2f}" width="{x1 - x0:.2f}" height="{y_bot - y_box:.2f}" fill="none" '
                  f'stroke="#000000" stroke-width="{BOX_LW}"/>')
-    fig.text((x0 + x1) / 2, y_bot + FT + 2.0 + FL, "share of the GEMM time (%)", FL, "middle")
+    fig.text((x0 + x1) / 2, y_bot + FTB + 2.0 + FLB, "share of the GEMM time (%)", FLB, "middle")
     fig.write("fig_breakdown", "scripts/make_fig_breakdown.py from evaluation/dac_2x2/figures/tab_umac_kernel_stock.csv")
 
 

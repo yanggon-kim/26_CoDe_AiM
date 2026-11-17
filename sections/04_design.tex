@@ -29,9 +29,7 @@ Reusing a weight over several inputs is routine in an ASIC GEMM engine, which se
 PU has no sequencer of its own: a DRAM command triggers each of its MAC steps. CoDe's \emph{tile MAC} starts all of a tile's MACs on one latched column, and the beat sequencer advances the tokens'
 inputs and accumulators without further MAC commands. The tile therefore shares its column reads and row-switch commands
 (row reuse), while the PU clock, not the command stream, sets its beats (beat filling); the GB and the accumulator file
-hold the tile's inputs and sums. Beat filling alone would reach 2.37$\times$ and 2.62$\times$ stock AiM's speed on the
-mobile platform and the edge server, but after row reuse it adds 3.49$\times$ and 3.33$\times$
-(Table~\ref{tab:umac_src}). The tile size $V$ is a parameter of the tile MAC, not a lane count: CoDe runs $V = 8$
+hold the tile's inputs and sums. The tile size $V$ is a parameter of the tile MAC, not a lane count: CoDe runs $V = 8$
 tokens over $D = 4$ beats on the mobile platform, which halves LP-Spec-style's row sweeps without added lanes, and the
 interface change is two commands with every DRAM timing parameter unchanged (Section~\ref{sec:design:pu}).
 
