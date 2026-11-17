@@ -43,7 +43,7 @@ interface change is two commands with every DRAM timing parameter unchanged (Sec
   \Description{Diagram of a skinny GEMM with eight token rows mapped onto one bank, and two command sequences for one weight row: eight row sweeps in stock AiM against one row sweep of tile MACs in CoDe.}
   \caption{A skinny GEMM at $M = 8$: (a)~the operand blocks one bank serves in one row sweep (black boxes); (b)~one
   weight row of one bank over time in stock AiM and CoDe, with one column read of each design enlarged. \mdseries Numbers 1--8
-  are tokens; ``RS'' is a row switch, ``D'' a drain, ``$\times$64'' the 64 column reads of a row,
+  are tokens, and shades of blue tell the tokens apart (their token vectors in X, their sums in Y); ``RS'' is a row switch, ``D'' a drain, ``$\times$64'' the 64 column reads of a row,
   and each small box one MAC beat (one CK). Red boxes mark the drains, row switches and idle beats
   that stock AiM repeats per token; green boxes mark the row switch and drain CoDe shares and the beats it fills.}
   \label{fig:mapping}

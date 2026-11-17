@@ -277,12 +277,13 @@ def draw(row_ns, split, tab):
     assert fy - FACE_R - FACE_SW / 2 > yn + 2.0                                 # under the lane name's descenders
     assert yn + 2.0 < ys - 2.5 - 5.8                                            # name clear of the token numbers
     g.face(fx, fy, RED, False)
-    # root cause 1 under the stock lane, above CoDe's lane name, left-aligned (right-aligned it would cross the stock
-    # zoom's dashed lines; checked below once their path is known)
+    # root cause 1 under the stock lane, above CoDe's lane name, its start on the left edge of the first red box
+    # (token 1's D | token 2's RS; user 2026-11-16); its end clear of the stock zoom's dashed lines, checked below
     rc1 = "Root cause 1: row switching overhead"
     w_rc1 = width(rc1, LB) * 1.06
+    x_rc1 = lx + rs_w + mac_w - HL / 2                                          # first red box's left edge
     yr1 = ys + lh + 8.5                                                         # cap top 2.9 pt below the lane
-    g.t(lx, yr1, rc1, LB, "start", RED, True)
+    g.t(x_rc1, yr1, rc1, LB, "start", RED, True)
     bl_y = yr1 + 9.5                                                            # CoDe's lane name
     # CoDe: RS | tile MAC x64 | D (burst drain), one row sweep; RS and D as wide as stock AiM's, the tile-MAC block
     # widened to hold its label, so the drawn lanes keep about 3:1 of the 4.40x
@@ -317,7 +318,7 @@ def draw(row_ns, split, tab):
     zx2_ = 1.0 + (8 * 15.0 - 2.0 + 7.0) + 3.5
     xds = [xa + (xb - xa) * (ay - (ys + lh)) / (zy_ - (ys + lh)) for xa, xb in ((m8z, zx2_), (m8z + mac_w, W - 1.0))]
     x_dash = m8z + (zx2_ - m8z) * (yr1 + 2.0 - (ys + lh)) / (zy_ - (ys + lh))     # left dashed line at rc1's foot
-    assert lx + w_rc1 < x_dash - 3.0, (lx + w_rc1, x_dash)                       # rc1 clear of the dashed lines
+    assert x_rc1 + w_rc1 < x_dash - 3.0, (x_rc1 + w_rc1, x_dash)                       # rc1 clear of the dashed lines
     wt = width("speedup", 8.5) * 1.06
     tx = xds[0] - 1.5 - wt / 2                                                  # "speedup", a smiling face on its right
     fcx = tx + wt / 2 + 3.5 + FACE_R
