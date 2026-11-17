@@ -114,8 +114,12 @@ each accumulator so the PU pipelines at CK, and draining one tile while the next
 
 % P:des-command-set
 \runin{Command set}
-CoDe adds two commands to the all-bank interface of AiM-style PIM~\cite{aimjssc}, the \emph{tile MAC} and the
-\emph{burst drain}, and keeps every other command (Table~\ref{tab:cmds}).
+CoDe adds two commands to the all-bank interface of AiM-style PIM~\cite{aimjssc} and keeps every other command
+(Table~\ref{tab:cmds}). The \emph{tile MAC} takes the place of the all-bank MAC command: it reads one column from every
+open bank at the stock MAC timing, but it names the tile size $V$, so the PU runs $V$ beats on the latched column
+rather than one. The \emph{burst drain} takes the place of the per-token drain (RDMAC16) and moves a tile's $V$ sums
+out in one burst. The row-switch commands (two TMODs, PREA, the ACT16 pair and WRMAC16) keep their form and timing but
+are issued once per tile, so per token CoDe issues $1/V$ of stock AiM's MAC and row-switch commands.
 
 
 % P:des-tile-mac-pu
