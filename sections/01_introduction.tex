@@ -85,17 +85,26 @@ with 1.39$\times$ P3-LLM-style's system energy efficiency.
 % P:intro-contributions
 In summary, this paper makes the following contributions:
 \begin{itemize}
-  \item We quantify stock PIM's inefficiency on skinny GEMMs: useful MACs fill only 14.1--19.1\,\% of stock AiM's
-        GEMM time. We trace both losses, idle beats and repeated row switches, to one cause: a DRAM command paces every
-        MAC, a GEMV-era coupling prior designs keep (Section~\ref{sec:motiv}).
-  \item We show that under this coupling DRAM timing caps the MACs however fast the PU runs, while DRAM timing itself
-        bounds only column reads (Section~\ref{sec:bg:depth}).
-  \item We propose CoDe's tile MAC interface and the PU that serves it: one command reads a weight column, a local
-        beat sequencer runs the tile's token MACs, and the PU holds the tile's inputs and sums across the row sweep, at
-        the stock multiplier count and with every DRAM timing parameter unchanged; row reuse and beat filling follow and
-        pay off together (Sections~\ref{sec:design} and~\ref{sec:eval:ablation}).
-  \item We show in synthesis that CoDe's PU meets 0.8 and 1\,GHz, and in simulation that CoDe returns 1.87$\times$
-        LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and decodes 1.24$\times$ faster than
-        P3-LLM-style on HBM2 for 0.59\,\% more of the stack's area (Sections~\ref{sec:design:pu} and~\ref{sec:eval}).
+  \item We quantitatively characterize stock PIM, a GEMV engine, on skinny GEMMs: useful MACs fill only
+        14.1--19.1\,\% of stock AiM's GEMM time, and two root causes take the rest, non-MAC commands such as row
+        switches repeated for every token (23.4--43.7\,\%) and idle MAC beats (42.2--57.4\,\%). Both arise because a
+        DRAM command paces every MAC (Section~\ref{sec:motiv}).
+  \item We show that prior PIM designs keep this coupling and pay for it (Table~\ref{tab:prior}). LP-Spec fills the
+        idle beats with four times the multipliers, an area cost; P3-LLM keeps the stock multipliers but issues one
+        command per token, so command spacing caps a column read at two tokens; the Precision-Flexible PU
+        (PFPU)~\cite{pfpu} clocks its PU at CK but serves one GEMV vector per column read, so a GEMM still pays one row
+        sweep per token; and DOTS shares a row activation, but each token's command still reads every column
+        (Sections~\ref{sec:bg:gemv} and~\ref{sec:bg:gemm}).
+  \item For the first root cause, we propose \emph{row reuse}: a new \emph{tile MAC} command reads a weight column
+        once for all tokens of a tile, so the tile shares one row sweep and pays each row switch once per tile rather
+        than once per token (Section~\ref{sec:design:reuse}).
+  \item For the second root cause, we propose \emph{beat filling}: since DRAM timing bounds column reads, not the MACs
+        on a latched column, the PU runs at the command clock and fills all four beats of each column period with the
+        tile's token MACs, with the stock multiplier count and every DRAM timing parameter unchanged
+        (Section~\ref{sec:design:beat}).
+  \item We implement CoDe's PU and synthesize it: it meets timing at 0.8\,GHz on LPDDR5-6400 and 1\,GHz on HBM2. In
+        simulation, CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform,
+        and on the edge server decodes 1.24$\times$ faster than P3-LLM-style for 0.59\,\% more of the stack's area
+        (Sections~\ref{sec:design:pu} and~\ref{sec:eval}).
 \end{itemize}
 

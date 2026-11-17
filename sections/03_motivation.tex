@@ -34,9 +34,7 @@ NeuPIMs~\cite{neupims} maps the GEMMs to the NPU, IANUS~\cite{ianus} chooses NPU
 P3-LLM~\cite{p3llm} offloads its linear layers to the NPU from batch 8, where its PIM becomes compute-bound.
 
 % P:mot-a-summary
-Skinny GEMMs are memory-bound on the host, so their low arithmetic intensity suits PIM, which reads the weights inside the DRAM, yet stock
-PIM's GEMM throughput stays flat at its GEMV ceiling. Section~\ref{sec:bg:cmd} splits a stock GEMM's time to locate the
-cause.
+Section~\ref{sec:bg:cmd} splits a stock GEMM's time to find why stock PIM stays at its GEMV ceiling.
 
 \subsection{Two Root Causes of Stock PIM Inefficiency}
 \label{sec:bg:cmd}
@@ -118,8 +116,7 @@ banks. Stock AiM's \UMAC is therefore 1/4. The idle segment is the largest of ev
 % P:mot-idle-cause
 Idle beats arise because the column command, not the PU, paces every stock MAC: a MAC starts only when a column command
 delivers its weights. HBM-PIM~\cite{hbmpim} executes one instruction per column command, and AiM~\cite{aimjssc} clocks
-its PU at its interface's $t_\mathrm{CCD}$. Each column command reads one column, and DRAM timing lets the next column
-command follow only after \tccds{} or \tccdl. Command pacing suits a GEMV, the target of these
+its PU at its interface's $t_\mathrm{CCD}$. Command pacing suits a GEMV, the target of these
 PUs~\cite{aimjssc,p3llm}: in a GEMV each weight column meets one input vector, so one beat per column is enough.
 A PU four times faster, clocked at CK, does not speed stock AiM up: each column command still brings one column for
 one token, so the faster PU computes one beat and idles for three, and every stock GEMM takes the same number of cycles.
@@ -156,7 +153,7 @@ column command (Section~\ref{sec:bg:cmd}).
 \end{table}
 
 % P:mot-gemv-accel
-The Precision-Flexible PU (PFPU)~\cite{pfpu} speeds up GEMV by clocking its PU at CK: in each column interval, narrow lanes
+PFPU~\cite{pfpu} speeds up GEMV by clocking its PU at CK: in each column interval, narrow lanes
 run four phases over the low-bit weights packed in one column (Table~\ref{tab:prior}). In a GEMV each column meets one
 input vector, so the phases serve that vector's weight bits; applied to a GEMM, the design still needs a command, a
 read of every column and a row sweep for each token. CENT~\cite{cent}, SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim}

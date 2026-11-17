@@ -37,8 +37,7 @@ beat in each PU; on the mobile platform, one beat is 32 INT8 multiplies of the c
 accumulated into the PU's output register. The all-bank command repeats every \tccdl~\cite{hbmpim}
 (Fig.~\ref{fig:dram_pim}b). This column period \tcol spans $D = 5\,\text{ns} / 1.25\,\text{ns} = 4$ cycles \tck of
 the command clock CK on LPDDR5-6400 and $4\,\text{ns} / 1\,\text{ns} = 4$ on HBM2 (Table~\ref{tab:params}). We call
-$D$, the number of CK cycles in one column period, the \emph{depth}. JEDEC sets \tccdl{} at four CK cycles on
-LPDDR5~\cite{jedeclpddr5}, not at a fixed time, so the column period shortens as CK rises.
+$D$, the number of CK cycles in one column period, the \emph{depth}.
 
 % P:bg-mac-sequence
 MAC commands need non-MAC commands before and after them (Fig.~\ref{fig:dram_pim}c). In the AiM command set~\cite{aimjssc}, the non-MAC commands follow a fixed order: WRGB writes one token's input chunk into the GB once, and the MAC commands of every row that multiplies that chunk

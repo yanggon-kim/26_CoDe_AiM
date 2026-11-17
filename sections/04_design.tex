@@ -22,7 +22,7 @@ come from the tile, whose inputs the global buffer holds: CoDe extends the GB fr
 input vectors of $V$ tokens (Fig.~\ref{fig:tile}, Section~\ref{sec:design:pu}). Fig.~\ref{fig:tile} groups
 the PU's structures by lever: the staging buffer, the accumulator file and the \emph{burst drain} carry row reuse, and the
 weight latch and the beat sequencer carry beat filling. With both levers, CoDe's useful-MAC utilization $U$ reaches
-0.779 on the mobile platform (Table~\ref{tab:umac}) and 0.739 on the edge server, against stock AiM's 0.179 and 0.193.
+0.779 on the mobile platform (Table~\ref{tab:umac}) and 0.739 on the edge server.
 
 % P:des-decouple-novelty
 Reusing a weight over several inputs is routine in an ASIC GEMM engine, which sequences its own MACs, but an AiM-style
@@ -41,14 +41,12 @@ interface change is two commands with every DRAM timing parameter unchanged (Sec
 % P:des-row-reuse
 Row reuse answers the non-MAC commands of Section~\ref{sec:bg:cmd}, whose row-switch commands stock AiM pays once per
 token. Row reuse lets the $V$ tokens of a tile share one row sweep: the \emph{tile MAC}s (Table~\ref{tab:cmds}) sweep the open row's columns once for
-all $V$ tokens, so the row-switch commands are paid once per $V$ tokens. Fig.~\ref{fig:mapping}a draws the tile in
-GEMM terms at $M = V = 8$: the GB holds the eight tokens' inputs for one chunk of $K$, one bank's open 2\,KB row holds
-one output's weights over that chunk, and the tile produces that output's eight sums. In Fig.~\ref{fig:mapping}b,
+all $V$ tokens, so the row-switch commands are paid once per $V$ tokens. In Fig.~\ref{fig:mapping}a, the GB holds
+the eight tokens' inputs for one chunk of $K$ and a bank's open row one output's weights. In Fig.~\ref{fig:mapping}b,
 stock AiM sweeps the weight row once per token and pays a row switch and a drain in each of its eight sweeps, whereas
 CoDe pays only one row switch for the tile; the row opens fall from eight to one and the column reads from 512 to 64. With $A$ tokens per row sweep, a token pays
 $\trow / A + \ttok$ of non-MAC commands per row sweep, plus its share of refresh. The token load/drain commands stay
-per token: WRGB writes each token's input chunk into the GB, and the \emph{burst drain} (Table~\ref{tab:cmds}) reads each token's sums once per row
-sweep. The wider-PU and faster-PU families
+per token (WRGB and the burst drain, Table~\ref{tab:cmds}). The wider-PU and faster-PU families
 of Section~\ref{sec:bg:gemm} tie the tokens of a row sweep to one MAC slot ($A = 2$ and 4 in Table~\ref{tab:umac}),
 whereas CoDe sets them by $V$ and leaves the PU's lanes unchanged. The non-MAC time per token thus falls
 from stock AiM's 123.39\,ns to CoDe's 22.15\,ns at $V = 8$ on the mobile platform (Table~\ref{tab:umac}) and from
