@@ -5,7 +5,8 @@
 GEMM geometric mean at M = 8). CoDe: stock -> D = 1 -> 2 -> 3 -> 4, every point simulated. LP-Spec-style: a dashed
 segment from stock to its four ALUs; one to three ALUs are priced but not simulated, so they carry no marker.
 No shared LP-Spec-style and no P3-LLM-style (brief, 2026-11-11). The eight-token LP-Spec-style marker and the
-mm^2-per-+1x iso-lines were removed 2026-11-13 (user: simplify); height = Fig. 9's 102.4 pt, its facing float.
+mm^2-per-+1x iso-lines were removed 2026-11-13 (user: simplify); height 102.4 pt, Fig. 9's former height (Fig. 9 is 97.4 pt since 2026-11-17: shortening this one too only widens p. 11 R's
+body-end stretch, which needs > 10 pt to absorb).
 Sources (read only): evaluation/dac_2x2/figures/fig_area_speedup.csv (the paper file of rows 114-115, evaluation 8949a24)
 and the touched ids stor.* / aps.* (dac_2x2 Sec. 2u), pupow / budget (dac_sd8g3, dac_2x2), dacp_table4 (Table IV areas).
 Internal records say CoRe / LP-Spec-like; the paper says CoDe / LP-Spec-style.
@@ -122,7 +123,7 @@ def label(pn, x, y, s, dx, dy, anchor="start"):
 def main():
     d = load()
     checks(d)
-    H = 102.4   # = Fig. 9's height: the two figures face each other at the top of one page (user, 2026-11-13)
+    H = 102.4   # Fig. 9's former height (facing floats, user 2026-11-13); kept when Fig. 9 went to 97.4 pt
     fig = Fig(COLUMNWIDTH, H)
     top, bottom = 19.0, H - 19.3   # one legend row; x axis band as in Fig. 9
     ax = [dict(ylim=(0.5, 5.2), ylog=False, yticks=[1, 2, 3, 4]),

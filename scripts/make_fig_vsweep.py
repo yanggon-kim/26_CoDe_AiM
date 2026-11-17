@@ -150,7 +150,7 @@ def robustness():
 
 def main():
     a, b = gain_by_v(), robustness()
-    H = 102.4   # 0.8x of 128 pt (user, 2026-11-13)
+    H = 97.4   # 0.8x of 128 pt (user, 2026-11-13), 5 pt shorter so p. 11 L takes its lines back (2026-11-17)
     fig = Fig(COLUMNWIDTH, H)
     top, bottom = 26.5, H - 19.3
     ax = [dict(ylim=(0, 5.2), ylog=False, yticks=[0, 1, 2, 3, 4, 5]),
