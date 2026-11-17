@@ -98,7 +98,8 @@ t_\mathrm{col}$, which equals CK on both platforms (Tables~\ref{tab:params} and~
 period whatever the command spacing. A \emph{tile MAC} holds its column in the PU for $V/D$ column periods, and the next \emph{tile
 MAC} issues $V/D$ periods later. The enlarged \emph{tile MAC} of Fig.~\ref{fig:mapping}b shows one tile of $V = 8$ tokens at
 $D = 4$: one column read feeds eight beats, one per token and four per column period, and each beat adds into its
-token's accumulator slot. The tile's partial sums leave in one \emph{burst drain} after its last column.
+token's accumulator slot. In the right zoom, stock AiM's column read feeds one beat and leaves three idle beats in its
+column period. The tile's partial sums leave in one \emph{burst drain} after its last column.
 
 % P:des-beat-slot-factor
 Beat filling raises the slot factor from stock AiM's 1/4 to 1, because every beat of a MAC slot computes for one token

@@ -368,15 +368,15 @@ def draw(row_ns, split, tab):
         g.r(x0 + k0 * p - HL / 2, by - HL / 2, (k1 - k0 + 1) * p - 2.0 + HL, bh + HL, "none", c, HL)
 
     # left: CoDe's tile MAC
-    g.l(lx + c_rs, yc + lh, zx1, zy, EDGE, 0.5, "2 1.5")
-    g.l(lx + c_rs + c_mac, yc + lh, zx1 + zw1, zy, EDGE, 0.5, "2 1.5")
-    g.r(zx1, zy, zw1, zh, "#FFFFFF", EDGE, 0.7)
+    g.l(lx + c_rs, yc + lh, zx1, zy, INK, 0.5, "2 1.5")
+    g.l(lx + c_rs + c_mac, yc + lh, zx1 + zw1, zy, INK, 0.5, "2 1.5")
+    g.r(zx1, zy, zw1, zh, "#FFFFFF", INK, 0.7)
     assert head(zx1 + 3.0, zy + 8.0, "Design 2: beat filling", GREEN) < zx1 + zw1 - 2
     # design 1 drawn after the left zoom's dashed lines, on a white backing where they pass under it
     g.r(xd1 - w_d1 / 2 - 0.5, yd1 - 6.0, w_d1 + 1.0, 8.0, "#FFFFFF", "none", 0)
     g.t(xd1, yd1, d1, LB, "middle", GREEN, True)
     b1 = zx1 + 3.5
-    beats(b1, 8, list(range(8)), EDGE)
+    beats(b1, 8, list(range(8)), INK)
     hl(b1, 1, 3, GREEN)
     hl(b1, 5, 7, GREEN)
     # right: stock AiM's MAC of token 8; its dashed lines from that token's x64 block, drawn under everything
@@ -400,7 +400,7 @@ def draw(row_ns, split, tab):
         g.t(cx, ty, h, 8.0, "middle", NOTE)
     g.l(1, ty + 3.0, W - 1, ty + 3.0, RULE, 0.6)
     tcol = f"{I('t')}<tspan font-size=\"6\" baseline-shift=\"sub\">col</tspan>"
-    rows = [("stock AiM", INK, tab["stock"]), ("CoDe", EDGE, tab["core8"])]
+    rows = [("stock AiM", INK, tab["stock"]), ("CoDe", INK, tab["core8"])]
     for i, (name, c, v) in enumerate(rows):
         yy = ty + 11.5 + i * 9.5
         g.t(1, yy, name, 8.0, fill=c, bold=True)
