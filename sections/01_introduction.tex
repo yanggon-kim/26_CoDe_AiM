@@ -24,11 +24,11 @@ Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,
   \centering
   \includegraphics[width=\columnwidth]{figs/fig_mapping.pdf}
   \Description{Diagram of a skinny GEMM with eight token rows mapped onto one bank, and two command sequences for one weight row: eight row sweeps in stock AiM against one row sweep of tile MACs in CoDe.}
-  \caption{A skinny GEMM at $M = 8$: (a)~the operand blocks one bank serves in one row sweep (black boxes); (b)~one
-  weight row of one bank over time in stock AiM and CoDe, with one column read of each design enlarged. Numbers 1--8
-  are tokens, and shades of blue tell the tokens apart (their token vectors in X, their sums in Y); ``RS'' is a row switch, ``D'' a drain, ``$\times$64'' the 64 column reads of a row,
-  and each small box one MAC beat (one CK). Red boxes mark the drains, row switches and idle beats
-  that stock AiM repeats per token; green boxes mark the row switch and drain CoDe shares and the beats it fills.}
+  \caption{Stock AiM's two root causes and CoDe's two designs on a skinny GEMM of $M = 8$ tokens: (a)~the operand blocks
+  one bank serves in one row sweep; (b)~one weight row of one bank over time. Stock AiM repeats a row switch (RS) and a
+  drain (D) in each of its eight row sweeps (root cause 1), and each of its column reads fills one of four MAC beats
+  (root cause 2); CoDe shares one sweep across the tile (design 1) and fills every beat (design 2). Shades of blue tell
+  tokens 1--8 apart, ``$\times$64'' marks a row's 64 column reads, and each small box is one MAC beat (one \tck).}
   \label{fig:mapping}
 \end{figure}
 

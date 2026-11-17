@@ -5,7 +5,7 @@
 <title>fig_dram_pim</title>
 <!-- Fig. 1 (II-B, cited again in III-B): (a) AiM-style PIM on one LPDDR5 channel, one bank enlarged; (b) command timing on the mobile platform: reads to two bank groups t_CCD_S apart, then all-bank MAC commands t_CCD_L apart. Two PU lanes: the stock PU (column-matched, 200 MHz, one beat = t_CCD_L; Table I) and a PU clocked at CK (0.8 GHz, the faster PU of III-B; one beat = 1 CK, then idle). Nothing here is CoDe's, so there is no tint. Values: CK 0.8 GHz (CoDe f_PU on LPDDR5-6400, Table I); t_CCD_L = t_col = 5 ns (III-D); t_CCD_S = t_CCD_L / 2 (II-B). Panel (b) was cut in the 2026-10-18 trim (R4) and restored by the user's decision the same day.
      Panel (c) (2026-10-19, useful-MAC model of II-B / III-B): one row sweep on the C/A bus, not to scale, broken inside the MAC16 stream: WRGB x A, WRMAC16, TMOD, PREA, ACT16, MAC16 x c, TMOD, RDMAC16 x A; fills: row-switch commands (t_row) #BFBFBF, token load/drain commands (t_tok) white, MAC16 slots #E8E8E8 as the MAC command of (b); (b) is the zoomed-in slot (U_MAC), (c) the row sweep (f_MAC). Block widths from Liberation Serif metrics at 6 pt.
-     Drawn at final size (240 x 303.0 pt; ACM sigconf \columnwidth = 240 pt; narrowed from the IEEE 252 pt by an x-map: panels (a) and (c) x 240/252, panel (b)'s time axis from its origin, text sizes kept), 1 user unit = 1 pt. Build:
+     Drawn at final size (240 x 290.4 pt; panel (a) at 0.9x its 126 pt height (user 2026-11-17: geometry inside the boxes scaled about y = 14, text sizes kept); ACM sigconf \columnwidth = 240 pt; narrowed from the IEEE 252 pt by an x-map: panels (a) and (c) x 240/252, panel (b)'s time axis from its origin, text sizes kept), 1 user unit = 1 pt. Build:
      python3 scripts/html2pdf.py fig_dram_pim  ->  figs/fig_dram_pim.pdf (+ .png preview).
      Colours (skill F1): existing hardware white / grays #E8E8E8 #BFBFBF #808080; what CoDe adds #CFE2F3 fill, #2B5FA8 stroke. -->
 <style>
@@ -15,242 +15,242 @@
 </style>
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" width="240pt" height="303.0pt" viewBox="0 0 240 303.0">
+<svg xmlns="http://www.w3.org/2000/svg" width="240pt" height="290.4pt" viewBox="0 0 240 290.4">
 <defs>
   <marker id="ah" viewBox="0 0 6 6" refX="6" refY="3" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
     <path d="M0,0 L6,3 L0,6 z" fill="#000000"/></marker>
   <marker id="ab" viewBox="0 0 6 6" refX="6" refY="3" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">
     <path d="M0,0 L6,3 L0,6 z" fill="#2B5FA8"/></marker>
 </defs>
-<text x="0.00" y="8" font-size="7.5" text-anchor="start" font-weight="bold">(a)</text>
-<rect x="0.00" y="14" width="14.29" height="112" fill="#E8E8E8" stroke="#000000" stroke-width="0.6"/>
-<text x="9.52" y="70" font-size="7" text-anchor="middle" transform="rotate(-90 9.52 70)">host (memory controller)</text>
-<text x="81.90" y="10" font-size="7" text-anchor="middle" font-weight="bold">one channel</text>
-<rect x="27.62" y="14" width="108.57" height="112" fill="#FFFFFF" stroke="#000000" stroke-width="0.8"/>
-<polyline points="14.29,40 27.62,40" fill="none" stroke="#000000" stroke-width="0.6" marker-end="url(#ah)"/>
-<text x="20.95" y="37" font-size="6.5" text-anchor="middle">C/A</text>
-<polyline points="14.29,117 31.71,117" fill="none" stroke="#000000" stroke-width="0.6" marker-end="url(#ah)" marker-start="url(#ah)"/>
-<text x="22.86" y="114" font-size="6.5" text-anchor="middle">DQ</text>
-<rect x="31.71" y="18" width="23.56" height="90" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="43.50" y="25.5" font-size="6.5" text-anchor="middle">BG0</text>
-<rect x="34.28" y="29" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="34.28" y="41" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="34.28" y="48.5" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="34.28" y="60.5" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="34.28" y="68" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="34.28" y="80" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="34.28" y="87.5" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="34.28" y="99.5" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="57.84" y="18" width="23.56" height="90" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="69.61" y="25.5" font-size="6.5" text-anchor="middle">BG1</text>
-<rect x="60.40" y="29" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="60.40" y="41" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="60.40" y="48.5" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="60.40" y="60.5" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="60.40" y="68" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="60.40" y="80" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="60.40" y="87.5" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="60.40" y="99.5" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="83.95" y="18" width="23.56" height="90" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="95.73" y="25.5" font-size="6.5" text-anchor="middle">BG2</text>
-<rect x="86.51" y="29" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="86.51" y="41" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="86.51" y="48.5" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="86.51" y="60.5" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="86.51" y="68" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="86.51" y="80" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="86.51" y="87.5" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="86.51" y="99.5" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="110.08" y="18" width="23.56" height="90" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="121.85" y="25.5" font-size="6.5" text-anchor="middle">BG3</text>
-<rect x="112.63" y="29" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="1.0"/>
-<rect x="112.63" y="41" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="1.0"/>
-<rect x="112.63" y="48.5" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="112.63" y="60.5" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="112.63" y="68" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="112.63" y="80" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="112.63" y="87.5" width="18.44" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<rect x="112.63" y="99.5" width="18.44" height="4.5" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<rect x="31.71" y="111" width="36.88" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="50.15" y="118.8" font-size="6.5" text-anchor="middle">I/O</text>
-<rect x="70.64" y="111" width="62.99" height="11" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="102.13" y="118.8" font-size="6.5" text-anchor="middle">global buffer (GB)</text>
-<polyline points="131.07,29 149.52,14" fill="none" stroke="#000000" stroke-width="0.5" stroke-dasharray="2,1.5"/>
-<polyline points="131.07,45.5 149.52,126" fill="none" stroke="#000000" stroke-width="0.5" stroke-dasharray="2,1.5"/>
-<text x="193.81" y="10" font-size="7" text-anchor="middle" font-weight="bold">one bank and its PU</text>
-<rect x="149.52" y="14" width="88.57" height="112" fill="#FFFFFF" stroke="#000000" stroke-width="0.6"/>
-<rect x="153.74" y="18" width="80.13" height="26" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="193.81" y="33.5" font-size="7" text-anchor="middle">cell array</text>
-<rect x="153.74" y="46" width="80.13" height="8.5" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="193.81" y="52.6" font-size="6" text-anchor="middle">row buffer (sense amplifiers)</text>
-<rect x="153.74" y="56.5" width="80.13" height="8.5" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="193.81" y="63.1" font-size="6" text-anchor="middle">IOSA: one column</text>
-<rect x="153.74" y="70" width="80.13" height="53" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="157.43" y="77" font-size="7" text-anchor="start" font-weight="bold">PU</text>
-<polyline points="193.81,65 193.81,70" fill="none" stroke="#000000" stroke-width="0.6"/>
-<rect x="173.77" y="82" width="9.49" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="178.52" y="89" font-size="7" text-anchor="middle">&#215;</text>
-<polyline points="178.52,72.5 178.52,82" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
-<polyline points="178.52,91 178.52,95" fill="none" stroke="#000000" stroke-width="0.5"/>
-<rect x="185.90" y="82" width="9.49" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="190.65" y="89" font-size="7" text-anchor="middle">&#215;</text>
-<polyline points="190.65,72.5 190.65,82" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
-<polyline points="190.65,91 190.65,95" fill="none" stroke="#000000" stroke-width="0.5"/>
-<rect x="210.15" y="82" width="9.49" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="214.90" y="89" font-size="7" text-anchor="middle">&#215;</text>
-<polyline points="214.90,72.5 214.90,82" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
-<polyline points="214.90,91 214.90,95" fill="none" stroke="#000000" stroke-width="0.5"/>
-<rect x="222.28" y="82" width="9.49" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="227.03" y="89" font-size="7" text-anchor="middle">&#215;</text>
-<polyline points="227.03,72.5 227.03,82" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
-<polyline points="227.03,91 227.03,95" fill="none" stroke="#000000" stroke-width="0.5"/>
-<polyline points="178.52,72.5 227.03,72.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<polyline points="193.81,70 193.81,72.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<text x="204.09" y="89" font-size="7" text-anchor="middle">&#8230;</text>
-<rect x="173.77" y="95" width="57.99" height="8" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="202.77" y="101.3" font-size="6" text-anchor="middle">adder tree</text>
-<polyline points="202.77,103 202.77,109" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
-<rect x="173.77" y="109" width="57.99" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="202.77" y="115.8" font-size="6" text-anchor="middle">output register</text>
-<polyline points="149.52,86.5 173.77,86.5" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
-<text x="162.18" y="93.5" font-size="6" text-anchor="middle">GB</text>
-<text x="0.00" y="142" font-size="7.5" text-anchor="start" font-weight="bold">(b)</text>
-<text x="84.14" y="142" font-size="6.5" text-anchor="middle" font-style="italic">reads to two bank groups</text>
-<text x="179.49" y="142" font-size="6.5" text-anchor="middle" font-style="italic">all-bank MAC (stock AiM)</text>
-<polyline points="46.00,146 46.00,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="55.53,146 55.53,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="65.07,146 65.07,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="74.61,146 74.61,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="84.14,146 84.14,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="93.67,146 93.67,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="103.21,146 103.21,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="112.75,146 112.75,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="122.28,146 122.28,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="131.81,146 131.81,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="141.35,146 141.35,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="150.89,146 150.89,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="160.42,146 160.42,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="169.95,146 169.95,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="179.49,146 179.49,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="189.03,146 189.03,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="198.56,146 198.56,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="208.09,146 208.09,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="217.63,146 217.63,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="227.17,146 227.17,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="236.70,146 236.70,241" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
-<polyline points="122.28,136 122.28,241" fill="none" stroke="#808080" stroke-width="0.5"/>
-<text x="42.00" y="154.6" font-size="6.5" text-anchor="end">CK (0.8 GHz)</text>
-<text x="42.00" y="182.6" font-size="6.5" text-anchor="end">C/A bus</text>
-<text x="42.00" y="195.6" font-size="6.5" text-anchor="end">BG0 column</text>
-<text x="42.00" y="208.6" font-size="6.5" text-anchor="end">BG1 column</text>
-<text x="42.00" y="221.6" font-size="6.5" text-anchor="end">stock PU</text>
-<text x="42.00" y="234.6" font-size="6.5" text-anchor="end">PU at CK</text>
-<path d="M46.00,156 L46.00,148 L50.77,148 L50.77,156 L55.53,156 L55.53,148 L60.31,148 L60.31,156 L65.07,156 L65.07,148 L69.84,148 L69.84,156 L74.61,156 L74.61,148 L79.38,148 L79.38,156 L84.14,156 L84.14,148 L88.91,148 L88.91,156 L93.67,156 L93.67,148 L98.45,148 L98.45,156 L103.21,156 L103.21,148 L107.98,148 L107.98,156 L112.75,156 L112.75,148 L117.52,148 L117.52,156 L122.28,156 L122.28,148 L127.05,148 L127.05,156 L131.81,156 L131.81,148 L136.59,148 L136.59,156 L141.35,156 L141.35,148 L146.12,148 L146.12,156 L150.89,156 L150.89,148 L155.66,148 L155.66,156 L160.42,156 L160.42,148 L165.19,148 L165.19,156 L169.95,156 L169.95,148 L174.73,148 L174.73,156 L179.49,156 L179.49,148 L184.26,148 L184.26,156 L189.03,156 L189.03,148 L193.80,148 L193.80,156 L198.56,156 L198.56,148 L203.33,148 L203.33,156 L208.09,156 L208.09,148 L212.87,148 L212.87,156 L217.63,156 L217.63,148 L222.40,148 L222.40,156 L227.17,156 L227.17,148 L231.94,148 L231.94,156 L236.70,156" fill="none" stroke="#000000" stroke-width="0.6"/>
-<polyline points="46.00,163 65.07,163" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)" marker-start="url(#ah)"/>
-<text x="66.95" y="165.3" font-size="6.5" text-anchor="start"><tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">CCD_S</tspan><tspan dy="-1.6"></tspan></text>
-<polyline points="46.00,171 84.14,171" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)" marker-start="url(#ah)"/>
-<text x="86.02" y="173.3" font-size="6.5" text-anchor="start"><tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">CCD_L</tspan><tspan dy="-1.6"></tspan></text>
-<polyline points="122.28,171 160.42,171" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)" marker-start="url(#ah)"/>
-<text x="162.31" y="173.3" font-size="6.5" text-anchor="start"><tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">CCD_L</tspan><tspan dy="-1.6"></tspan></text>
-<polyline points="46.00,160 46.00,176" fill="none" stroke="#808080" stroke-width="0.4"/>
-<polyline points="65.07,160 65.07,176" fill="none" stroke="#808080" stroke-width="0.4"/>
-<polyline points="84.14,160 84.14,176" fill="none" stroke="#808080" stroke-width="0.4"/>
-<polyline points="160.42,168 160.42,176" fill="none" stroke="#808080" stroke-width="0.4"/>
-<rect x="46.00" y="176" width="11.30" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="51.65" y="182.6" font-size="6" text-anchor="middle">RD</text>
-<rect x="46.38" y="189" width="37.39" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="65.07" y="195.6" font-size="6" text-anchor="middle">column</text>
-<rect x="65.07" y="176" width="11.30" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="70.72" y="182.6" font-size="6" text-anchor="middle">RD</text>
-<rect x="65.45" y="202" width="37.39" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="84.14" y="208.6" font-size="6" text-anchor="middle">column</text>
-<rect x="84.14" y="176" width="11.30" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="89.79" y="182.6" font-size="6" text-anchor="middle">RD</text>
-<rect x="84.52" y="189" width="37.39" height="9" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="103.21" y="195.6" font-size="6" text-anchor="middle">column</text>
-<rect x="122.28" y="176" width="15.07" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="129.82" y="182.6" font-size="6" text-anchor="middle">MAC</text>
-<rect x="122.66" y="189" width="37.39" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="141.35" y="195.6" font-size="6" text-anchor="middle">column</text>
-<rect x="122.66" y="202" width="37.39" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="141.35" y="208.6" font-size="6" text-anchor="middle">column</text>
-<rect x="122.66" y="215" width="37.39" height="9" fill="#808080" stroke="#000000" stroke-width="0.5"/>
-<text x="141.35" y="221.6" font-size="6" text-anchor="middle" fill="#FFFFFF">MAC beat</text>
-<rect x="122.56" y="228" width="8.97" height="9" fill="#808080" stroke="#000000" stroke-width="0.5"/>
-<rect x="132.10" y="228" width="28.04" height="9" fill="#FFFFFF" stroke="#808080" stroke-width="0.5" stroke-dasharray="1.5,1"/>
-<text x="146.12" y="234.6" font-size="6" text-anchor="middle" font-style="italic" fill="#404040">idle</text>
-<rect x="160.42" y="176" width="15.07" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="167.96" y="182.6" font-size="6" text-anchor="middle">MAC</text>
-<rect x="160.80" y="189" width="37.39" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="179.49" y="195.6" font-size="6" text-anchor="middle">column</text>
-<rect x="160.80" y="202" width="37.39" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="179.49" y="208.6" font-size="6" text-anchor="middle">column</text>
-<rect x="160.80" y="215" width="37.39" height="9" fill="#808080" stroke="#000000" stroke-width="0.5"/>
-<rect x="160.70" y="228" width="8.97" height="9" fill="#808080" stroke="#000000" stroke-width="0.5"/>
-<rect x="170.24" y="228" width="28.04" height="9" fill="#FFFFFF" stroke="#808080" stroke-width="0.5" stroke-dasharray="1.5,1"/>
-<text x="184.26" y="234.6" font-size="6" text-anchor="middle" font-style="italic" fill="#404040">idle</text>
-<rect x="198.56" y="176" width="15.07" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="206.10" y="182.6" font-size="6" text-anchor="middle">MAC</text>
-<rect x="198.94" y="189" width="37.39" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="217.63" y="195.6" font-size="6" text-anchor="middle">column</text>
-<rect x="198.94" y="202" width="37.39" height="9" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="217.63" y="208.6" font-size="6" text-anchor="middle">column</text>
-<rect x="198.94" y="215" width="37.39" height="9" fill="#808080" stroke="#000000" stroke-width="0.5"/>
-<rect x="198.85" y="228" width="8.97" height="9" fill="#808080" stroke="#000000" stroke-width="0.5"/>
-<rect x="208.39" y="228" width="28.04" height="9" fill="#FFFFFF" stroke="#808080" stroke-width="0.5" stroke-dasharray="1.5,1"/>
-<text x="222.40" y="234.6" font-size="6" text-anchor="middle" font-style="italic" fill="#404040">idle</text>
-<text x="119.46" y="234.6" font-size="6" text-anchor="end" fill="#404040">MAC beat</text>
-<polyline points="120.40,232.5 123.69,232.5" fill="none" stroke="#000000" stroke-width="0.4"/>
-<polyline points="46.00,241 236.70,241" fill="none" stroke="#000000" stroke-width="0.6"/>
-<polyline points="46.00,241 46.00,243" fill="none" stroke="#000000" stroke-width="0.6"/>
-<text x="46.00" y="249.5" font-size="6.5" text-anchor="middle">0</text>
-<polyline points="84.14,241 84.14,243" fill="none" stroke="#000000" stroke-width="0.6"/>
-<text x="84.14" y="249.5" font-size="6.5" text-anchor="middle">5</text>
-<polyline points="122.28,241 122.28,243" fill="none" stroke="#000000" stroke-width="0.6"/>
-<text x="122.28" y="249.5" font-size="6.5" text-anchor="middle">10</text>
-<polyline points="160.42,241 160.42,243" fill="none" stroke="#000000" stroke-width="0.6"/>
-<text x="160.42" y="249.5" font-size="6.5" text-anchor="middle">15</text>
-<polyline points="198.56,241 198.56,243" fill="none" stroke="#000000" stroke-width="0.6"/>
-<text x="198.56" y="249.5" font-size="6.5" text-anchor="middle">20</text>
-<polyline points="236.70,241 236.70,243" fill="none" stroke="#000000" stroke-width="0.6"/>
-<text x="236.70" y="249.5" font-size="6.5" text-anchor="middle">25</text>
-<text x="42.00" y="249.5" font-size="6.5" text-anchor="end">time (ns)</text>
+<text x="0.00" y="8.00" font-size="7.5" text-anchor="start" font-weight="bold">(a)</text>
+<rect x="0.00" y="14.00" width="14.29" height="99.40" fill="#E8E8E8" stroke="#000000" stroke-width="0.6"/>
+<text x="9.52" y="63.70" font-size="7" text-anchor="middle" transform="rotate(-90 9.52 63.70)">host (memory controller)</text>
+<text x="81.90" y="10.00" font-size="7" text-anchor="middle" font-weight="bold">one channel</text>
+<rect x="27.62" y="14.00" width="108.57" height="99.40" fill="#FFFFFF" stroke="#000000" stroke-width="0.8"/>
+<polyline points="14.29,37.08 27.62,37.08" fill="none" stroke="#000000" stroke-width="0.6" marker-end="url(#ah)"/>
+<text x="20.95" y="34.67" font-size="6.5" text-anchor="middle">C/A</text>
+<polyline points="14.29,105.41 31.71,105.41" fill="none" stroke="#000000" stroke-width="0.6" marker-end="url(#ah)" marker-start="url(#ah)"/>
+<text x="22.86" y="103.01" font-size="6.5" text-anchor="middle">DQ</text>
+<rect x="31.71" y="17.55" width="23.56" height="79.88" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="43.50" y="24.46" font-size="6.5" text-anchor="middle">BG0</text>
+<rect x="34.28" y="27.31" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="34.28" y="37.96" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="34.28" y="44.62" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="34.28" y="55.27" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="34.28" y="61.93" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="34.28" y="72.58" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="34.28" y="79.23" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="34.28" y="89.88" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="57.84" y="17.55" width="23.56" height="79.88" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="69.61" y="24.46" font-size="6.5" text-anchor="middle">BG1</text>
+<rect x="60.40" y="27.31" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="60.40" y="37.96" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="60.40" y="44.62" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="60.40" y="55.27" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="60.40" y="61.93" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="60.40" y="72.58" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="60.40" y="79.23" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="60.40" y="89.88" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="83.95" y="17.55" width="23.56" height="79.88" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="95.73" y="24.46" font-size="6.5" text-anchor="middle">BG2</text>
+<rect x="86.51" y="27.31" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="86.51" y="37.96" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="86.51" y="44.62" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="86.51" y="55.27" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="86.51" y="61.93" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="86.51" y="72.58" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="86.51" y="79.23" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="86.51" y="89.88" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="110.08" y="17.55" width="23.56" height="79.88" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="121.85" y="24.46" font-size="6.5" text-anchor="middle">BG3</text>
+<rect x="112.63" y="27.31" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="1.0"/>
+<rect x="112.63" y="37.96" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="1.0"/>
+<rect x="112.63" y="44.62" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="112.63" y="55.27" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="112.63" y="61.93" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="112.63" y="72.58" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="112.63" y="79.23" width="18.44" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<rect x="112.63" y="89.88" width="18.44" height="3.99" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<rect x="31.71" y="100.09" width="36.88" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="50.15" y="107.27" font-size="6.5" text-anchor="middle">I/O</text>
+<rect x="70.64" y="100.09" width="62.99" height="9.76" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="102.13" y="107.27" font-size="6.5" text-anchor="middle">global buffer (GB)</text>
+<polyline points="131.07,27.31 149.52,14.00" fill="none" stroke="#000000" stroke-width="0.5" stroke-dasharray="2,1.5"/>
+<polyline points="131.07,41.96 149.52,113.40" fill="none" stroke="#000000" stroke-width="0.5" stroke-dasharray="2,1.5"/>
+<text x="193.81" y="10.00" font-size="7" text-anchor="middle" font-weight="bold">one bank and its PU</text>
+<rect x="149.52" y="14.00" width="88.57" height="99.40" fill="#FFFFFF" stroke="#000000" stroke-width="0.6"/>
+<rect x="153.74" y="17.55" width="80.13" height="23.07" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="193.81" y="31.58" font-size="7" text-anchor="middle">cell array</text>
+<rect x="153.74" y="42.40" width="80.13" height="7.54" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="193.81" y="48.49" font-size="6" text-anchor="middle">row buffer (sense amplifiers)</text>
+<rect x="153.74" y="51.72" width="80.13" height="7.54" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="193.81" y="57.81" font-size="6" text-anchor="middle">IOSA: one column</text>
+<rect x="153.74" y="63.70" width="80.13" height="47.04" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="157.43" y="70.19" font-size="7" text-anchor="start" font-weight="bold">PU</text>
+<polyline points="193.81,59.26 193.81,63.70" fill="none" stroke="#000000" stroke-width="0.6"/>
+<rect x="173.77" y="74.35" width="9.49" height="7.99" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="178.52" y="80.84" font-size="7" text-anchor="middle">&#215;</text>
+<polyline points="178.52,65.92 178.52,74.35" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
+<polyline points="178.52,82.34 178.52,85.89" fill="none" stroke="#000000" stroke-width="0.5"/>
+<rect x="185.90" y="74.35" width="9.49" height="7.99" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="190.65" y="80.84" font-size="7" text-anchor="middle">&#215;</text>
+<polyline points="190.65,65.92 190.65,74.35" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
+<polyline points="190.65,82.34 190.65,85.89" fill="none" stroke="#000000" stroke-width="0.5"/>
+<rect x="210.15" y="74.35" width="9.49" height="7.99" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="214.90" y="80.84" font-size="7" text-anchor="middle">&#215;</text>
+<polyline points="214.90,65.92 214.90,74.35" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
+<polyline points="214.90,82.34 214.90,85.89" fill="none" stroke="#000000" stroke-width="0.5"/>
+<rect x="222.28" y="74.35" width="9.49" height="7.99" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="227.03" y="80.84" font-size="7" text-anchor="middle">&#215;</text>
+<polyline points="227.03,65.92 227.03,74.35" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
+<polyline points="227.03,82.34 227.03,85.89" fill="none" stroke="#000000" stroke-width="0.5"/>
+<polyline points="178.52,65.92 227.03,65.92" fill="none" stroke="#000000" stroke-width="0.5"/>
+<polyline points="193.81,63.70 193.81,65.92" fill="none" stroke="#000000" stroke-width="0.5"/>
+<text x="204.09" y="80.84" font-size="7" text-anchor="middle">&#8230;</text>
+<rect x="173.77" y="85.89" width="57.99" height="7.10" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="202.77" y="91.72" font-size="6" text-anchor="middle">adder tree</text>
+<polyline points="202.77,92.99 202.77,98.31" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
+<rect x="173.77" y="98.31" width="57.99" height="7.99" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="202.77" y="104.58" font-size="6" text-anchor="middle">output register</text>
+<polyline points="149.52,78.34 173.77,78.34" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)"/>
+<text x="162.18" y="84.79" font-size="6" text-anchor="middle">GB</text>
+<text x="0.00" y="129.40" font-size="7.5" text-anchor="start" font-weight="bold">(b)</text>
+<text x="84.14" y="129.40" font-size="6.5" text-anchor="middle" font-style="italic">reads to two bank groups</text>
+<text x="179.49" y="129.40" font-size="6.5" text-anchor="middle" font-style="italic">all-bank MAC (stock AiM)</text>
+<polyline points="46.00,133.40 46.00,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="55.53,133.40 55.53,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="65.07,133.40 65.07,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="74.61,133.40 74.61,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="84.14,133.40 84.14,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="93.67,133.40 93.67,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="103.21,133.40 103.21,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="112.75,133.40 112.75,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="122.28,133.40 122.28,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="131.81,133.40 131.81,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="141.35,133.40 141.35,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="150.89,133.40 150.89,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="160.42,133.40 160.42,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="169.95,133.40 169.95,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="179.49,133.40 179.49,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="189.03,133.40 189.03,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="198.56,133.40 198.56,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="208.09,133.40 208.09,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="217.63,133.40 217.63,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="227.17,133.40 227.17,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="236.70,133.40 236.70,228.40" fill="none" stroke="#BFBFBF" stroke-width="0.4" stroke-dasharray="0.8,1.2"/>
+<polyline points="122.28,123.40 122.28,228.40" fill="none" stroke="#808080" stroke-width="0.5"/>
+<text x="42.00" y="142.00" font-size="6.5" text-anchor="end">CK (0.8 GHz)</text>
+<text x="42.00" y="170.00" font-size="6.5" text-anchor="end">C/A bus</text>
+<text x="42.00" y="183.00" font-size="6.5" text-anchor="end">BG0 column</text>
+<text x="42.00" y="196.00" font-size="6.5" text-anchor="end">BG1 column</text>
+<text x="42.00" y="209.00" font-size="6.5" text-anchor="end">stock PU</text>
+<text x="42.00" y="222.00" font-size="6.5" text-anchor="end">PU at CK</text>
+<path d="M46.00,143.40 L46.00,135.40 L50.77,135.40 L50.77,143.40 L55.53,143.40 L55.53,135.40 L60.31,135.40 L60.31,143.40 L65.07,143.40 L65.07,135.40 L69.84,135.40 L69.84,143.40 L74.61,143.40 L74.61,135.40 L79.38,135.40 L79.38,143.40 L84.14,143.40 L84.14,135.40 L88.91,135.40 L88.91,143.40 L93.67,143.40 L93.67,135.40 L98.45,135.40 L98.45,143.40 L103.21,143.40 L103.21,135.40 L107.98,135.40 L107.98,143.40 L112.75,143.40 L112.75,135.40 L117.52,135.40 L117.52,143.40 L122.28,143.40 L122.28,135.40 L127.05,135.40 L127.05,143.40 L131.81,143.40 L131.81,135.40 L136.59,135.40 L136.59,143.40 L141.35,143.40 L141.35,135.40 L146.12,135.40 L146.12,143.40 L150.89,143.40 L150.89,135.40 L155.66,135.40 L155.66,143.40 L160.42,143.40 L160.42,135.40 L165.19,135.40 L165.19,143.40 L169.95,143.40 L169.95,135.40 L174.73,135.40 L174.73,143.40 L179.49,143.40 L179.49,135.40 L184.26,135.40 L184.26,143.40 L189.03,143.40 L189.03,135.40 L193.80,135.40 L193.80,143.40 L198.56,143.40 L198.56,135.40 L203.33,135.40 L203.33,143.40 L208.09,143.40 L208.09,135.40 L212.87,135.40 L212.87,143.40 L217.63,143.40 L217.63,135.40 L222.40,135.40 L222.40,143.40 L227.17,143.40 L227.17,135.40 L231.94,135.40 L231.94,143.40 L236.70,143.40" fill="none" stroke="#000000" stroke-width="0.6"/>
+<polyline points="46.00,150.40 65.07,150.40" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)" marker-start="url(#ah)"/>
+<text x="66.95" y="152.70" font-size="6.5" text-anchor="start"><tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">CCD_S</tspan><tspan dy="-1.6"></tspan></text>
+<polyline points="46.00,158.40 84.14,158.40" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)" marker-start="url(#ah)"/>
+<text x="86.02" y="160.70" font-size="6.5" text-anchor="start"><tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">CCD_L</tspan><tspan dy="-1.6"></tspan></text>
+<polyline points="122.28,158.40 160.42,158.40" fill="none" stroke="#000000" stroke-width="0.5" marker-end="url(#ah)" marker-start="url(#ah)"/>
+<text x="162.31" y="160.70" font-size="6.5" text-anchor="start"><tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">CCD_L</tspan><tspan dy="-1.6"></tspan></text>
+<polyline points="46.00,147.40 46.00,163.40" fill="none" stroke="#808080" stroke-width="0.4"/>
+<polyline points="65.07,147.40 65.07,163.40" fill="none" stroke="#808080" stroke-width="0.4"/>
+<polyline points="84.14,147.40 84.14,163.40" fill="none" stroke="#808080" stroke-width="0.4"/>
+<polyline points="160.42,155.40 160.42,163.40" fill="none" stroke="#808080" stroke-width="0.4"/>
+<rect x="46.00" y="163.40" width="11.30" height="9.00" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="51.65" y="170.00" font-size="6" text-anchor="middle">RD</text>
+<rect x="46.38" y="176.40" width="37.39" height="9.00" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="65.07" y="183.00" font-size="6" text-anchor="middle">column</text>
+<rect x="65.07" y="163.40" width="11.30" height="9.00" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="70.72" y="170.00" font-size="6" text-anchor="middle">RD</text>
+<rect x="65.45" y="189.40" width="37.39" height="9.00" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="84.14" y="196.00" font-size="6" text-anchor="middle">column</text>
+<rect x="84.14" y="163.40" width="11.30" height="9.00" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="89.79" y="170.00" font-size="6" text-anchor="middle">RD</text>
+<rect x="84.52" y="176.40" width="37.39" height="9.00" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="103.21" y="183.00" font-size="6" text-anchor="middle">column</text>
+<rect x="122.28" y="163.40" width="15.07" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="129.82" y="170.00" font-size="6" text-anchor="middle">MAC</text>
+<rect x="122.66" y="176.40" width="37.39" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="141.35" y="183.00" font-size="6" text-anchor="middle">column</text>
+<rect x="122.66" y="189.40" width="37.39" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="141.35" y="196.00" font-size="6" text-anchor="middle">column</text>
+<rect x="122.66" y="202.40" width="37.39" height="9.00" fill="#808080" stroke="#000000" stroke-width="0.5"/>
+<text x="141.35" y="209.00" font-size="6" text-anchor="middle" fill="#FFFFFF">MAC beat</text>
+<rect x="122.56" y="215.40" width="8.97" height="9.00" fill="#808080" stroke="#000000" stroke-width="0.5"/>
+<rect x="132.10" y="215.40" width="28.04" height="9.00" fill="#FFFFFF" stroke="#808080" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="146.12" y="222.00" font-size="6" text-anchor="middle" font-style="italic" fill="#404040">idle</text>
+<rect x="160.42" y="163.40" width="15.07" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="167.96" y="170.00" font-size="6" text-anchor="middle">MAC</text>
+<rect x="160.80" y="176.40" width="37.39" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="179.49" y="183.00" font-size="6" text-anchor="middle">column</text>
+<rect x="160.80" y="189.40" width="37.39" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="179.49" y="196.00" font-size="6" text-anchor="middle">column</text>
+<rect x="160.80" y="202.40" width="37.39" height="9.00" fill="#808080" stroke="#000000" stroke-width="0.5"/>
+<rect x="160.70" y="215.40" width="8.97" height="9.00" fill="#808080" stroke="#000000" stroke-width="0.5"/>
+<rect x="170.24" y="215.40" width="28.04" height="9.00" fill="#FFFFFF" stroke="#808080" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="184.26" y="222.00" font-size="6" text-anchor="middle" font-style="italic" fill="#404040">idle</text>
+<rect x="198.56" y="163.40" width="15.07" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="206.10" y="170.00" font-size="6" text-anchor="middle">MAC</text>
+<rect x="198.94" y="176.40" width="37.39" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="217.63" y="183.00" font-size="6" text-anchor="middle">column</text>
+<rect x="198.94" y="189.40" width="37.39" height="9.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="217.63" y="196.00" font-size="6" text-anchor="middle">column</text>
+<rect x="198.94" y="202.40" width="37.39" height="9.00" fill="#808080" stroke="#000000" stroke-width="0.5"/>
+<rect x="198.85" y="215.40" width="8.97" height="9.00" fill="#808080" stroke="#000000" stroke-width="0.5"/>
+<rect x="208.39" y="215.40" width="28.04" height="9.00" fill="#FFFFFF" stroke="#808080" stroke-width="0.5" stroke-dasharray="1.5,1"/>
+<text x="222.40" y="222.00" font-size="6" text-anchor="middle" font-style="italic" fill="#404040">idle</text>
+<text x="119.46" y="222.00" font-size="6" text-anchor="end" fill="#404040">MAC beat</text>
+<polyline points="120.40,219.90 123.69,219.90" fill="none" stroke="#000000" stroke-width="0.4"/>
+<polyline points="46.00,228.40 236.70,228.40" fill="none" stroke="#000000" stroke-width="0.6"/>
+<polyline points="46.00,228.40 46.00,230.40" fill="none" stroke="#000000" stroke-width="0.6"/>
+<text x="46.00" y="236.90" font-size="6.5" text-anchor="middle">0</text>
+<polyline points="84.14,228.40 84.14,230.40" fill="none" stroke="#000000" stroke-width="0.6"/>
+<text x="84.14" y="236.90" font-size="6.5" text-anchor="middle">5</text>
+<polyline points="122.28,228.40 122.28,230.40" fill="none" stroke="#000000" stroke-width="0.6"/>
+<text x="122.28" y="236.90" font-size="6.5" text-anchor="middle">10</text>
+<polyline points="160.42,228.40 160.42,230.40" fill="none" stroke="#000000" stroke-width="0.6"/>
+<text x="160.42" y="236.90" font-size="6.5" text-anchor="middle">15</text>
+<polyline points="198.56,228.40 198.56,230.40" fill="none" stroke="#000000" stroke-width="0.6"/>
+<text x="198.56" y="236.90" font-size="6.5" text-anchor="middle">20</text>
+<polyline points="236.70,228.40 236.70,230.40" fill="none" stroke="#000000" stroke-width="0.6"/>
+<text x="236.70" y="236.90" font-size="6.5" text-anchor="middle">25</text>
+<text x="42.00" y="236.90" font-size="6.5" text-anchor="end">time (ns)</text>
 <!-- (c) begin: generated by the panel (c) layout (block widths from Liberation Serif metrics at 6.0 pt) -->
-<text x="0.00" y="262.0" font-size="7.5" text-anchor="start" font-weight="bold">(c)</text>
-<text x="120.00" y="262.0" font-size="6.5" text-anchor="middle" font-style="italic">one row sweep: one open row, <tspan font-style="italic">A</tspan> tokens (not to scale)</text>
-<rect x="0.48" y="267.00" width="29.35" height="11.0" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="15.15" y="274.60" font-size="6.0" text-anchor="middle">WRGB ×<tspan font-style="italic">A</tspan></text>
-<rect x="29.83" y="267.00" width="31.37" height="11.0" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<text x="45.50" y="274.60" font-size="6.0" text-anchor="middle">WRMAC16</text>
-<rect x="61.19" y="267.00" width="20.26" height="11.0" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<text x="71.32" y="274.60" font-size="6.0" text-anchor="middle">TMOD</text>
-<rect x="81.45" y="267.00" width="18.04" height="11.0" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<text x="90.47" y="274.60" font-size="6.0" text-anchor="middle">PREA</text>
-<rect x="99.49" y="267.00" width="20.57" height="11.0" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<text x="109.77" y="274.60" font-size="6.0" text-anchor="middle">ACT16</text>
-<rect x="120.06" y="267.00" width="25.41" height="11.0" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="132.76" y="274.60" font-size="6.0" text-anchor="middle">MAC16</text>
-<polyline points="146.98,279.5 150.03,265.5" fill="none" stroke="#000000" stroke-width="0.6"/>
-<polyline points="150.41,279.5 153.46,265.5" fill="none" stroke="#000000" stroke-width="0.6"/>
-<polyline points="145.46,272.5 146.98,272.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<polyline points="153.46,272.5 154.98,272.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<rect x="154.98" y="267.00" width="25.41" height="11.0" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
-<text x="167.69" y="274.60" font-size="6.0" text-anchor="middle">MAC16</text>
-<rect x="180.39" y="267.00" width="20.26" height="11.0" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
-<text x="190.51" y="274.60" font-size="6.0" text-anchor="middle">TMOD</text>
-<rect x="200.65" y="267.00" width="38.88" height="11.0" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
-<text x="220.09" y="274.60" font-size="6.0" text-anchor="middle">RDMAC16 ×<tspan font-style="italic">A</tspan></text>
-<path d="M1.24,280.50 v2.5 h27.83 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<text x="15.15" y="289.50" font-size="6.5" text-anchor="middle">token load</text>
-<path d="M30.59,280.50 v2.5 h88.70 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<text x="74.94" y="289.50" font-size="6.5" text-anchor="middle">row switch</text>
-<path d="M120.82,280.50 v2.5 h58.81 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<text x="150.22" y="289.50" font-size="6.5" text-anchor="middle"><tspan font-style="italic">c</tspan> MAC slots</text>
-<path d="M181.15,280.50 v2.5 h18.73 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<text x="190.51" y="289.50" font-size="6.5" text-anchor="middle">row switch</text>
-<path d="M201.41,280.50 v2.5 h37.35 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
-<text x="239.05" y="289.50" font-size="6.5" text-anchor="end">token drain</text>
-<text x="120.00" y="300.00" font-size="6.5" text-anchor="middle">time per sweep = <tspan font-style="italic">c</tspan>·<tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">slot</tspan><tspan dy="-1.6"> </tspan>+ <tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">row</tspan><tspan dy="-1.6"> </tspan>+ <tspan font-style="italic">A</tspan>·<tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">tok</tspan><tspan dy="-1.6"> </tspan>(<tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">row</tspan><tspan dy="-1.6">: row switch; </tspan><tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">tok</tspan><tspan dy="-1.6">: token load and drain)</tspan></text>
+<text x="0.00" y="249.40" font-size="7.5" text-anchor="start" font-weight="bold">(c)</text>
+<text x="120.00" y="249.40" font-size="6.5" text-anchor="middle" font-style="italic">one row sweep: one open row, <tspan font-style="italic">A</tspan> tokens (not to scale)</text>
+<rect x="0.48" y="254.40" width="29.35" height="11.00" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="15.15" y="262.00" font-size="6.0" text-anchor="middle">WRGB ×<tspan font-style="italic">A</tspan></text>
+<rect x="29.83" y="254.40" width="31.37" height="11.00" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<text x="45.50" y="262.00" font-size="6.0" text-anchor="middle">WRMAC16</text>
+<rect x="61.19" y="254.40" width="20.26" height="11.00" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<text x="71.32" y="262.00" font-size="6.0" text-anchor="middle">TMOD</text>
+<rect x="81.45" y="254.40" width="18.04" height="11.00" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<text x="90.47" y="262.00" font-size="6.0" text-anchor="middle">PREA</text>
+<rect x="99.49" y="254.40" width="20.57" height="11.00" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<text x="109.77" y="262.00" font-size="6.0" text-anchor="middle">ACT16</text>
+<rect x="120.06" y="254.40" width="25.41" height="11.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="132.76" y="262.00" font-size="6.0" text-anchor="middle">MAC16</text>
+<polyline points="146.98,266.90 150.03,252.90" fill="none" stroke="#000000" stroke-width="0.6"/>
+<polyline points="150.41,266.90 153.46,252.90" fill="none" stroke="#000000" stroke-width="0.6"/>
+<polyline points="145.46,259.90 146.98,259.90" fill="none" stroke="#000000" stroke-width="0.5"/>
+<polyline points="153.46,259.90 154.98,259.90" fill="none" stroke="#000000" stroke-width="0.5"/>
+<rect x="154.98" y="254.40" width="25.41" height="11.00" fill="#E8E8E8" stroke="#000000" stroke-width="0.5"/>
+<text x="167.69" y="262.00" font-size="6.0" text-anchor="middle">MAC16</text>
+<rect x="180.39" y="254.40" width="20.26" height="11.00" fill="#BFBFBF" stroke="#000000" stroke-width="0.5"/>
+<text x="190.51" y="262.00" font-size="6.0" text-anchor="middle">TMOD</text>
+<rect x="200.65" y="254.40" width="38.88" height="11.00" fill="#FFFFFF" stroke="#000000" stroke-width="0.5"/>
+<text x="220.09" y="262.00" font-size="6.0" text-anchor="middle">RDMAC16 ×<tspan font-style="italic">A</tspan></text>
+<path d="M1.24,267.90 v2.5 h27.83 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
+<text x="15.15" y="276.90" font-size="6.5" text-anchor="middle">token load</text>
+<path d="M30.59,267.90 v2.5 h88.70 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
+<text x="74.94" y="276.90" font-size="6.5" text-anchor="middle">row switch</text>
+<path d="M120.82,267.90 v2.5 h58.81 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
+<text x="150.22" y="276.90" font-size="6.5" text-anchor="middle"><tspan font-style="italic">c</tspan> MAC slots</text>
+<path d="M181.15,267.90 v2.5 h18.73 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
+<text x="190.51" y="276.90" font-size="6.5" text-anchor="middle">row switch</text>
+<path d="M201.41,267.90 v2.5 h37.35 v-2.5" fill="none" stroke="#000000" stroke-width="0.5"/>
+<text x="239.05" y="276.90" font-size="6.5" text-anchor="end">token drain</text>
+<text x="120.00" y="287.40" font-size="6.5" text-anchor="middle">time per sweep = <tspan font-style="italic">c</tspan>·<tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">slot</tspan><tspan dy="-1.6"> </tspan>+ <tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">row</tspan><tspan dy="-1.6"> </tspan>+ <tspan font-style="italic">A</tspan>·<tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">tok</tspan><tspan dy="-1.6"> </tspan>(<tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">row</tspan><tspan dy="-1.6">: row switch; </tspan><tspan font-style="italic">t</tspan><tspan dy="1.6" font-size="5">tok</tspan><tspan dy="-1.6">: token load and drain)</tspan></text>
 <!-- (c) end -->
 </svg>
 </body>
