@@ -33,15 +33,6 @@ Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,
   \label{fig:mapping}
 \end{figure}
 
-% column-width schematic (Section II-B), defined right after Fig. mapping, so it waits for page 2's left column
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figs/fig_dram_pim.pdf}
-  \Description{Block diagram of one DRAM channel with its bank groups and one bank holding a processing unit, a command timeline of column reads and MAC beats, and a strip of one row sweep.}
-  \caption{AiM-style PIM: (a)~one channel and one bank with its PU; (b)~commands and MAC beats on the mobile platform; (c)~one row sweep.}
-  \label{fig:dram_pim}
-\end{figure}
-
 % P:intro-prior-families
 \textbf{Prior PIM designs} raise the ceiling in two families, and each family keeps every MAC paced by a DRAM command. The wider-PU
 family buys speed with area: LP-Spec~\cite{lpspec} keeps one MAC step per column command and widens the step, feeding one
@@ -49,15 +40,6 @@ read to four 32-wide ALUs, four times the multipliers. The faster-PU family keep
 speed: P3-LLM~\cite{p3llm} latches a weight and issues one command per token, so P3-LLM's MACs inherit the minimum command spacing \tccds, half the
 column period: at most two tokens share a read. DOTS~\cite{dots} shares a weight row's activation across tokens, but each
 token's command still reads every column.
-
-% defined after Figs. mapping and dram_pim, so it renders at the top of page 2's right column (one float per column)
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\columnwidth]{figs/fig_roofline.pdf}
-  \Description{Two log-log line charts of GEMM throughput against the number of token rows for the host NPU, stock AiM, CoDe and the two rival PIM designs, one for the mobile platform and one for the edge server.}
-  \caption{Skinny-GEMM throughput against the number of token rows $M$: (a)~mobile platform; (b)~edge server.}
-  \label{fig:roofline}
-\end{figure}
 
 % P:intro-timing-insight
 Critically, \textbf{DRAM timing parameters space the column commands} that move data out of the cell array~\cite{hbmpim}, not
@@ -81,6 +63,25 @@ LPDDR5-6400, INT8), CoDe takes 0.574$\times$ LP-Spec-style's logic area and retu
 per logic mm$^2$. Against the faster-PU family, on an edge server with HBM2 at W4A8, CoDe decodes a batch of 8
 1.24$\times$ faster than P3-LLM-style for 0.59\,\% more of the stack's area, and 1.28$\times$ faster than NPU only,
 with 1.39$\times$ P3-LLM-style's system energy efficiency.
+
+% column-width schematic (Section II-B), defined after intro-code-proposal (whose end falls on p2 R), so it takes p2 R top
+% and leaves p2 L float-free (user 2026-11-16)
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figs/fig_dram_pim.pdf}
+  \Description{Block diagram of one DRAM channel with its bank groups and one bank holding a processing unit, a command timeline of column reads and MAC beats, and a strip of one row sweep.}
+  \caption{AiM-style PIM: (a)~one channel and one bank with its PU; (b)~commands and MAC beats on the mobile platform; (c)~one row sweep.}
+  \label{fig:dram_pim}
+\end{figure}
+
+% defined right after Fig. dram_pim, so p2 R's top is taken and it renders at the top of p3 L (one float per column, user 2026-11-16)
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figs/fig_roofline.pdf}
+  \Description{Two log-log line charts of GEMM throughput against the number of token rows for the host NPU, stock AiM, CoDe and the two rival PIM designs, one for the mobile platform and one for the edge server.}
+  \caption{Skinny-GEMM throughput against the number of token rows $M$: (a)~mobile platform; (b)~edge server.}
+  \label{fig:roofline}
+\end{figure}
 
 % P:intro-contributions
 In summary, this paper makes the following contributions:
