@@ -48,19 +48,20 @@ at 456 tokens/s, where stock AiM reaches 1.27$\times$ and 0.45$\times$ (Fig.~\re
 
 % P:eval-e2e-lpspec
 \runin{Area efficiency against LP-Spec-style}
-CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and 1.80$\times$ on
-the edge server (Fig.~\ref{fig:e2e}b), because CoDe decodes at least as fast on less logic. On the mobile
-platform LP-Spec-style reaches 3.00$\times$ NPU only's speed, at 27.9 tokens/s, so CoDe decodes 1.07$\times$ faster. The lead holds at every $M$: across $M = 2$--16, CoDe decodes at least as fast as
+On the mobile platform, CoDe decodes 1.07$\times$ faster than LP-Spec-style with 0.574$\times$ its logic area, so CoDe
+returns 1.87$\times$ LP-Spec-style's throughput per logic mm$^2$; on the edge server, CoDe matches LP-Spec-style's speed
+with 0.554$\times$ its logic area and returns 1.80$\times$ its throughput per logic mm$^2$ (Fig.~\ref{fig:e2e}). CoDe's
+mobile lead holds at every $M$: across $M = 2$--16, CoDe decodes at least as fast as
 LP-Spec-style and returns 1.75--2.28$\times$ its tokens per second per logic mm$^2$. An eight-token LP-Spec-style design matches
 CoDe's speed but needs 3.155\,mm$^2$ of logic per die, so CoDe returns 1.96$\times$ its tokens per second per logic
-mm$^2$. On the edge server, CoDe matches LP-Spec-style's speed. CoDe keeps its lead per logic
+mm$^2$. CoDe keeps its lead per logic
 mm$^2$ over LP-Spec-style until storage costs 6.5$\times$ our estimate on the mobile platform and 16.5$\times$ on the
 edge server.
 
 % P:eval-e2e-p3
 \runin{Speed against P3-LLM-style}
-CoDe decodes a batch of 8 1.24$\times$ faster than P3-LLM-style on the edge server, at 1.39$\times$ less system
-energy (Fig.~\ref{fig:e2e}). NPU + P3-LLM-style places each layer class on whichever unit runs it faster and reaches
+CoDe decodes a batch of 8 1.24$\times$ faster than P3-LLM-style on the edge server, while P3-LLM-style spends
+1.39$\times$ CoDe's system energy per token (Fig.~\ref{fig:e2e}). NPU + P3-LLM-style places each layer class on whichever unit runs it faster and reaches
 1.03$\times$ NPU only's speed. On the mobile platform P3-LLM-style reaches 2.06$\times$ NPU only's speed, and CoDe
 decodes 1.56$\times$ faster. CoDe pays for its speed with 0.59\,\% more of the stack's area: on the edge server CoDe
 takes 1.35$\times$ P3-LLM-style's logic and returns 0.92$\times$ its tokens per second per logic mm$^2$, and on the
@@ -102,7 +103,7 @@ periphery.
 \runin{Logic against LP-Spec-style}
 CoDe matches LP-Spec-style's peak throughput on the mobile platform with 0.574$\times$ its logic area per die: arithmetic takes
 0.71 of LP-Spec-style's logic and 0.31 of CoDe's, while storage, the staging queue, accumulator file and weight latch,
-takes 0.39 of CoDe's logic and 0.14 of LP-Spec-style's. On HBM2, CoDe's logic is 0.554$\times$ LP-Spec-style's.
+takes 0.39 of CoDe's logic and 0.14 of LP-Spec-style's.
 
 \subsection{Ablation Study}
 \label{sec:eval:ablation}

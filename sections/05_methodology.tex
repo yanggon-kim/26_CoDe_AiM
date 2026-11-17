@@ -129,6 +129,7 @@ layer class on whichever unit runs it faster at batch 8.
 % P:meth-metrics
 GEMM speed counts a GEMM's operations over its time including the drain of its output sums, relative to stock AiM;
 end-to-end speed is tokens per second, relative to NPU only. Area efficiency divides
-either throughput by the PIM logic area over all dies or pseudo-channels of Table~\ref{tab:designs}; it is a primary
+throughput by the PIM logic area alone, summed over all dies or pseudo-channels of Table~\ref{tab:designs} and excluding
+the NPU and the DRAM cell arrays; it is a primary
 metric beside speed, because a DRAM die pays for logic in memory capacity (Section~\ref{sec:bg:walls}). Energy is system
 energy per token. Edge-server values are geometric means over the five models.

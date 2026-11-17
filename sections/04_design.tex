@@ -14,24 +14,25 @@
 \label{sec:design:overview}
 
 % P:des-tile-mac-overview
-CoDe (Command-Decoupled PIM) issues one MAC command per weight column for a tile of $V$ token vectors of a skinny
-GEMM, and this single \emph{tile MAC} command carries CoDe's two levers: row reuse (Section~\ref{sec:design:reuse})
-and beat filling (Section~\ref{sec:design:beat}). Every command still obeys every DRAM timing parameter: activations,
-column reads and refreshes issue exactly as in stock AiM, and only the MAC beats leave the command stream. Both levers
-come from the tile, whose inputs the global buffer holds: CoDe extends the GB from stock AiM's one input vector to the
-input vectors of $V$ tokens (Fig.~\ref{fig:tile}, Section~\ref{sec:design:pu}). Fig.~\ref{fig:tile} groups
-the PU's structures by lever: the staging buffer, the accumulator file and the \emph{burst drain} carry row reuse, and the
-weight latch and the beat sequencer carry beat filling. With both levers, CoDe's useful-MAC utilization $U$ reaches
-0.779 on the mobile platform (Table~\ref{tab:umac}) and 0.739 on the edge server.
+CoDe (Command-Decoupled PIM) issues one \emph{tile MAC} command per weight column for a tile of $V$ tokens of a skinny
+GEMM (Fig.~\ref{fig:tile}). The global buffer holds the $V$ tokens' input vectors for one chunk of $K$, where stock
+AiM's holds one. Each tile MAC latches one weight column in the PU and starts the beat sequencer, which steps through the
+tokens' inputs and accumulators with no further MAC command. After the tile's last column, the \emph{burst drain} moves
+the $V$ sums out while the next tile accumulates into a second set of accumulators. Every command still obeys every DRAM
+timing parameter: activations, column reads and refreshes issue exactly as in stock AiM, and only the MAC beats leave the
+command stream.
 
 % P:des-decouple-novelty
 Reusing a weight over several inputs is routine in an ASIC GEMM engine, which sequences its own MACs, but an AiM-style
-PU has no sequencer of its own: a DRAM command triggers each of its MAC steps. CoDe's \emph{tile MAC} starts all of a tile's MACs on one latched column, and the beat sequencer advances the tokens'
-inputs and accumulators without further MAC commands. The tile therefore shares its column reads and row-switch commands
-(row reuse), while the PU clock, not the command stream, sets its beats (beat filling); the GB and the accumulator file
-hold the tile's inputs and sums. The tile size $V$ is a parameter of the tile MAC, not a lane count: CoDe runs $V = 8$
-tokens over $D = 4$ beats on the mobile platform, which halves LP-Spec-style's row sweeps without added lanes, and the
-interface change is two commands with every DRAM timing parameter unchanged (Section~\ref{sec:design:pu}).
+PU has no sequencer of its own: a DRAM command triggers each of its MAC steps. One tile MAC instead starts all of a
+tile's MACs, and this command scope carries CoDe's two levers: the tile shares its column reads and row-switch commands
+(row reuse, Section~\ref{sec:design:reuse}), while the PU clock, not the command stream, sets its beats (beat filling,
+Section~\ref{sec:design:beat}). Fig.~\ref{fig:tile} groups the PU's structures by lever: the staging buffer, the
+accumulator file and the burst drain carry row reuse, and the weight latch and the beat sequencer carry beat filling.
+With both levers, CoDe's useful-MAC utilization $U$ reaches 0.779 on the mobile platform (Table~\ref{tab:umac}) and
+0.739 on the edge server. The tile size $V$ is a parameter of the tile MAC, not a lane count: CoDe runs $V = 8$ tokens
+over $D = 4$ beats on the mobile platform, which halves LP-Spec-style's row sweeps without added lanes, and the
+interface change is two commands (Section~\ref{sec:design:pu}).
 
 \subsection{Row Reuse}
 \label{sec:design:reuse}
@@ -78,10 +79,10 @@ spends in $D$ beats.
 Beat filling answers the idle beats of Section~\ref{sec:bg:cmd}, three of a stock MAC slot's four beats, by decoupling
 the PU's MAC beats from the command stream. The PU runs its beats at its own clock, $f_\mathrm{PU} = D /
 t_\mathrm{col}$, which equals CK on both platforms (Tables~\ref{tab:params} and~\ref{tab:designs}), so the PU fits $D$ beats into each column
-period whatever the command spacing. A \emph{tile MAC} holds its column in the PU for $V/D$ column periods, and the next \emph{tile
-MAC} issues $V/D$ periods later. The enlarged \emph{tile MAC} of Fig.~\ref{fig:mapping}b shows one tile of $V = 8$ tokens at
-$D = 4$: one column read feeds eight beats, one per token and four per column period, and each beat adds into its
-token's accumulator slot. In the right zoom, stock AiM's column read feeds one beat and leaves three idle beats in its
+period whatever the command spacing. The enlarged \emph{tile MAC} of Fig.~\ref{fig:mapping}b shows the mobile tile of
+$V = 8$ tokens at $D = 4$: one column read feeds eight beats, one per token and four per column period, over two column
+periods, and then the next \emph{tile MAC} issues. A \emph{tile MAC} thus holds its column for $V/D$ column periods, one
+on the edge server ($V = D = 4$). In the right zoom, stock AiM's column read feeds one beat and leaves three idle beats in its
 column period.
 
 % P:des-beat-slot-factor
