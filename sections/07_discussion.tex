@@ -26,19 +26,16 @@ grows the logic per die from LP-Spec-style's 2.800 to 3.155\,mm$^2$ (Table~\ref{
 \end{figure}
 
 % P:disc-storage-cause
-The DRAM die sets this trade. It builds logic ten times less densely than an ASIC~\cite{devaux}, so multipliers are the
-costliest way to fill a beat, while its all-bank column already spans four command clocks, so a beat costs clock cycles
-rather than area (Section~\ref{sec:bg:depth}). CoDe therefore pays once, for the tile's storage, gains its beats
-from the PU clock and pays for those cycles in power; its peak power stays below LP-Spec-style's when both designs
-gate their clocks (Section~\ref{sec:eval:energy}).
+The DRAM die sets this trade: its tenfold density penalty makes multipliers the costliest way to fill a beat, while its
+four-CK column makes a beat cost clock cycles, not area (Section~\ref{sec:bg:depth}). CoDe therefore pays once for the
+tile's storage and pays for its beats in power.
 
 \subsection{Beat Filling on Newer DRAM}
 \label{sec:disc:newdram}
 
 % P:disc-newer-dram-depth
 Beat filling keeps a depth of four on newer DRAM generations, because each generation shortens the command clock but
-keeps the all-bank column at four command clocks. We evaluate LPDDR5-6400 and HBM2 because LP-Spec~\cite{lpspec} and
-P3-LLM~\cite{p3llm} were built on them. JEDEC spaces column commands to the same bank group by $t_\mathrm{CCD\_L} = 4\,t_\mathrm{CK}$~\cite{jedeclpddr5}, so
+keeps the all-bank column at four command clocks. JEDEC spaces column commands to the same bank group by $t_\mathrm{CCD\_L} = 4\,t_\mathrm{CK}$~\cite{jedeclpddr5}, so
 LPDDR5X-8533 and LPDDR5X-9600, whose command clocks reach 1.07 and 1.2\,GHz~\cite{micronlp5x}, have all-bank columns of
 3.75 and 3.33\,ns. HBM3 at 6.4\,Gb/s runs its command clock at 1.6\,GHz~\cite{synopsyshbm3}; at HBM2's four-clock
 column (Table~\ref{tab:params}), its column lasts 2.5\,ns\ASSUMPTION. A PU clocked at CK therefore runs $D = 4$ beats

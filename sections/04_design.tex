@@ -102,11 +102,9 @@ than the ratio of \tccdl{} to \tccds. The Precision-Flexible PU~\cite{pfpu} make
 GEMV, that a PU at CK has four phases per column interval, but spends the phases on the low-bit weights packed in one
 column for one input vector: its phases let narrow lanes consume a whole column, whereas CoDe's beats let one column
 read serve several tokens. The two uses compete for the same beats, since a phase that consumes a weight fragment
-cannot serve another token. Per token and weight column, CoDe therefore issues $1/V$ MAC commands, against
-one for stock AiM and P3-LLM-style and $1/4$ for LP-Spec-style (Fig.~\ref{fig:timeline}). The idle beats thus
-disappear without added multipliers, which, with row reuse, gives CoDe 1.87$\times$ LP-Spec-style's tokens per second per logic
-mm$^2$ on the mobile platform (Section~\ref{sec:eval:e2e}), and without per-token MAC commands, which gives CoDe its speed lead over
-P3-LLM-style.
+cannot serve another token. The idle beats thus disappear without added
+multipliers, the source, with row reuse, of CoDe's area efficiency over LP-Spec-style (Section~\ref{sec:eval:e2e}), and
+without per-token MAC commands, the source of its speed lead over P3-LLM-style.
 
 \subsection{Tile MAC Command and PU Microarchitecture}
 \label{sec:design:pu}
@@ -117,10 +115,8 @@ each accumulator so the PU pipelines at CK, and draining one tile while the next
 
 % P:des-command-set
 \runin{Command set}
-CoDe adds two commands to the all-bank interface of AiM-style PIM~\cite{aimjssc} and keeps every other command
-(Table~\ref{tab:cmds}). The \emph{tile MAC} (col, $V$) reads one column from every open bank with the stock MAC command's
-timing and tells each PU to run $V$ beats on that column. The \emph{burst drain} moves a tile's $V$ sums out of every PU in
-one burst after the tile's last column.
+CoDe adds two commands to the all-bank interface of AiM-style PIM~\cite{aimjssc}, the \emph{tile MAC} and the
+\emph{burst drain}, and keeps every other command (Table~\ref{tab:cmds}).
 
 
 % P:des-tile-mac-pu
@@ -142,7 +138,7 @@ packing two tokens' slices, and a register of $V$ slices on HBM2. The GB broadca
 16 bank PUs in DRAM silicon. The accumulator file holds two sets of $V$ slots per bank, so
 one tile's sums drain from one set while the next tile accumulates into the other; an HBM2 PU, which serves two banks,
 holds four sets (Table~\ref{tab:designs}). The burst drain reads the accumulator file for 1.6\,\% and 3.1\,\% of a tile's
-row sweep, inside the PU and alongside the next tile, which accumulates into the other set.
+row sweep.
 
 % P:des-tile-size
 \runin{Tile size}

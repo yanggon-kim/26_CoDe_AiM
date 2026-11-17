@@ -158,7 +158,7 @@ column command (Section~\ref{sec:bg:cmd}).
 \end{table}
 
 % P:mot-gemv-accel
-The Precision-Flexible PU~\cite{pfpu} speeds up GEMV by clocking its PU at CK: in each column interval, narrow lanes
+The Precision-Flexible PU (PFPU)~\cite{pfpu} speeds up GEMV by clocking its PU at CK: in each column interval, narrow lanes
 run four phases over the low-bit weights packed in one column (Table~\ref{tab:prior}). In a GEMV each column meets one
 input vector, so the phases serve that vector's weight bits; applied to a GEMM, the design still needs a command, a
 read of every column and a row sweep for each token. CENT~\cite{cent}, SAL-PIM~\cite{salpim} and CD-PIM~\cite{cdpim}

@@ -4,10 +4,9 @@
 % P:eval-modelled
 All results are modelled, and ratios above 1 favour CoDe. We judge CoDe against each family by the cost that defines
 it: against LP-Spec-style, which buys speed with multipliers, by throughput per logic mm$^2$, and against P3-LLM-style,
-which keeps the stock multipliers but caps speed, by speed. Three modelling choices favour the rivals: LP-Spec-style
-keeps only the accumulators its dataflow needs (Section~\ref{sec:bg:walls}) and runs one unit per bank on the mobile platform, faster than
-LP-Spec's shared unit (Section~\ref{sec:eval:ablation}), and P3-LLM-style's linear-layer kernel gains more from depth 2 than P3-LLM reports
-(Section~\ref{sec:method:models}).
+which keeps the stock multipliers but caps speed, by speed. Three modelling choices of
+Sections~\ref{sec:bg:walls} and~\ref{sec:method:models} favour the rivals: LP-Spec-style's minimal accumulators and
+per-bank unit, and P3-LLM-style's depth-2 gain.
 
 \subsection{Skinny GEMM Speedup and Area Efficiency}
 \label{sec:eval:gemm}
@@ -24,9 +23,7 @@ LP-Spec-style and P3-LLM-style all run 1.96--1.97$\times$ faster than stock AiM 
 \runin{Area efficiency against LP-Spec-style}
 CoDe returns 1.74$\times$ LP-Spec-style's GEMM throughput per logic mm$^2$ on the mobile platform up to $M = 4$ and
 1.94$\times$ from $M = 8$, and 1.80$\times$ at every $M$ on the edge server (Fig.~\ref{fig:gemm}b). CoDe fills the same
-beats as LP-Spec-style but spends its logic on storage rather than multipliers, so CoDe runs at least as fast as
-LP-Spec-style with 0.574$\times$ its logic area on the mobile platform and 0.554$\times$ on the edge server
-(Table~\ref{tab:designs}; Section~\ref{sec:eval:area}). CoDe equals LP-Spec-style's speed up to $M = 4$, and at every
+beats as LP-Spec-style but spends its logic on storage rather than multipliers (Section~\ref{sec:eval:area}). CoDe equals LP-Spec-style's speed up to $M = 4$, and at every
 $M$ on the edge server, where CoDe's tile of $V = D = 4$ issues LP-Spec-style's command stream. On the mobile platform
 CoDe runs ahead of LP-Spec-style from $M = 8$, because its eight-token tile halves LP-Spec-style's row sweeps.
 
@@ -82,19 +79,11 @@ P3-LLM-style 1.38$\times$ and LP-Spec-style 1.12$\times$ CoDe's energy (Fig.~\re
 power-gated, P3-LLM-style's ratio grows to 2.11$\times$: CoDe is fast enough to keep the linear layers in the banks,
 while P3-LLM-style's NPU must read every linear-layer weight over the HBM pins.
 
-% P:eval-power-headroom
-\runin{Power headroom of all-bank PIM}
-A stock DRAM die holds its banks to a tight current limit: its \tfaw{} window admits only four row activations because
-the die's charge pumps and their power-delivery network supply only that current~\cite{shevgoor}. PIM dies lift this
-limit so that all their banks can work at once. GDDR6-AiM's~\cite{aimjssc} all-bank MACs draw about three times the
-gapless read current, and reservoir capacitors and separate I/O and bank power networks let its 16 banks activate
-together without \tfaw. AttAcc~\cite{attacc} budgets its GEMV units by the all-bank interleaved read current (IDD7),
-Newton's~\cite{newton} authors estimate that its all-bank computation draws about 4$\times$ the power of a peak-bandwidth
-read. CoDe's design operates within this headroom.
-
 % P:eval-power
 \runin{Peak power}
-CoDe's peak power falls inside this headroom on both platforms and, with both designs' clocks gated, stays below
+PIM dies lift the stock die's \tfaw{} current limit so that all banks work at once: GDDR6-AiM's~\cite{aimjssc} all-bank
+MACs draw about three times the gapless read current, and Newton's~\cite{newton} authors estimate about 4$\times$ the
+power of a peak-bandwidth read. CoDe's peak power falls inside this headroom on both platforms and, with both designs' clocks gated, stays below
 LP-Spec-style's. CoDe draws 0.51\,W per die at its full MAC rate, 1.14$\times$ the power of one x16 channel reading at its full
 rate (Section~\ref{sec:method:models}), below the threefold read current of AiM's MACs. On HBM2, CoDe draws
 5.76\,W per stack, 0.72$\times$ the stack's full-rate read power; HBM-PIM~\cite{hbmpim} likewise keeps its PIM mode within the thermal design power of the original
