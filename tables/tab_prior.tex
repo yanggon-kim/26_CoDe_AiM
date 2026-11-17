@@ -2,22 +2,22 @@
 % restates the paper's cited prose or Fig. 5's (fig:timeline) counts. Targets: stock AiM GEMV (III-A, mot-gemv-only); Precision-
 % Flexible PU GEMV only (PFPU Sec. I / IV-B: "memory-bound GEMV, the target kernel of all-bank PIM"); LP-Spec
 % speculative verification (lpspec); P3-LLM small-batch decoding (p3llm); DOTS "Tall and Skinny GEMM" (its title).
-% Tokens per MAC command: stock AiM one column command per token (III-B); PFPU one column command per input vector;
+% Tokens per MAC: stock AiM one column command per token (III-B); PFPU one column command per input vector;
 % LP-Spec one column command feeds four 32-wide INT8 ALUs with four tokens (III-C, lpspec); P3-LLM one PIM command per
 % vector (p3llm Fig. 7), two tokens per read at t_CCD_S (III-C, p3llm p. 7); DOTS one MAC command per vector, shares
 % the row activation, each token's command reads every column, "minimal hardware modifications" (DOTS DATE'25 p. 2);
 % PFPU four phases per t_CCD_L on the packed low-bit weights of one input vector (PFPU Sec. III-A; multipliers "--":
-% narrow lanes, no single stated count); CoDe idle beats at M < D (VI-A: third and fourth beats idle at M <= 2)
+% narrow lanes, no single stated count); CoDe fundamental limit "--" (user 2026-11-16); PFPU printed as "PFPU" (user 2026-11-16)
 \begin{tabular*}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.45cm}@{\hspace{3pt}}c@{\hspace{3pt}}c@{\hspace{3pt}}c@{\hspace{3pt}}c@{\hspace{3pt}}>{\raggedright\arraybackslash}p{3.2cm}@{}}
 \toprule
-Design & Target & \shortstack{Tokens per\\MAC\\command} & \shortstack{Tokens per\\column read} & \shortstack{Multi-\\pliers} & Fundamental limit \\
+Design & Target & \shortstack{Tokens per\\MAC} & \shortstack{Tokens per\\column read} & \shortstack{Multi-\\pliers} & Fundamental limit \\
 \midrule
 Stock AiM~\cite{aimjssc} & GEMV & 1 & 1 & 1$\times$ & one beat per column period; one row sweep per token \\
-Precision-Flexible PU~\cite{pfpu} & GEMV & 1 & 1 & -- & phases serve one vector's weight bits; one row sweep per token \\
+PFPU~\cite{pfpu} & GEMV & 1 & 1 & -- & one row sweep per token \\
 \cmidrule{1-6}
 LP-Spec~\cite{lpspec} & GEMM & 4 & 4 & 4$\times$ & speed costs multipliers (area) \\
 P3-LLM~\cite{p3llm} & GEMM & 1 & 2 & 1$\times$ & \tccds{} caps a read at two tokens \\
 DOTS~\cite{dots} & GEMM & 1 & 1 & 1$\times$ & shares the row activation, not the column read \\
-\textbf{CoDe} & GEMM & $V$ & $V$ & 1$\times$ & tile storage; idle beats when $M < D$ \\
+\textbf{CoDe} & GEMM & $V$ & $V$ & 1$\times$ & \multicolumn{1}{c@{}}{--} \\
 \bottomrule
 \end{tabular*}
