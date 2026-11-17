@@ -426,6 +426,12 @@ def umac_src_table():
             assert "2.37$\\times$ and 2.62$\\times$ stock AiM's speed" in " ".join(fh.read().split()), sec
     assert (r2(g("phone", "bf", "step_speedup")), r2(g("phone", "oo", "step_speedup"))) == (2.37, 1.83)
     assert (r2(g("hbm2", "bf", "step_speedup")), r2(g("hbm2", "oo", "step_speedup"))) == (2.62, 1.46)
+    # VI-E eval-gain-prior (2026-11-16): CoDe over beat filling alone (PFPU proxy) = CoDe cumulative / bf step, printed
+    for p, v in (("phone", 1.83), ("hbm2", 1.46)):
+        over_bf = g(p, "core", "cumulative_speedup") / g(p, "bf", "step_speedup")
+        assert r2(over_bf) == v == r2(g(p, "oo", "step_speedup")), (p, over_bf)
+    with open(os.path.join(REPO, "sections", "06_evaluation.tex")) as fh:
+        assert "CoDe runs the layer 1.83$\\times$ and 1.46$\\times$ faster" in " ".join(fh.read().split())
     # guard only (III-B prints q_proj shares since 2026-10-29): stock row-switch overhead, layer, M = 8, ns per sweep
     cls = {c: nm[f"phone/stock/8/{c}"] for c in ("TMOD", "ACT16", "PREA", "WRMAC16")}
     assert [round(cls[c], 1) for c in ("TMOD", "ACT16", "PREA", "WRMAC16")] == [40.5, 37.9, 11.5, 1.2], cls

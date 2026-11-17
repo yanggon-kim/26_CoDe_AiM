@@ -68,7 +68,8 @@ from stock AiM's 123.39\,ns to CoDe's 22.15\,ns at $V = 8$ on the mobile platfor
 % P:des-reuse-novelty
 Row reuse shares the column read, not only the row activation (Table~\ref{tab:prior}): the tile of
 Fig.~\ref{fig:mapping}b costs DOTS~\cite{dots} 512 column reads and CoDe 64. Each avoided column read saves its
-cell-access and column-decoder energy, and against SAL-PIM~\cite{salpim} and the Precision-Flexible PU~\cite{pfpu},
+cell-access and column-decoder energy. DOTS, however, keeps stock AiM's one beat per column period, and
+Section~\ref{sec:eval:ablation} compares its speed with CoDe's. Against SAL-PIM~\cite{salpim} and PFPU~\cite{pfpu},
 which sweep a row once per token, CoDe also pays the row-switch commands once per tile. The latched column is what beat filling (Section~\ref{sec:design:beat})
 spends in $D$ beats.
 
@@ -96,11 +97,12 @@ Beat filling gives the beats of a column period to tokens without a command for 
 command per token, and LP-Spec~\cite{lpspec} serves several tokens per command with added multipliers
 (Table~\ref{tab:prior}). CoDe's \emph{tile MAC} lets the PU run the tile's tokens one after another at its own clock
 with the stock multiplier count, so the beats per column period follow $t_\mathrm{col} \times f_\mathrm{PU}$ rather
-than the ratio of \tccdl{} to \tccds. The Precision-Flexible PU~\cite{pfpu} makes the same timing observation for
+than the ratio of \tccdl{} to \tccds. PFPU~\cite{pfpu} makes the same timing observation for
 GEMV, that a PU at CK has four phases per column interval, but spends the phases on the low-bit weights packed in one
 column for one input vector: its phases let narrow lanes consume a whole column, whereas CoDe's beats let one column
 read serve several tokens. The two uses compete for the same beats, since a phase that consumes a weight fragment
-cannot serve another token. The idle beats thus disappear without added
+cannot serve another token. PFPU, however, still sweeps the rows once per token, and Section~\ref{sec:eval:ablation}
+compares its speed with CoDe's. The idle beats thus disappear without added
 multipliers, the source, with row reuse, of CoDe's area efficiency over LP-Spec-style (Section~\ref{sec:eval:e2e}), and
 without per-token MAC commands, the source of its speed lead over P3-LLM-style.
 
