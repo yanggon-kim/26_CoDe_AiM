@@ -8,5 +8,5 @@ causes of stock PIM's lost multiply--accumulate (MAC) time, repeated row switche
 command reads a weight column once for a tile of tokens, and the processing unit fills every beat at the stock
 multiplier count. On LPDDR5-6400, CoDe returns 1.87$\times$ the wider-PU LP-Spec-style's tokens per second per logic
 mm$^2$; on HBM2, CoDe decodes a batch of 8 1.24$\times$ faster than the faster-PU P3-LLM-style for 0.59\,\% more of the
-stack's area. Since a column's beats follow from its period and the clock alone, the decoupling carries over to any
+stack's area. As a column's beats follow from its period and the clock, the decoupling holds for any
 DRAM whose column outlasts one beat.

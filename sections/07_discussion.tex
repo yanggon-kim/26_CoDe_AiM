@@ -39,7 +39,7 @@ keeps the all-bank column at four command clocks. JEDEC spaces column commands t
 LPDDR5X-8533 and LPDDR5X-9600, whose command clocks reach 1.07 and 1.2\,GHz~\cite{micronlp5x}, have all-bank columns of
 3.75 and 3.33\,ns. HBM3 at 6.4\,Gb/s runs its command clock at 1.6\,GHz~\cite{synopsyshbm3}; at HBM2's four-clock
 column (Table~\ref{tab:params}), its column lasts 2.5\,ns\ASSUMPTION. A PU clocked at CK therefore runs $D = 4$ beats
-per column on each of these memories, CoDe's tile of $V \ge D$ tokens fills all four beats, and \UMAC stays at 1 while
+per column on each memory, CoDe's tile of $V \ge D$ tokens fills all four, and \UMAC stays at 1 while
 the PU's MAC rate grows as the column shortens.
 
 % P:disc-newer-dram-clock
