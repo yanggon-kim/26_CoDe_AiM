@@ -43,9 +43,7 @@ Section~\ref{sec:bg:cmd} splits a stock GEMM's time to find why stock PIM stays 
 Fig.~\ref{fig:breakdown} splits stock AiM's GEMM time into six components, each bar normalised to its GEMM time, for
 two kernels at $M = 8$ on one channel. One tile fills one row sweep per bank and one GB chunk ($K \times N$ of
 $2048 \times 64$ on the mobile platform, $4096 \times 256$ on the edge server); the $4096 \times 4096$ query projection
-(q\_proj) of Llama-2-7B (mobile platform) and Llama-3.1-8B (edge server) is a whole layer. The mobile platform places an
-INT8 PU~\cite{lpspec} beside each LPDDR5-6400 bank, and the edge server places a W4A8 PU~\cite{p3llm} beside each pair
-of HBM2 banks (Table~\ref{tab:params}). The six
+(q\_proj) of Llama-2-7B (mobile platform) and Llama-3.1-8B (edge server) is a whole layer. The six
 components form two groups: the time in non-MAC commands (row switch, token load, token drain and refresh) and the
 time in MAC slots, which hold useful and idle beats. A MAC slot is the time \tslot that one all-bank MAC command
 occupies; on the mobile platform a MAC slot spans one column period (Fig.~\ref{fig:dram_pim}b). Useful MAC work fills
