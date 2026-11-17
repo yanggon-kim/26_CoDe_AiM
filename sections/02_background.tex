@@ -8,8 +8,7 @@
 A linear layer computes $Y = X W$ with a weight matrix $W$ of $K \times N$ and $M$ token rows in $X$. Plain decoding
 ($M = 1$) computes a GEMV. We call the layer a \emph{skinny GEMM} when $M \ll K, N$; this paper takes $2 \le M \le 32$
 with $K$ and $N$ in the thousands, inside the bound $M \ll 64$ that FlashDecoding++~\cite{flashdecodingpp} reports for
-decode GEMMs. A speculative decoder~\cite{leviathan2023} drafts tokens cheaply and verifies the $M$ drafted tokens in one
-pass of the target model, as a chain or as a token tree~\cite{eagle2}; a batched decoder serves $M$ requests per step.
+decode GEMMs. Speculative decoders verify drafted tokens as a chain or as a token tree~\cite{eagle2}.
 Published mobile decoders verify 2--8 drafted tokens padded to at most 32~\cite{sdnpu}, 1--32 on LPDDR-PIM~\cite{lpspec}
 and token trees of 4--64~\cite{lever}, and edge-server batches hold 1--8 requests~\cite{p3llm}. This
 paper targets verification on the mobile platform ($M = 2$--32~\cite{sdnpu,lpspec}) and batches on the edge server
@@ -26,7 +25,7 @@ A DRAM channel holds 16 banks in four bank groups (Fig.~\ref{fig:dram_pim}a). An
 2\,KB on LPDDR5~\cite{jedeclpddr5} (Table~\ref{tab:params}), into its sense amplifiers, and each column command moves
 one 32\,B column of that row. Column commands may
 issue every \tccds{} to different bank groups and every \tccdl{} to the same bank group, as the three reads of
-Fig.~\ref{fig:dram_pim}b do; \tccdl{} is twice \tccds{} on LPDDR5~\cite{ramulator2} and on HBM~\cite{p3llm}.
+Fig.~\ref{fig:dram_pim}b do; \tccdl{} is twice \tccds{} on LPDDR5 and HBM~\cite{ramulator2,p3llm}.
 
 % P:bg-aim-pu
 AiM-style PIM adds a processing unit (PU) beside each bank and a global buffer (GB),
@@ -42,8 +41,7 @@ $D$, the number of CK cycles in one column period, the \emph{depth}. JEDEC sets 
 LPDDR5~\cite{jedeclpddr5}, not at a fixed time, so the column period shortens as CK rises.
 
 % P:bg-mac-sequence
-MAC commands need non-MAC commands before and after them (Fig.~\ref{fig:dram_pim}c). The all-bank MAC command is the
-only MAC command; every other command is a non-MAC command. In the AiM command set~\cite{aimjssc}, the non-MAC commands follow a fixed order: WRGB writes one token's input chunk into the GB once, and the MAC commands of every row that multiplies that chunk
+MAC commands need non-MAC commands before and after them (Fig.~\ref{fig:dram_pim}c). In the AiM command set~\cite{aimjssc}, the non-MAC commands follow a fixed order: WRGB writes one token's input chunk into the GB once, and the MAC commands of every row that multiplies that chunk
 read it from the GB. WRMAC16 sets the output registers to the bias. A mode switch (TMOD) moves the controller from
 register commands to MAC commands, and PREA and ACT16 close the previous row and open the next one in all banks. After
 the MAC commands, a second TMOD returns the controller to register commands, and RDMAC16 drains each token's sums.
@@ -53,4 +51,4 @@ A \emph{row sweep} streams $c$ all-bank MAC commands over one open row, one comm
 commands (Fig.~\ref{fig:dram_pim}c). The count $c$ is the row size over the column size: on the mobile platform,
 $c = 2\,\text{KB} / 32\,\text{B} = 64$. An HBM2 row holds 1\,KB~\cite{jedechbm2}, so the edge server's row sweep covers
 two rows opened in turn, 64 columns as well (Table~\ref{tab:params}). A row sweep serves the $A$ tokens whose inputs the GB
-holds, and stock AiM's row sweep serves one ($A = 1$).
+holds; stock AiM's serves one ($A = 1$).

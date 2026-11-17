@@ -85,7 +85,7 @@ period whatever the command spacing. A \emph{tile MAC} holds its column in the P
 MAC} issues $V/D$ periods later. The enlarged \emph{tile MAC} of Fig.~\ref{fig:mapping}b shows one tile of $V = 8$ tokens at
 $D = 4$: one column read feeds eight beats, one per token and four per column period, and each beat adds into its
 token's accumulator slot. In the right zoom, stock AiM's column read feeds one beat and leaves three idle beats in its
-column period. The tile's partial sums leave in one \emph{burst drain} after its last column.
+column period.
 
 % P:des-beat-slot-factor
 Beat filling raises the slot factor from stock AiM's 1/4 to 1, because every beat of a MAC slot computes for one token
@@ -110,7 +110,7 @@ without per-token MAC commands, the source of its speed lead over P3-LLM-style.
 \label{sec:design:pu}
 
 % P:des-pu-problems
-Decoupling poses three problems that the PU solves: delivering a different token's input in every CK cycle, updating
+Decoupling poses three problems for the PU: delivering a different token's input in every CK cycle, updating
 each accumulator so the PU pipelines at CK, and draining one tile while the next accumulates.
 
 % P:des-command-set

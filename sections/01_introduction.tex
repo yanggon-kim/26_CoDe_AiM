@@ -2,14 +2,13 @@
 \label{sec:intro}
 
 % P:intro-skinny-gemm
-Large language models (LLMs) now decode on mobile platforms and on edge servers, where the decode step is set by how many tokens share one pass over the weights. A mobile platform such as a smartphone runs speculative decoding: a small draft model proposes tokens and the target model verifies the drafted tokens in one pass~\cite{leviathan2023,sdnpu,lpspec}. An edge server batches a few requests per
+Large language models (LLMs) now decode on mobile platforms and on edge servers, where the decode step is set by how many tokens share one pass over the weights. A smartphone runs speculative decoding: a small draft model proposes tokens and the target model verifies the drafted tokens in one pass~\cite{leviathan2023,sdnpu,lpspec}. An edge server batches a few requests per
 step~\cite{newton,h2llm,p3llm}. Either way, each linear layer runs a skinny GEMM~\cite{flashdecodingpp}: the layer multiplies a weight matrix whose
 dimensions are in the thousands by $M$ token vectors, with $M$ from 2 to about 32.
 
 % P:intro-host-memory-bound
 On the host, a skinny GEMM costs about what a GEMV costs. The host streams every weight once per step and performs $2M$
-operations per weight, so the host stays memory-bound until $M$ reaches its ridge point at $M \approx 143$ for a Snapdragon 8 Gen 3~\cite{sd8g3}
-NPU reading LPDDR5-6400 at 42\,GB/s (Section~\ref{sec:bg:roofline}).
+operations per weight, so the host stays memory-bound until $M$ reaches its ridge point at $M \approx 143$ for the mobile NPU (Section~\ref{sec:bg:roofline}).
 
 % P:intro-pim-gemv-ceiling
 DRAM processing-in-memory (PIM) removes the bandwidth limit but adds a compute ceiling built for GEMV. AiM-style PIM~\cite{aimisscc,aimjssc,aimhc34} (Fig.~\ref{fig:dram_pim}a)
@@ -38,8 +37,8 @@ Published systems send skinny GEMMs back to the host~\cite{attacc,neupims,ianus,
 family buys speed with area: LP-Spec~\cite{lpspec} keeps one MAC step per column command and widens the step, feeding one
 read to four 32-wide ALUs, four times the multipliers. The faster-PU family keeps the stock multiplier count but caps
 speed: P3-LLM~\cite{p3llm} latches a weight and issues one command per token, so P3-LLM's MACs inherit the minimum command spacing \tccds, half the
-column period: at most two tokens share a read. DOTS~\cite{dots} shares a weight row's activation across tokens, but each
-token's command still reads every column.
+column period: at most two tokens share a read. DOTS~\cite{dots} shares a row activation across tokens, but each
+token still reads every column.
 
 % P:intro-timing-insight
 Critically, \textbf{DRAM timing parameters space the column commands} that move data out of the cell array~\cite{hbmpim}, not
@@ -88,7 +87,7 @@ In summary, this paper makes the following contributions:
 \begin{itemize}
   \item We quantify stock PIM's inefficiency on skinny GEMMs: useful MACs fill only 14.1--19.1\,\% of stock AiM's
         GEMM time. We trace both losses, idle beats and repeated row switches, to one cause: a DRAM command paces every
-        MAC, a GEMV-era coupling that prior GEMM designs keep (Section~\ref{sec:motiv}).
+        MAC, a GEMV-era coupling prior designs keep (Section~\ref{sec:motiv}).
   \item We show that under this coupling DRAM timing caps the MACs however fast the PU runs, while DRAM timing itself
         bounds only column reads (Section~\ref{sec:bg:depth}).
   \item We propose CoDe's tile MAC interface and the PU that serves it: one command reads a weight column, a local

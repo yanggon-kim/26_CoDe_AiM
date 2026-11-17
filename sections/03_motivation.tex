@@ -16,8 +16,7 @@ The mobile NPU is the Snapdragon 8 Gen 3's~\cite{sd8g3}, which reaches 56\,GB/s~
 \runin{Host roof in the skinny range}
 The host stays memory-bound across the whole skinny range. The Snapdragon 8 Gen 3 NPU reaches its compute
 roof only at $M \approx 143$, and P3-LLM's~\cite{p3llm} NPU reaches its roof at $M = 128$ (Fig.~\ref{fig:roofline}a,
-b). Each NPU's ridge lies far above $M = 32$, so the host's roof rises linearly with $M$ across the skinny
-range.
+b), so the host's roof rises linearly with $M$ across the skinny range.
 
 % P:mot-stock-crossover
 \runin{Stock-PIM crossover}
@@ -132,8 +131,7 @@ and $T_\mathrm{GEMM}$ is the GEMM time; $U$ thus measures a design against a PU 
 of the slot factor and the sweep factor, $U = \UMAC \times \fMAC$.
 Stock AiM's $U$ is $1/4 \times 0.717 = 0.179$ on the mobile platform (Table~\ref{tab:umac}) and 0.193 on the edge
 server. Command pacing sets both factors: one MAC command per token leaves three beats of each column period idle
-and repeats each row sweep for every token. Section~\ref{sec:bg:walls} examines how prior PIM designs answer each root
-cause.
+and repeats each row sweep for every token.
 
 \subsection{Related Work: GEMV and GEMM in PIM}
 \label{sec:bg:walls}
@@ -169,8 +167,8 @@ likewise serve one input vector per column read.
 
 % P:mot-prior-families
 Prior PIM designs for skinny GEMMs take three approaches: more multipliers, more commands, or a shared row activation.
-Fig.~\ref{fig:timeline} follows one weight column through eight tokens in stock AiM and in one design of each of the
-first two approaches, LP-Spec~\cite{lpspec} for more multipliers and P3-LLM~\cite{p3llm} for more commands.
+Fig.~\ref{fig:timeline} follows one weight column through eight tokens in stock AiM and in LP-Spec~\cite{lpspec}
+and P3-LLM~\cite{p3llm}.
 
 % P:mot-wider-pu
 \runin{Wider-PU family}
@@ -180,14 +178,13 @@ LP-Spec~\cite{lpspec} builds its matrix unit from four 32-wide INT8 ALUs, clocks
 period, and shares one unit between two banks; we give LP-Spec-style one unit per bank on the mobile platform (Table~\ref{tab:designs}),
 SK hynix AiM's layout~\cite{aimjssc} and Samsung's maximum-performance option~\cite{hc35pim}, and evaluate the published sharing in
 Section~\ref{sec:eval:ablation}. One column
-command feeds the four ALUs with four tokens, one MAC step each. Fig.~\ref{fig:timeline} counts one bank's time in
-column periods $T$ of $D = 4$ beats: where stock AiM spends 8 column periods, 8 commands and 8 reads on the 8 tokens,
-the four ALUs need 2 of each. The 4$\times$ ceiling moves the crossover of this
+command feeds the four ALUs with four tokens, so in Fig.~\ref{fig:timeline} the four ALUs need 2 column periods,
+commands and reads where stock AiM needs 8. The 4$\times$ ceiling moves the crossover of this
 per-bank design with the host to $M = 20$--24 on the mobile platform (Fig.~\ref{fig:roofline}a).
 We take
 LP-Spec~\cite{lpspec} as the representative of the wider-PU family and model it as an \textbf{LP-Spec-style} design,
-the rival on the mobile platform (Section~\ref{sec:eval}). LP-Spec-style's slot serves four tokens, so
-LP-Spec-style reaches $\UMAC = 1$ (Table~\ref{tab:umac}) only by quadrupling the multipliers: per multiplier its $U$
+the rival on the mobile platform (Section~\ref{sec:eval}). LP-Spec-style thus
+reaches $\UMAC = 1$ (Table~\ref{tab:umac}) only by quadrupling the multipliers: per multiplier its $U$
 is 0.173--0.174 on the mobile platform and 0.185 on the edge server, below stock AiM's.
 
 % timeline figure (cited first in III-C's opener; defined after mot-wider-pu so that it lands on the next page, not
@@ -207,9 +204,6 @@ than an ASIC process and routes the logic in three metal layers instead of ten o
 0.19\,mm$^2$. Samsung's HBM-PIM~\cite{hbmpim} halves its DRAM sub-arrays to make room for its PUs and so gives up 50\,\% of
 the die's memory capacity. By LP-Spec's~\cite{lpspec} own estimate its compute units and buffers take
 16.92\,\% of a 16\,Gb LPDDR5 die, against 20--25\,\% of the chip for all of AiM's~\cite{aimjssc} compute circuits.
-LP-Spec's estimate includes register files of 50,688 bits per matrix unit, whereas our LP-Spec-style model keeps only
-the accumulators its dataflow needs and takes 4.60\,\% of the die (Table~\ref{tab:designs}), a reading that favours
-LP-Spec-style.
 Four times the multipliers per bank therefore cost capacity, and per unit of logic area the wider-PU family keeps
 only part of its 4$\times$ ceiling: LP-Spec-style's ceiling per logic mm$^2$ is 293\,GOPS on the mobile platform and
 591 on the edge server, against stock AiM's 203 and 431.
@@ -228,8 +222,7 @@ command is a column command, so any PIM that starts each token's MAC with one in
 the latch without a column read would be a new command, and it would still occupy the command bus once per token. The 2$\times$ ceiling moves the crossover of this design with the host to $M = 4$--6 on the edge
 server (Fig.~\ref{fig:roofline}b). To our knowledge, P3-LLM~\cite{p3llm} is the only design that applies a faster PU to $M > 1$, so we
 take P3-LLM as the representative of the faster-PU family and model it as a \textbf{P3-LLM-style} design, the rival on
-the edge server (Section~\ref{sec:eval}). P3-LLM-style thus keeps the stock multiplier count and a small
-logic footprint, but command timing caps its speed at two beats per column read.
+the edge server (Section~\ref{sec:eval}).
 
 % P:mot-other-gemm
 \runin{Other GEMM designs}
@@ -250,7 +243,7 @@ how many MACs may consume it. The PU takes its operands from the I/O sense ampli
 boundary~\cite{hbmpim}, so a latch keeps the column after its read, and later token MACs need no further cell
 access or column decoding. The column
 period thus sets how often weights arrive at a PU, and the PU clock sets how often the PU computes on them, so a PU
-clocked at CK can spend all $D$ beats of a column period on one latched column, as long as its MACs do not wait for
+clocked at CK can spend all $D$ beats of a column period on one latched column, unless its MACs wait for
 per-token commands.
 
 % P:mot-pu-clock-precedent

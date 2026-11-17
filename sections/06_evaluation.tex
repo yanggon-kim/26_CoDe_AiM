@@ -5,15 +5,15 @@
 All results are modelled, and ratios above 1 favour CoDe. We judge CoDe against each family by the cost that defines
 it: against LP-Spec-style, which buys speed with multipliers, by throughput per logic mm$^2$, and against P3-LLM-style,
 which keeps the stock multipliers but caps speed, by speed. Three modelling choices of
-Sections~\ref{sec:bg:walls} and~\ref{sec:method:models} favour the rivals: LP-Spec-style's minimal accumulators and
-per-bank unit, and P3-LLM-style's depth-2 gain.
+Sections~\ref{sec:bg:walls} and~\ref{sec:method:models} favour the rivals: LP-Spec-style's minimal accumulators (4.60\,\% of the die, where LP-Spec's own 16.92\,\% includes
+register files of 50,688 bits per matrix unit) and per-bank unit, and P3-LLM-style's depth-2 gain.
 
 \subsection{Skinny GEMM Speedup and Area Efficiency}
 \label{sec:eval:gemm}
 
 % P:eval-gemm-summary
 CoDe reaches LP-Spec-style's GEMM speed on under three fifths of its logic, and exceeds P3-LLM-style's speed beyond
-two token rows.
+$M = 2$.
 
 % P:eval-gemm-setting
 Up to $M = 2$ the column period paces every design: one column read serves every token, and CoDe,
@@ -50,11 +50,10 @@ at 456 tokens/s, where stock AiM reaches 1.27$\times$ and 0.45$\times$ (Fig.~\re
 \runin{Area efficiency against LP-Spec-style}
 CoDe returns 1.87$\times$ LP-Spec-style's tokens per second per logic mm$^2$ on the mobile platform and 1.80$\times$ on
 the edge server (Fig.~\ref{fig:e2e}b), because CoDe decodes at least as fast on less logic. On the mobile
-platform LP-Spec-style reaches 3.00$\times$ NPU only's speed, at 27.9 tokens/s, so CoDe decodes 1.07$\times$ faster on
-0.574$\times$ its logic. The lead holds at every $M$: across $M = 2$--16, CoDe decodes at least as fast as
+platform LP-Spec-style reaches 3.00$\times$ NPU only's speed, at 27.9 tokens/s, so CoDe decodes 1.07$\times$ faster. The lead holds at every $M$: across $M = 2$--16, CoDe decodes at least as fast as
 LP-Spec-style and returns 1.75--2.28$\times$ its tokens per second per logic mm$^2$. An eight-token LP-Spec-style design matches
 CoDe's speed but needs 3.155\,mm$^2$ of logic per die, so CoDe returns 1.96$\times$ its tokens per second per logic
-mm$^2$. On the edge server, CoDe matches LP-Spec-style's speed on 0.554$\times$ its logic. CoDe keeps its lead per logic
+mm$^2$. On the edge server, CoDe matches LP-Spec-style's speed. CoDe keeps its lead per logic
 mm$^2$ over LP-Spec-style until storage costs 6.5$\times$ our estimate on the mobile platform and 16.5$\times$ on the
 edge server.
 
@@ -94,8 +93,7 @@ HBM system. CoDe draws 0.92$\times$ LP-Spec-style's peak power on the mobile pla
 \label{sec:eval:area}
 
 % P:eval-area-budget
-Fabricated PIM dies set the scale for a PIM design's logic area, which a DRAM die pays for in memory capacity
-(Section~\ref{sec:bg:walls}). Samsung's HBM-PIM~\cite{hbmpim} places 32 PIM units
+Fabricated PIM dies set the scale for a PIM design's logic area. Samsung's HBM-PIM~\cite{hbmpim} places 32 PIM units
 of 0.712\,mm$^2$ each on an 84.4\,mm$^2$ die, 27\,\% of the die by our division. CoDe's logic (Table~\ref{tab:designs}) takes
 2.64\,\% of the LPDDR5 die and 2.28\,\% of the HBM2 stack, against AiM's 20--25\,\%. Like AiM, CoDe keeps every cell array and places its PUs in the bank
 periphery.
@@ -152,8 +150,8 @@ row-switch commands 91.6\,\% of that from $V = 4$ to 8.
 Past $V = D$ ($D = 4$) CoDe's storage grows faster than its speed. From $V = 4$ to 8 CoDe's logic grows by 19\,\% on the
 mobile platform and by 45\,\% on the edge server, while its speed grows 1.117$\times$ and 1.089$\times$, so
 throughput per logic mm$^2$ peaks at $V = D$ on both platforms, at 2.89$\times$ and 2.28$\times$ stock AiM's, and falls to 1.51$\times$ and 0.34$\times$ at $V = 64$
-(Fig.~\ref{fig:vsweep}a). A full tile thus favours $V = D$, but a decode step runs at small $M$, where the last row
-sweep of a tile is often only partly filled.
+(Fig.~\ref{fig:vsweep}a). A full tile thus favours $V = D$, but a decode step runs at small $M$, where a tile's last
+row sweep is often partly filled.
 
 % P:eval-vsweep-choice
 \runin{Tile size across {\boldmath$M$}}
@@ -180,4 +178,4 @@ CoDe keeps its lead when one unit is shared between two banks, the other placeme
 edge server a bank delivers one every 8\,ns and a PU takes one every 4\,ns (Table~\ref{tab:params}), so every design
 there already shares one PU between two banks at full speed. On the mobile platform a bank delivers one every 5\,ns, as
 fast as a unit takes one, so a shared unit halves each bank's rate: shared, LP-Spec-style takes 0.90$\times$ CoDe's
-logic, and CoDe decodes 1.60$\times$ faster at $M = 8$ and returns 1.44$\times$ its tokens per second per logic mm$^2$.
+logic, and CoDe decodes 1.60$\times$ faster at $M = 8$ and returns 1.44$\times$ its tokens/s per logic mm$^2$.

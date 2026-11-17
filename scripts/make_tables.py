@@ -104,7 +104,7 @@ def budget_cells():
         assert abs(v - 100 * f(t4[("serve", d)]["logic_mm2_total"]) / stack) < 1e-9
         assert abs(f(t4[("serve", d)]["logic_mm2_total"]) - 16 * f(t4[("serve", d)]["logic_mm2"])) < 1e-6
         pct[("serve", d)] = f"{r2(v):.2f}"
-    # printed (SAED14 x 10 areas, evaluation 35c9d06): CoDe 2.64 / 2.28 (I, VI-D), LP-Spec-style 4.60 (III-C, from Table IV);
+    # printed (SAED14 x 10 areas, evaluation 35c9d06): CoDe 2.64 / 2.28 (I, VI-D), LP-Spec-style 4.60 (VI opener, eval-modelled, from Table IV);
     # 4.11 and the rest guard only. History guard (Nangate45, never printed): 1.55 / 1.72 / 4.28 / 2.31, 1.23 / 1.46 / 3.48 / 1.95
     assert [pct[("phone", d)] for d, _ in PHONE] == ["1.66", "1.86", "4.60", "2.64"], pct
     assert [pct[("serve", d)] for d, _ in HBM2] == ["1.41", "1.69", "4.11", "2.28"], pct
@@ -618,7 +618,7 @@ def lpsv_checks():
     assert round(ps["lpsv.phone.h2a8.logic_mm2_die"], 3) == 3.155
     assert r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.min"]) == 1.96 == r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2.max"])
     assert ps["lpsv.phone.loop.core8_over_h2a8.speed_M8"] == 1.0 and r2(ps["lpsv.phone.loop.core8_over_h2a8.per_mm2_M8"]) == 1.96
-    # III-C: LP-Spec's own 16.92 % and its register files per matrix unit, against our 4.60 % (Table IV)
+    # VI opener (eval-modelled): our 4.60 % beside LP-Spec's own 16.92 % and its register files per matrix unit; III-C keeps 16.92 %
     assert r2(ps["budget.lpspec_own.pct_of_die_1z"]) == 16.92 and ps["budget.lpspec_own.rf_bits_per_mpu"] == 50688
     assert r2(ps["budget.phone.h2.pct_of_die_1z"]) == 4.60
     print("lpsv: shared 0.90x CoDe's logic, CoDe 1.60x faster, 1.44x per mm2 (M = 8); bank column 8 / 5 ns; "
