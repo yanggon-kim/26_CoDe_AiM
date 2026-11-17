@@ -229,7 +229,7 @@ def draw(row_ns, split, tab):
     # carry their labels inside at 7 pt and stock AiM's "x64" sits at 6.5 pt: the user's explicit decision (2026-10-29).
     # panel (b) drawn at 0.8 of its former height (user 2026-11-15): lanes 11 pt, CoDe's name on the line of the stock
     # bracket's label (that label right-aligned), "speedup" set inside its arrow, and a tighter zoom box and table
-    yb = ya + 12.0
+    yb = ya + 11.0                  # 1 pt tighter (user 2026-11-17: one more body line under Fig. 1 on p. 1)
     g.t(1, yb, "(b) one weight row of one bank", 8.5, bold=True)
     i_under = len(g.o)              # the stock zoom's dashed lines go here, under every later box and label
     lx, lend = 1.5, W - 1.5
@@ -343,8 +343,10 @@ def draw(row_ns, split, tab):
     # stock AiM's MAC of token 8 (one column read, 1 beat of 4 filled, 3 idle); the zoom boxes keep the former
     # bottom edge relative to the time axis
     zs, p, bh = 6.5, 15.0, 9.5                                                  # zoom font, beat pitch, beat height
-    zy, zh = yt + 3.5 + GAP_Z, 39.0
-    assert 4 * p - 2 > width("column period (4 CK)", zs)
+    zy, zh = yt + 3.5 + GAP_Z, 38.0                                            # 1 pt shorter (2026-11-17)
+    ck = f"{I('t')}<tspan font-size=\"6\" baseline-shift=\"sub\">CK</tspan>"  # t_CK as in the caption (2026-11-17)
+    zc = 6.3                                                                    # bracket label 6.5 -> 6.3 pt to fit t_CK
+    assert 4 * p - 2 > width("column period (4 t)", zc) + width("CK", 6.0)        # label within its bracket
     zx1, zw1 = 1.0, 8 * p - 2.0 + 7.0
     zx2 = zx1 + zw1 + 3.5
     assert abs(zy - zy_) < 1e-9 and abs(zx2 - zx2_) < 1e-9                       # the face check used these
@@ -362,7 +364,7 @@ def draw(row_ns, split, tab):
             if f is not None:
                 g.t(x0 + k * p + (p - 2.0) / 2, by + 7.0, f"{f + 1}", zs, "middle", TOKT[f], True)
         for j in range(n // 4):
-            g.bracket(x0 + 4 * j * p, x0 + (4 * j + 4) * p - 2.0, by + bh + 2.0, "column period (4 CK)", c, zs)
+            g.bracket(x0 + 4 * j * p, x0 + (4 * j + 4) * p - 2.0, by + bh + 2.0, f"column period (4 {ck})", c, zc)
 
     def hl(x0, k0, k1, c):                                                      # highlight beats k0..k1
         g.r(x0 + k0 * p - HL / 2, by - HL / 2, (k1 - k0 + 1) * p - 2.0 + HL, bh + HL, "none", c, HL)
@@ -392,7 +394,7 @@ def draw(row_ns, split, tab):
     hl(b2, 1, 3, RED)
     assert by + bh + 2.0 + 3 + zs + 1.5 + 1.5 < zy + zh
     # the count table: equal MAC beats; what each lever removes
-    ty = zy + zh + 9.0
+    ty = zy + zh + 8.5                                                          # 0.5 pt tighter (2026-11-17)
     cols = [(74.0, "MAC beats"), (121.0, "row opens"), (168.0, "column reads"), (214.0, "MAC time")]
     for (c0, h0), (c1, h1) in zip(cols, cols[1:]):
         assert c0 + width(h0, 8.0) / 2 + 4 < c1 - width(h1, 8.0) / 2
