@@ -139,19 +139,18 @@ alone would reach only 2.37$\times$ and 2.62$\times$ stock AiM's speed.
 
 % P:eval-vsweep-gain
 \runin{Tile size on a full GEMM}
-Fig.~\ref{fig:vsweep}a sweeps the tile size $V$ from 1 to 64 for q\_proj at $M = 64$, where every tile is full. With $D = 4$ PU beats per column period (Section~\ref{sec:bg:pim}), up to $V = D$ a larger
-tile fills idle beats, and beyond
-$V = D$ it removes only row-switch commands. CoDe's q\_proj speed-up over stock AiM rises from 1 at $V = 1$ to
-3.86$\times$ on the mobile platform and 3.69$\times$ on the edge server at $V = D$, but only to 4.90$\times$ and
-4.39$\times$ at $V = 64$. On the mobile platform idle beats supply 72\,\% of the time saved from $V = 1$ to 2, and
-row-switch commands 91.6\,\% of that from $V = 4$ to 8.
+Fig.~\ref{fig:vsweep}a sweeps the tile size $V$ from 1 to 64 for q\_proj at $M = 64$, where every tile is full.
+CoDe's q\_proj speed-up over stock AiM rises from 1 at $V = 1$ to 3.86$\times$ on the mobile platform and
+3.69$\times$ on the edge server at $V = D = 4$, but only to 4.90$\times$ and 4.39$\times$ at $V = 64$
+(Section~\ref{sec:design:pu}): on the mobile platform, idle beats supply 72\,\% of the time saved from $V = 1$ to 2,
+and row-switch commands 91.6\,\% of that from $V = 4$ to 8.
 
 % P:eval-vsweep-area
-Past $V = D$ ($D = 4$) CoDe's storage grows faster than its speed. From $V = 4$ to 8 CoDe's logic grows by 19\,\% on the
-mobile platform and by 45\,\% on the edge server, while its speed grows 1.117$\times$ and 1.089$\times$, so
-throughput per logic mm$^2$ peaks at $V = D$ on both platforms, at 2.89$\times$ and 2.28$\times$ stock AiM's, and falls to 1.51$\times$ and 0.34$\times$ at $V = 64$
-(Fig.~\ref{fig:vsweep}a). A full tile thus favours $V = D$, but a decode step runs at small $M$, where a tile's last
-row sweep is often partly filled.
+Past $V = D$ CoDe's storage grows faster than its speed. From $V = 4$ to 8 CoDe's logic grows by 19\,\% on the
+mobile platform and 45\,\% on the edge server, while its speed grows 1.117$\times$ and 1.089$\times$, so throughput
+per logic mm$^2$ peaks at $V = D$, at 2.89$\times$ and 2.28$\times$ stock AiM's, and falls to 1.51$\times$ and
+0.34$\times$ at $V = 64$ (Fig.~\ref{fig:vsweep}a). A full tile thus favours $V = D$, but a decode step runs at small
+$M$, where a tile's last row sweep is often partly filled.
 
 % P:eval-vsweep-choice
 \runin{Tile size across {\boldmath$M$}}
