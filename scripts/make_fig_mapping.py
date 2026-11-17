@@ -9,8 +9,10 @@ proportional to time with two drawing allowances (the paper needs only the impre
 widened to hold their 7 pt labels (CoDe's as wide as stock AiM's), and CoDe's tile-MAC block is widened to hold its
 label (drawn ratio asserted in 2.5..4.40, about 3:1). Lane names sit above the lanes (left-aligned).
 Stock AiM: 8 units RS | MAC x64 | D, one per token; CoDe: RS | tile MAC x64 | D (burst drain), one row sweep. A red
-double arrow "speedup" spans CoDe's end to stock's end (no ratio printed). The zoom shows one tile MAC: one column
-read, 8 beats, two column periods, x64. Table: MAC beats / row opens / column reads / MAC time per weight row.
+double arrow "speedup" spans CoDe's end to stock's end (no ratio printed). Bold labels name the paper's two root causes
+(red, Sec. III-B: row switching overhead above the sad face, idle beats in the stock zoom) and two designs (green,
+Sec. IV-B row reuse under the tile MAC, IV-C beat filling in the CoDe zoom; user 2026-11-16, replacing the zoom
+headers and the column-read triangle). The zoom shows one tile MAC: one column read, 8 beats, two column periods. Table: MAC beats / row opens / column reads / MAC time per weight row.
 MAC time is counted in column periods, not MAC slots: CoDe's MAC slot is 10 ns (Table I), stock AiM's 5 ns.
 
 Source (read only): evaluation/dac_2x2 (collected at 7b4126a; context Sec. 2j, Sec. 5 rows 53-55):
@@ -170,11 +172,6 @@ class S:
                       f'<path d="M{cx - 1.4 * k:.2f} {my:.2f} Q{cx:.2f} {my + m * 1.4 * k:.2f} {cx + 1.4 * k:.2f} {my:.2f}" '
                       f'fill="none" stroke="{color}" stroke-width="{FACE_SW}" stroke-linecap="round"/>')
 
-    def tri(self, x, y, color=INK, h=4.6):
-        """Down-pointing triangle (the column read mark), top edge at y, centred on x."""
-        self.o.append(f'<polygon points="{x - h * 0.6:.2f},{y:.2f} {x + h * 0.6:.2f},{y:.2f} {x:.2f},{y + h:.2f}" '
-                      f'fill="{color}"/>')
-
 
 def I(s):
     return f'<tspan font-style="italic">{s}</tspan>'
@@ -242,7 +239,9 @@ def draw(row_ns, split, tab):
     # stock AiM: 8 adjacent units RS | MAC x64 | D; the lane length is the data (3,250 ns), and RS and D are widened
     # to hold their labels, the MAC block taking the rest of each unit
     yn = yb + 10.0                                                              # lane name
-    ys = yn + 11.5                                                              # lane top (token numbers between)
+    LB = 8.0                                                                    # root-cause / design labels, bold
+    yr1 = yn + 9.5                                                              # "Root cause 1" line, above the face
+    ys = yr1 + 13.6                                                             # lane top (token numbers between)
     uw = (lend - lx) / SWEEPS
     rs_w = max(split["stock"]["row"] * sx, width("RS", 7.0) + 1.8)          # 0.9 pt pad a side (ACM column)
     d_w = max(split["stock"]["drain"] * sx, width("D", 7.0) + 1.8)
@@ -253,7 +252,10 @@ def draw(row_ns, split, tab):
     # list bullets before the two lane names, in each name's colour (user 2026-11-16)
     bul = width("\u2022", 8.0) + 2.0                                          # bullet + 2 pt gap
     g.t(lx, yn, "&#8226;", 8.0, bold=True)
-    g.t(lx + bul, yn, "stock AiM", 8.0, bold=True)
+    nrm = '<tspan font-weight="normal">'
+    slab = "8 separate GEMV row sweeps for tokens 1&#8211;8"
+    g.t(lx + bul, yn, f"stock AiM:{nrm} {slab}</tspan>", 8.0, bold=True)
+    assert lx + bul + width("stock AiM: ", 8.0) * 1.06 + width(slab.replace("&#8211;", "-"), 8.0) < W - 1
     for k in range(SWEEPS):
         x = lx + k * uw
         g.r(x, ys, rs_w, lh, GRAY_RS, INK, 0.5)
@@ -263,7 +265,6 @@ def draw(row_ns, split, tab):
         g.r(x + rs_w + mac_w, ys, d_w, lh, GRAY_D, INK, 0.5)
         g.t(x + rs_w + mac_w + d_w / 2, ys + lh / 2 + 2.5, "D", 7.0, "middle")
         g.t(x + rs_w + mac_w / 2, ys - 2.5, f"{k + 1}", 8.0, "middle")
-    assert yn + 2.5 < ys - 2.5 - 6.0                                            # lane name clear of the token numbers
     # red highlights (user 2026-11-16): each D | RS pair between consecutive tokens, D of token 1 .. RS of token 8,
     # is the time CoDe removes; a small sad face between the token labels 7 and 8
     for k in range(SWEEPS - 1):
@@ -273,24 +274,21 @@ def draw(row_ns, split, tab):
     fy = ys - 2.3 - FACE_R - FACE_SW / 2                                       # face bottom 2.3 pt above the lane
     assert fx - FACE_R - FACE_SW / 2 > lx + 6 * uw + rs_w + mac_w / 2 + width("7", 8.0) / 2 + 2  # clear of "7"
     assert fx + FACE_R + FACE_SW / 2 < lx + 7 * uw + rs_w + mac_w / 2 - width("8", 8.0) / 2 - 2  # clear of "8"
-    assert fy - FACE_R - FACE_SW / 2 > yb + 2.0                                 # under panel (b)'s title line
+    assert fy - FACE_R - FACE_SW / 2 > yr1 + 1.9                                # under the "Root cause 1" line
+    assert yr1 + 1.9 < ys - 2.5 - 5.8                                           # that line clear of the token numbers
     g.face(fx, fy, RED, False)
-    yk = ys + lh + 1.5
-    g.o.append(f'<path d="M{lx:.2f} {yk:.2f} v3 H{lend:.2f} v-3" fill="none" stroke="{INK}" stroke-width="0.6"/>')
-    blab = "8 row sweeps, one per token"
-    bl_y, bl_x = yk + 3 + 8.0 + 1.0, lend - 4.0
-    bw = width(blab, 8.0)                       # white backing: the stock zoom's dashed line passes under the label
-    g.r(bl_x - bw - 0.5, bl_y - 6.0, bw + 1.0, 7.8, "#FFFFFF", "none", 0)
-    g.t(bl_x, bl_y, blab, 8.0, "end")
+    # root cause 1 right above the face: centred on it would cross the canvas edge, so it ends at the right margin
+    rc1 = "Root cause 1: row switching overhead"
+    w_rc1 = width(rc1, LB) * 1.06
+    assert W - 1.0 - w_rc1 < fx - FACE_R and lx + bul + width("stock AiM", 8.0) < W - 1.0 - w_rc1  # over the face
+    g.t(W - 1.0, yr1, rc1, LB, "end", RED, True)
+    bl_y = ys + lh + 9.5                                                        # CoDe's lane name (bracket removed)
     # CoDe: RS | tile MAC x64 | D (burst drain), one row sweep; RS and D as wide as stock AiM's, the tile-MAC block
     # widened to hold its label, so the drawn lanes keep about 3:1 of the 4.40x
     yc = bl_y + 3.0
     g.t(lx, yc - 3.0, "&#8226;", 8.0, fill=EDGE, bold=True)
-    g.t(lx + bul, yc - 3.0, "CoDe", 8.0, fill=EDGE, bold=True)
-    sub = "1 row sweep, tokens 1&#8211;8"
-    sub_x = lx + bul + width("CoDe", 8.0) * 1.06 + 5.0
-    g.t(sub_x, yc - 3.0, sub, 8.0, fill=EDGE)
-    assert sub_x + width("1 row sweep, tokens 1-8", 8.0) + 6 < bl_x - width(blab, 8.0)  # shared line, no touch
+    sub = "1 GEMM sweep for tokens 1&#8211;8"
+    g.t(lx + bul, yc - 3.0, f"CoDe:{nrm} {sub}</tspan>", 8.0, fill=EDGE, bold=True)
     c_rs, c_d = rs_w, d_w
     c_mac = max(split["core8"]["mac"] * sx, width("tile MAC &#215;64".replace("&#215;", "x"), 8.0) + 3.0)
     cend = lx + c_rs + c_mac + c_d
@@ -310,7 +308,11 @@ def draw(row_ns, split, tab):
     g.l(lend, ys + lh, lend, yc + lh + 1.5, "#808080", 0.5, "2 1.5")
     # the stock zoom's dashed lines (drawn later, from token 8's x64 block to the right zoom box) cross the arrow row;
     # "speedup" ends 1.5 pt left of the first line and the enlarged smiling face starts right of it
-    m8z, zy_ = lx + 7 * uw + rs_w, yc + lh + 3.5 + 2.0 + 3.5 + 3.0
+    # design 1 under the tile-MAC block, between the CoDe lane and the time axis (canvas taller by its line)
+    GAP_Z = 3.0
+    yd1 = yc + lh + 7.5
+    yt = yd1 + 3.2
+    m8z, zy_ = lx + 7 * uw + rs_w, yt + 3.5 + GAP_Z
     zx2_ = 1.0 + (8 * 15.0 - 2.0 + 7.0) + 3.5
     xds = [xa + (xb - xa) * (ay - (ys + lh)) / (zy_ - (ys + lh)) for xa, xb in ((m8z, zx2_), (m8z + mac_w, W - 1.0))]
     wt = width("speedup", 8.5) * 1.06
@@ -326,19 +328,18 @@ def draw(row_ns, split, tab):
     assert lb - (cend + 1.0) > 12 and lend - 1.0 - rb > 12                       # both arrow halves visible
     for xd in xds:
         assert abs(xd - fcx) > FACE_R + FACE_SW / 2 + 1.0, (xd, fcx)          # smiling face clear of both lines
-    # time axis under the CoDe lane (user 2026-11-16): the lanes' horizontal direction is time; GAP_T above the axis
-    # and GAP_Z below it added (user 2026-11-16), the canvas taller by exactly GAP_T + GAP_Z
-    GAP_T, GAP_Z = 2.0, 3.0
-    yt = yc + lh + 3.5 + GAP_T
+    # time axis under the CoDe lane and its "Design 1" label (user 2026-11-16): the lanes' horizontal direction is time
+    d1 = "Design 1: row reuse"
+    w_d1, xd1 = width(d1, LB) * 1.06, lx + c_rs + c_mac / 2
+    assert xd1 - w_d1 / 2 > 1.0
     xe = W - 1.0 - width("time", 8.0) - 2.5                                     # 1.3 pt line, 8 pt label (user 2026-11-16)
     g.l(lx, yt, xe, yt, INK, 1.3, extra=' marker-end="url(#ak)"')
     g.t(xe + 2.0, yt + 2.8, "time", 8.0)
     # two zooms at 6.5 pt (user 2026-11-16): left, CoDe's tile MAC (one column read, 8 beats, all filled); right,
     # stock AiM's MAC of token 8 (one column read, 1 beat of 4 filled, 3 idle); the zoom boxes keep the former
-    # bottom edge (yc + lh + 46) plus the two added gaps
+    # bottom edge relative to the time axis
     zs, p, bh = 6.5, 15.0, 9.5                                                  # zoom font, beat pitch, beat height
     zy, zh = yt + 3.5 + GAP_Z, 39.0
-    assert abs(zy + zh - (yc + lh + 46.0 + GAP_T + GAP_Z)) < 1e-9
     assert 4 * p - 2 > width("column period (4 CK)", zs)
     zx1, zw1 = 1.0, 8 * p - 2.0 + 7.0
     zx2 = zx1 + zw1 + 3.5
@@ -346,12 +347,9 @@ def draw(row_ns, split, tab):
     zw2 = W - 1.0 - zx2
     by = zy + 11.5
 
-    def head(x, y, s1, s2, c):
-        g.t(x, y, s1, zs, fill=c)
-        xt = x + width(s1, zs)
-        g.tri(xt + 2.6, y - 4.4, INK, 3.8)
-        g.t(xt + 5.2, y, s2 + ' <tspan font-weight="bold">&#215;64</tspan>', zs, fill=c)
-        return xt + 5.2 + width(s2 + " x64", zs) * 1.06
+    def head(x, y, s, c):                                                       # bold zoom header at LB
+        g.t(x, y, s, LB, fill=c, bold=True)
+        return x + width(s, LB) * 1.06
 
     def beats(x0, n, fills, c):
         g.r(x0 - 1.6, by - 1.6, n * p - 2.0 + 3.2, bh + 3.2, "none", c, 0.5, "2 1.2")   # the one column read
@@ -369,7 +367,10 @@ def draw(row_ns, split, tab):
     g.l(lx + c_rs, yc + lh, zx1, zy, EDGE, 0.5, "2 1.5")
     g.l(lx + c_rs + c_mac, yc + lh, zx1 + zw1, zy, EDGE, 0.5, "2 1.5")
     g.r(zx1, zy, zw1, zh, "#FFFFFF", EDGE, 0.7)
-    assert head(zx1 + 3.0, zy + 8.0, "tile MAC: one column read (", "), 8 beats", EDGE) < zx1 + zw1 - 2
+    assert head(zx1 + 3.0, zy + 8.0, "Design 2: beat filling", GREEN) < zx1 + zw1 - 2
+    # design 1 drawn after the left zoom's dashed lines, on a white backing where they pass under it
+    g.r(xd1 - w_d1 / 2 - 0.5, yd1 - 6.0, w_d1 + 1.0, 8.0, "#FFFFFF", "none", 0)
+    g.t(xd1, yd1, d1, LB, "middle", GREEN, True)
     b1 = zx1 + 3.5
     beats(b1, 8, list(range(8)), EDGE)
     hl(b1, 1, 3, GREEN)
@@ -381,12 +382,10 @@ def draw(row_ns, split, tab):
                         f'<line x1="{m8 + mac_w:.2f}" y1="{ys + lh:.2f}" x2="{zx2 + zw2:.2f}" y2="{zy:.2f}" '
                         f'stroke="{INK}" stroke-width="0.5" stroke-dasharray="2 1.5"/>')
     g.r(zx2, zy, zw2, zh, "#FFFFFF", INK, 0.7)
-    assert head(zx2 + 3.0, zy + 8.0, "stock: one column read (", "), 1 beat", INK) < zx2 + zw2 - 2
+    assert head(zx2 + 3.0, zy + 8.0, "Root cause 2: idle beats", RED) < zx2 + zw2 - 2
     b2 = zx2 + 3.5
     beats(b2, 4, [7, None, None, None], INK)
     hl(b2, 1, 3, RED)
-    g.t(b2 + 4 * p + 1.5, by + 7.0, "idle", zs, fill=RED)
-    assert b2 + 4 * p + 1.5 + width("idle", zs) < zx2 + zw2 - 2
     assert by + bh + 2.0 + 3 + zs + 1.5 + 1.5 < zy + zh
     # the count table: equal MAC beats; what each lever removes
     ty = zy + zh + 9.0
