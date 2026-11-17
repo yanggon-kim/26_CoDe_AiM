@@ -37,6 +37,8 @@ TRACES = ("stock", "core8")
 INK, GRAY_RS, GRAY_D, RULE, NOTE = "#000000", "#A6A6A6", "#FFFFFF", "#BFBFBF", "#404040"
 TINT, EDGE, RED = "#CFE2F3", "#2B5FA8", "#E03127"
 GREEN = "#1A8F3C"                # speedup and the CoDe highlights (user 2026-11-16)
+HL = 1.3                         # red / green highlight stroke, as thick as (a)'s bold boxes (user 2026-11-16)
+FACE_R, FACE_SW = 4.2, 0.9       # faces enlarged from r 3.0 / 0.6 pt strokes (user 2026-11-16)
 
 
 def _mix(a, b, t):
@@ -157,15 +159,16 @@ class S:
         self.o.append(f'<path d="M{x0:.2f} {y:.2f} v3 H{x1:.2f} v-3" fill="none" stroke="{color}" stroke-width="0.6"/>')
         self.t((x0 + x1) / 2, y + 3 + size + 1.5, label, size, "middle", color)
 
-    def face(self, cx, cy, color, smile, r=3.0):
-        """A small line-drawn face (no emoji glyph, so the PDF needs no extra font)."""
+    def face(self, cx, cy, color, smile, r=FACE_R):
+        """A line-drawn face (no emoji glyph, so the PDF needs no extra font); the 3 pt design scaled by r / 3."""
+        k = r / 3.0
         m = 0.9 if smile else -0.9                                             # mouth curvature
-        my = cy + (0.9 if smile else 1.7)
-        self.o.append(f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r}" fill="#FFFFFF" stroke="{color}" stroke-width="0.6"/>'
-                      f'<circle cx="{cx - 1.05:.2f}" cy="{cy - 0.8:.2f}" r="0.42" fill="{color}"/>'
-                      f'<circle cx="{cx + 1.05:.2f}" cy="{cy - 0.8:.2f}" r="0.42" fill="{color}"/>'
-                      f'<path d="M{cx - 1.4:.2f} {my:.2f} Q{cx:.2f} {my + m * 1.4:.2f} {cx + 1.4:.2f} {my:.2f}" '
-                      f'fill="none" stroke="{color}" stroke-width="0.55" stroke-linecap="round"/>')
+        my = cy + (0.9 if smile else 1.7) * k
+        self.o.append(f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r}" fill="#FFFFFF" stroke="{color}" stroke-width="{FACE_SW}"/>'
+                      f'<circle cx="{cx - 1.05 * k:.2f}" cy="{cy - 0.8 * k:.2f}" r="{0.42 * k:.2f}" fill="{color}"/>'
+                      f'<circle cx="{cx + 1.05 * k:.2f}" cy="{cy - 0.8 * k:.2f}" r="{0.42 * k:.2f}" fill="{color}"/>'
+                      f'<path d="M{cx - 1.4 * k:.2f} {my:.2f} Q{cx:.2f} {my + m * 1.4 * k:.2f} {cx + 1.4 * k:.2f} {my:.2f}" '
+                      f'fill="none" stroke="{color}" stroke-width="{FACE_SW}" stroke-linecap="round"/>')
 
     def tri(self, x, y, color=INK, h=4.6):
         """Down-pointing triangle (the column read mark), top edge at y, centred on x."""
@@ -265,10 +268,13 @@ def draw(row_ns, split, tab):
     # is the time CoDe removes; a small sad face between the token labels 7 and 8
     for k in range(SWEEPS - 1):
         x0, x1 = lx + k * uw + rs_w + mac_w, lx + (k + 1) * uw + rs_w
-        g.r(x0 - 0.45, ys - 0.45, x1 - x0 + 0.9, lh + 0.9, "none", RED, 0.9)
+        g.r(x0 - HL / 2, ys - HL / 2, x1 - x0 + HL, lh + HL, "none", RED, HL)
     fx = lx + 6.5 * uw + rs_w + mac_w / 2
-    assert fx - 3.0 > lx + 6 * uw + rs_w + mac_w / 2 + width("7", 8.0) / 2 + 2      # face clear of the labels
-    g.face(fx, ys - 5.3, RED, False)
+    fy = ys - 2.3 - FACE_R - FACE_SW / 2                                       # face bottom 2.3 pt above the lane
+    assert fx - FACE_R - FACE_SW / 2 > lx + 6 * uw + rs_w + mac_w / 2 + width("7", 8.0) / 2 + 2  # clear of "7"
+    assert fx + FACE_R + FACE_SW / 2 < lx + 7 * uw + rs_w + mac_w / 2 - width("8", 8.0) / 2 - 2  # clear of "8"
+    assert fy - FACE_R - FACE_SW / 2 > yb + 2.0                                 # under panel (b)'s title line
+    g.face(fx, fy, RED, False)
     yk = ys + lh + 1.5
     g.o.append(f'<path d="M{lx:.2f} {yk:.2f} v3 H{lend:.2f} v-3" fill="none" stroke="{INK}" stroke-width="0.6"/>')
     blab = "8 row sweeps, one per token"
@@ -296,22 +302,30 @@ def draw(row_ns, split, tab):
     g.t(lx + c_rs + c_mac / 2, yc + lh / 2 + 2.8, "tile MAC &#215;64", 8.0, "middle", EDGE)
     g.r(lx + c_rs + c_mac, yc, c_d, lh, GRAY_D, INK, 0.5)
     g.t(lx + c_rs + c_mac + c_d / 2, yc + lh / 2 + 2.5, "D", 7.0, "middle")
-    g.r(lx - 0.45, yc - 0.45, c_rs + 0.9, lh + 0.9, "none", GREEN, 0.9)          # green: what CoDe pays once
-    g.r(lx + c_rs + c_mac - 0.45, yc - 0.45, c_d + 0.9, lh + 0.9, "none", GREEN, 0.9)
+    g.r(lx - HL / 2, yc - HL / 2, c_rs + HL, lh + HL, "none", GREEN, HL)          # green: what CoDe pays once
+    g.r(lx + c_rs + c_mac - HL / 2, yc - HL / 2, c_d + HL, lh + HL, "none", GREEN, HL)
     # speedup: from CoDe's end to stock AiM's end, the label inside a break in the arrow
     ay = yc + lh / 2
     g.l(cend, yc, cend, yc + lh + 1.5, "#808080", 0.5, "2 1.5")
     g.l(lend, ys + lh, lend, yc + lh + 1.5, "#808080", 0.5, "2 1.5")
-    sm, wt = (cend + lend) / 2, width("speedup", 8.5) * 1.06
-    tx = sm - 4.0                                                               # "speedup", a smiling face on its right
-    fcx = tx + wt / 2 + 5.5
-    lb, rb = tx - wt / 2 - 3.0, fcx + 3.0 + 2.5
+    # the stock zoom's dashed lines (drawn later, from token 8's x64 block to the right zoom box) cross the arrow row;
+    # "speedup" ends 1.5 pt left of the first line and the enlarged smiling face starts right of it
+    m8z, zy_ = lx + 7 * uw + rs_w, yc + lh + 3.5 + 2.0 + 3.5 + 3.0
+    zx2_ = 1.0 + (8 * 15.0 - 2.0 + 7.0) + 3.5
+    xds = [xa + (xb - xa) * (ay - (ys + lh)) / (zy_ - (ys + lh)) for xa, xb in ((m8z, zx2_), (m8z + mac_w, W - 1.0))]
+    wt = width("speedup", 8.5) * 1.06
+    tx = xds[0] - 1.5 - wt / 2                                                  # "speedup", a smiling face on its right
+    fcx = tx + wt / 2 + 3.5 + FACE_R
+    lb, rb = tx - wt / 2 - 3.0, fcx + FACE_R + 2.5
     g.l(cend + 1.0, ay, lb, ay, GREEN, 0.9, extra=' marker-start="url(#ar)"')
     g.l(rb, ay, lend - 1.0, ay, GREEN, 0.9, extra=' marker-end="url(#ar)"')
-    g.r(lb, ay - 4.5, rb - lb, 9.0, "#FFFFFF", "none", 0)                    # white backing under the dashed line
+    fh = FACE_R + FACE_SW / 2 + 0.3
+    g.r(lb, ay - fh, rb - lb, 2 * fh, "#FFFFFF", "none", 0)                  # white backing under the dashed line
     g.t(tx, ay + 3.0, "speedup", 8.5, "middle", GREEN, True)
     g.face(fcx, ay, GREEN, True)
     assert lb - (cend + 1.0) > 12 and lend - 1.0 - rb > 12                       # both arrow halves visible
+    for xd in xds:
+        assert abs(xd - fcx) > FACE_R + FACE_SW / 2 + 1.0, (xd, fcx)          # smiling face clear of both lines
     # time axis under the CoDe lane (user 2026-11-16): the lanes' horizontal direction is time; GAP_T above the axis
     # and GAP_Z below it added (user 2026-11-16), the canvas taller by exactly GAP_T + GAP_Z
     GAP_T, GAP_Z = 2.0, 3.0
@@ -328,6 +342,7 @@ def draw(row_ns, split, tab):
     assert 4 * p - 2 > width("column period (4 CK)", zs)
     zx1, zw1 = 1.0, 8 * p - 2.0 + 7.0
     zx2 = zx1 + zw1 + 3.5
+    assert abs(zy - zy_) < 1e-9 and abs(zx2 - zx2_) < 1e-9                       # the face check used these
     zw2 = W - 1.0 - zx2
     by = zy + 11.5
 
@@ -348,7 +363,7 @@ def draw(row_ns, split, tab):
             g.bracket(x0 + 4 * j * p, x0 + (4 * j + 4) * p - 2.0, by + bh + 2.0, "column period (4 CK)", c, zs)
 
     def hl(x0, k0, k1, c):                                                      # highlight beats k0..k1
-        g.r(x0 + k0 * p - 0.8, by - 0.8, (k1 - k0 + 1) * p - 2.0 + 1.6, bh + 1.6, "none", c, 0.9)
+        g.r(x0 + k0 * p - HL / 2, by - HL / 2, (k1 - k0 + 1) * p - 2.0 + HL, bh + HL, "none", c, HL)
 
     # left: CoDe's tile MAC
     g.l(lx + c_rs, yc + lh, zx1, zy, EDGE, 0.5, "2 1.5")
