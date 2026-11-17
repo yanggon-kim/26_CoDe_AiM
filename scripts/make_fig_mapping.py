@@ -310,9 +310,9 @@ def draw(row_ns, split, tab):
     assert lb - (cend + 1.0) > 12 and lend - 1.0 - rb > 12                       # both arrow halves visible
     # time axis under the CoDe lane (user 2026-11-16): the lanes' horizontal direction is time
     yt = yc + lh + 3.5
-    xe = W - 1.0 - width("time", 6.5) - 2.5
-    g.l(lx, yt, xe, yt, INK, 0.5, extra=' marker-end="url(#ak)"')
-    g.t(xe + 2.0, yt + 2.2, "time", 6.5)
+    xe = W - 1.0 - width("time", 8.0) - 2.5                                     # 1.3 pt line, 8 pt label (user 2026-11-16)
+    g.l(lx, yt, xe, yt, INK, 1.3, extra=' marker-end="url(#ak)"')
+    g.t(xe + 2.0, yt + 2.8, "time", 8.0)
     # two zooms at 6.5 pt (user 2026-11-16): left, CoDe's tile MAC (one column read, 8 beats, all filled); right,
     # stock AiM's MAC of token 8 (one column read, 1 beat of 4 filled, 3 idle); the zoom boxes keep the former
     # bottom edge (yc + lh + 46), so the canvas height is unchanged
@@ -390,7 +390,7 @@ def draw(row_ns, split, tab):
     fig = Fig(W, Hh)
     marker = ('<marker id="ar" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="4.5" markerHeight="4.5" '
               f'orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="{GREEN}"/></marker>'
-              '<marker id="ak" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="6" markerHeight="6" '
+              '<marker id="ak" viewBox="0 0 6 6" refX="5.5" refY="3" markerWidth="4" markerHeight="4" '
               f'orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="{INK}"/></marker>')
     fig.o = ["<defs>" + marker + "</defs>"] + g.o
     fig.write("fig_mapping", "scripts/make_fig_mapping.py from evaluation/dac_2x2/raw/utrace_run_{stock,core8}.csv. "
