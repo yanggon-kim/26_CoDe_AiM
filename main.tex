@@ -26,9 +26,10 @@
 %%%%%%%%%%%---SETME-----%%%%%%%%%%%%%
 \newcommand{\iscasubmissionnumber}{1011}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% the ISCA banner, centred at the top of page 1 (drawn on the first shipout; the template's layout is untouched)
+% the ISCA banner, centred on page 1 at the running-head line so page 1's text height matches the other pages
+% (HotCRP checks 236 mm); drawn on the first shipout, the template's layout is untouched
 \AddToHookNext{shipout/foreground}{%
-  \put(0.5\paperwidth,-0.42in){\makebox[0pt][c]{\normalfont\normalsize ISCA 2027 Submission
+  \put(0.5\paperwidth,-0.975in){\makebox[0pt][c]{\normalfont\normalsize ISCA 2027 Submission
     \textbf{\#\iscasubmissionnumber} -- Confidential Draft -- Do NOT Distribute!!}}}
 
 % ---- macros -----------------------------------------------------------------
