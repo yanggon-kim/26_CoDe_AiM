@@ -177,6 +177,14 @@ def I(s):
     return f'<tspan font-style="italic">{s}</tspan>'
 
 
+def SUB(base, s, size, tail=""):
+    """Italic base with an upright subscript at 0.7 em, lowered 0.22 em by dy (Chrome's baseline-shift="sub" drops
+    too far); the tail (text after the subscript) is lifted back to the baseline (user 2026-11-17)."""
+    k, d = 0.7 * size, 0.22 * size
+    back = f'<tspan dy="{-d:.2f}">{tail}</tspan>' if tail else ""
+    return f'{I(base)}<tspan font-size="{k:.2f}" dy="{d:.2f}">{s}</tspan>{back}'
+
+
 def draw(row_ns, split, tab):
     W = 240.0                       # ACM sigconf \columnwidth in pt (IEEEtran was 252)
     g = S()
@@ -344,9 +352,9 @@ def draw(row_ns, split, tab):
     # bottom edge relative to the time axis
     zs, p, bh = 6.5, 15.0, 9.5                                                  # zoom font, beat pitch, beat height
     zy, zh = yt + 3.5 + GAP_Z, 38.0                                            # 1 pt shorter (2026-11-17)
-    ck = f"{I('t')}<tspan font-size=\"6\" baseline-shift=\"sub\">CK</tspan>"  # t_CK as in the caption (2026-11-17)
     zc = 6.3                                                                    # bracket label 6.5 -> 6.3 pt to fit t_CK
-    assert 4 * p - 2 > width("column period (4 t)", zc) + width("CK", 6.0)        # label within its bracket
+    ck = SUB("t", "CK", zc, ")")                                                # t_CK as in the caption (2026-11-17)
+    assert 4 * p - 2 > width("column period (4 t)", zc) + width("CK", 0.7 * zc)   # label within its bracket
     zx1, zw1 = 1.0, 8 * p - 2.0 + 7.0
     zx2 = zx1 + zw1 + 3.5
     assert abs(zy - zy_) < 1e-9 and abs(zx2 - zx2_) < 1e-9                       # the face check used these
@@ -364,7 +372,7 @@ def draw(row_ns, split, tab):
             if f is not None:
                 g.t(x0 + k * p + (p - 2.0) / 2, by + 7.0, f"{f + 1}", zs, "middle", TOKT[f], True)
         for j in range(n // 4):
-            g.bracket(x0 + 4 * j * p, x0 + (4 * j + 4) * p - 2.0, by + bh + 2.0, f"column period (4 {ck})", c, zc)
+            g.bracket(x0 + 4 * j * p, x0 + (4 * j + 4) * p - 2.0, by + bh + 2.0, f"column period (4 {ck}", c, zc)
 
     def hl(x0, k0, k1, c):                                                      # highlight beats k0..k1
         g.r(x0 + k0 * p - HL / 2, by - HL / 2, (k1 - k0 + 1) * p - 2.0 + HL, bh + HL, "none", c, HL)
@@ -401,7 +409,7 @@ def draw(row_ns, split, tab):
     for cx, h in cols:
         g.t(cx, ty, h, 8.0, "middle", NOTE)
     g.l(1, ty + 3.0, W - 1, ty + 3.0, RULE, 0.6)
-    tcol = f"{I('t')}<tspan font-size=\"6\" baseline-shift=\"sub\">col</tspan>"
+    tcol = SUB("t", "col", 8.0)
     rows = [("stock AiM", INK, tab["stock"]), ("CoDe", INK, tab["core8"])]
     for i, (name, c, v) in enumerate(rows):
         yy = ty + 11.5 + i * 9.5
@@ -421,7 +429,7 @@ def draw(row_ns, split, tab):
     fig.o = ["<defs>" + marker + "</defs>"] + g.o
     fig.write("fig_mapping", "scripts/make_fig_mapping.py from evaluation/dac_2x2/raw/utrace_run_{stock,core8}.csv. "
               "Text below 8 pt is the user's explicit decision (2026-10-29): panel (b)'s RS and D labels inside their "
-              "boxes at 7 pt and stock AiM's x64 at 6.5 pt (and the t_col subscript at 6 pt); the two zoom boxes at 6.5 pt "
+              "boxes at 7 pt and stock AiM's x64 at 6.5 pt (subscripts at 0.7 em); the two zoom boxes at 6.5 pt "
               "(user 2026-11-16)")
     print(f"drawn lane ratio {drawn:.2f} (data {row_ns['stock'] / row_ns['core8']:.2f})")
 
